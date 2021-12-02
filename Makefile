@@ -1,11 +1,13 @@
 
 
 
+
 document:
 	Rscript -e 'devtools::document()'
 
 install: document
 	Rscript -e 'devtools::install()'
+	Rscript -e 'library("EUPPB"); download(dataset("reforecasts", "surface", "2021-02-02", "t2")'
 
 check: document
 	Rscript -e 'devtools::check()'
