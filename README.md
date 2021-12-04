@@ -2,7 +2,8 @@
 
 # Licenses
 
-* Data license: see `DATA_LICENSE` included in package.
+* Software license see <LICENSE>.
+* For data license see <DATA_LICENSE> included in package.
 
 # Requirements
 
@@ -13,8 +14,6 @@
     is done locally and requires the ecCodes tools to be installed, namely
     `grib_to_netcdf`. On most Linux systems install `libeccodes-tools` via
     package manager.
-* NCEPs `[wgrib2](https://www.cpc.ncep.noaa.gov/products/wesley/wgrib2/)` utility
-    is required currently to generate spatial subsets. 
 
 ## R packages
 

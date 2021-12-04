@@ -5,6 +5,10 @@
 # -----------------------------------------------------------------------
 # -----------------------------------------------------------------------
 
+#' @param x an object of class \code{eupp_config}.
+#' @param output_file character length 1, name of the output file.
+#' @param output_format character length 1, defaults to \code{"guess"} (see details).
+#' @param verbose logical length 1, verbosity, defaults to \code{FALSE}.
 #'
 #' @details Using partial matching for \code{x} and \code{level}.
 #'
@@ -15,7 +19,8 @@
 #' @export
 download_dataset <- function(x,
                              output_file,
-                             output_format = c("guess", "grb", "nc")) {
+                             output_format = c("guess", "grb", "nc"),
+                             verbose = FALSE) {
 
     # ----------------------------------------------
     # Sanity checks
@@ -81,14 +86,12 @@ download_dataset <- function(x,
     }
     close(pb)
 
-    # If areal subsetting is required: 
-
     # Move file to final destination
     if (output_format == "grb") {
         file.rename(tmp_file, output_file)
     } else {
         cat("Calling grib_to_netcdf to convert file format\n")
-        system(sprintf("grib_to_netcdf %s -o %s", tmp_file, output_file))
+        system(sprintf("grib_to_netcdf %s -o %s", tmp_file, output_file), intern = !verbose)
     }
 
     unlink(tmp_file)         # Delete temporary file
