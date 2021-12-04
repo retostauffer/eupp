@@ -1,5 +1,27 @@
 
 
+#' Getting Grib Data as stars
+#'
+#' Requires ncdf4 and the NetCDF Library to be installed.
+#'
+#' @return Yes :) TODO
+#'
+#' @author Reto Stauffer
+#' @export
+get_dataset <- function(x, verbose = FALSE) {
+
+    tmp_file <- tempfile(fileext = ".nc")
+    tmp_file <- download_dataset(x, tmp_file, "nc", verbose = verbose)
+
+    # Reading the NetCDF file as stars
+    data <- read_stars(tmp_file)
+    # Subsetting requested?
+    if (!is.null(x$area)) data[x$area]
+
+    return(data)
+}
+
+
 #' Get Configuration
 #'
 #' Provides a series of parameters. Internal use only.

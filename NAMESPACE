@@ -3,6 +3,7 @@
 S3method(print,eupp_config)
 export(download_dataset)
 export(eupp_config)
+export(get_dataset)
 export(get_inventory)
 importFrom(digest,digest)
 importFrom(dplyr,bind_rows)
