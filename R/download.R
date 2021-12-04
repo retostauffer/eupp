@@ -12,11 +12,33 @@
 #' @importFrom httr GET
 #' @author Reto Stauffer
 #' @export
-download_dataset <- function(x, kind, level, date, parameter, version = 0L) {
+download_dataset <- function(x, kind, level, date, parameter,
+                             output_file,
+                             output_format = c("grb", "nc"),
+                             version = 0L, cache = NULL) {
 
     # Sanity checks
-    inputargs <- download_inputcheck(x, kind, level, date, parameter, version)
+    inputargs <- download_inputcheck(x, kind, level, date, parameter, version, cache = cache)
     for (n in names(inputargs)) eval(parse(text = sprintf("%1$s <- inputargs[[\"%1$s\"]]", n)))
+
+    # Output format
+    stopifnot(is.character(output_file), length(output_file) == 1L)
+    if (dir.exists(output_file)) stop("'output_file' is an existing directory.")
+
+    #' TODO: We can also just ... kill it?
+    if (file.exists(output_file)) stop("'output_file' exists.")
+    # Checking if output path exists
+    if (!dir.exists(dirname(output_file)))
+        stop("Cannot write 'output_file' to \"{:s}\", directory does not exist.", dirname(output_file))
+
+    output_format <- match.arg(output_format)
+    if (output_format == "nc") {
+        g2nc_bin <- Sys.which("grib_to_netcdf")
+        if (nchar(g2nc_bin) == 0) {
+            # Stop
+            stop("To be able to use 'output_format = \"nc\" you must install 'grib_to_netcdf' from ECMWFs ecCodes toolbox.")
+        }
+    }
 
     # Reforecasts only initialized on Mondays (1) and Thursdays (4)
     if (grepl(x, "^reforecast$") & !all(format(date, "%w") %in% c(1, 4)))
@@ -25,10 +47,30 @@ download_dataset <- function(x, kind, level, date, parameter, version = 0L) {
     # ----------------------------------------------
     # Getting public URL
     # ----------------------------------------------
-    print(c(list(fileext = "index"), inputargs))
-    index_url <- do.call(get_source_url, c(list(fileext = "index"), inputargs))
-    grib_url  <- do.call(get_source_url, inputargs)
+    inv       <- do.call(get_inventory, inputargs)
+    print(inv)
+    print(dim(inv))
 
+    # Source URL of the grib file
+    grib_url  <- do.call(get_source_url, inputargs)
+    tmp_file <- tempfile(fileext = ".grb")
+    print(tmp_file)
+
+    # Open binary file connection; temporary file.
+    # Download everything and then create final ouptut file.
+    con      <- file(tmp_file, "wb"); on.exit(close(con))
+    pb <- txtProgressBar(0, nrow(inv), style = 3)
+    for (i in seq_len(nrow(inv))) {
+        setTxtProgressBar(pb, i)
+        rng <- sprintf("bytes=%d-%d", inv$offset[i], inv$offset[i] + inv$length[i])
+        req <- GET(URL, add_headers(Range = rng))
+        writeBin(req$content, con = con)
+    }
+    close(pb)
+
+
+
+    return(tmp_file)
 
 }
 
@@ -41,6 +83,7 @@ download_dataset <- function(x, kind, level, date, parameter, version = 0L) {
 #' @importFrom dplyr bind_rows
 #' @importFrom rjson fromJSON
 #' @importFrom digest digest
+#' @importFrom httr GET status_code content
 #' @author Reto Stauffer
 #' @export
 get_inventory <- function(x, kind, level, date, parameter, version = 0L, cache = NULL) {
@@ -55,8 +98,8 @@ get_inventory <- function(x, kind, level, date, parameter, version = 0L, cache =
     # Helper function to download and parse requests
     fn_GET <- function(x) {
         request <- GET(x)
-        if (!request$status_code == 200L)
-            stop(sprintf("Problems accessing \"%s\"; return code %d.", x, request$status_code))
+        if (!status_code(request) == 200L)
+            stop(sprintf("Problems accessing \"%s\"; return code %d.", x, status_code(request)))
         tmp <- readLines(con = textConnection(content(request, "text", encoding = "UTF-8")))
         return(tmp[sapply(tmp, nchar) > 0])
     }
@@ -89,6 +132,7 @@ get_inventory <- function(x, kind, level, date, parameter, version = 0L, cache =
 
     # Subsetting to what the user has requested
     inv <- subset(inv, init %in% date & param %in% parameter)
+    class(inv) <- c("eupp_inventory", class(inv))
     return(inv)
 }
 
@@ -128,7 +172,7 @@ download_inputcheck <- function(x     = c("reforecast", "forecast", "analysis"),
     x     <- match.arg(x)
     kind  <- match.arg(kind)
     level <- match.arg(level)
-    if (anyDuplicated(parameters)) {
+    if (anyDuplicated(parameter)) {
         warning("Got duplicated parameters; unified.")
         parameter <- unique(parameter)
     }
@@ -141,9 +185,6 @@ download_inputcheck <- function(x     = c("reforecast", "forecast", "analysis"),
         tryCatch(date <- as.POSIXct(date),
                  warning = function(w) warning(w),
                  error   = function(e) stop("Input 'date' not recognized; use ISO format."))
-
-        print(date)
-        print(class(date))
     # If input was of class Date or POSIXlt: convert to POSIXct.
     } else if (!inherits(date, "POSIXct")) {
         date <- as.POSIXct(date)
