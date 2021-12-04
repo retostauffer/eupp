@@ -28,35 +28,31 @@ get_config <- function() {
 #' @return Returns a character of length 1, URL to retrieve the data set.
 #'
 #' @author Reto Stauffer
-get_source_url <- function(x, kind, level, date, parameter, version = 0L, fileext = NULL, ...) {
-    # ---------------------
-    # Quick sanity check
-    # ---------------------
-    inputargs <- download_inputcheck(x, kind, level, date, parameter, version)
-    for (n in names(inputargs)) eval(parse(text = sprintf("%1$s <- inputargs[[\"%1$s\"]]", n)))
+get_source_url <- function(x, fileext = NULL, ...) {
+    stopifnot(inherits(x, "eupp_config"))
 
     if (length(fileext) == 0) fileext <- NULL
     stopifnot(inherits(fileext, c("NULL", "character")))
 
     # Get date in the format required for the URL; must be
     # done before converting 'x' below.
-    fmt <- c(reforecast = "%Y-%m-%d", forecast = "%Y-%m", analysis = "%Y-%m")[x]
-    date <- format(date, fmt)
+    fmt <- c(reforecast = "%Y-%m-%d", forecast = "%Y-%m", analysis = "%Y-%m")[x$type]
+    x$date <- format(x$date, fmt)
 
     # Convert 'x' (type) and level
-    x_abbr <- c(reforecast = "rfcs", forecast = "fcs", analysis = "ana")[x]
-    level  <- c(surface = "surf", pressure = "pressure", efi = "efi")[level]
+    type_abbr <- c(reforecast = "rfcs", forecast = "fcs", analysis = "ana")[x$type]
+    level     <- c(surface = "surf", pressure = "pressure", efi = "efi")[x$level]
 
     # Getting basic config
     conf <- get_config()
 
     URL <- paste(conf$BASEURL, conf$PATTERN, sep = "/")
-    URL <- gsub("\\{\\{type_abbr\\}\\}",   x_abbr,  URL)
-    URL <- gsub("\\{\\{type\\}\\}",        x,       URL)
-    URL <- gsub("\\{\\{level\\}\\}",       level,   URL)
-    URL <- gsub("\\{\\{isodate\\}\\}",     date,    URL)
-    URL <- gsub("\\{\\{version\\}\\}",     version, URL)
-    if (!is.null(fileext)) URL <- sprintf("%s.%s", URL, fileext)
+    URL <- gsub("\\{\\{type_abbr\\}\\}",   x$type_abbr,  URL)
+    URL <- gsub("\\{\\{type\\}\\}",        x$type,       URL)
+    URL <- gsub("\\{\\{level\\}\\}",       x$level,      URL)
+    URL <- gsub("\\{\\{isodate\\}\\}",     x$date,       URL)
+    URL <- gsub("\\{\\{version\\}\\}",     x$version,    URL)
+    if (!is.null(fileext)) URL <- paste(URL, fileext, sep = ".")
 
     return(URL)
 }

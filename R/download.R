@@ -9,29 +9,47 @@
 #' @details Using partial matching for \code{x} and \code{level}.
 #'
 #' @rdname download
-#' @importFrom httr GET
+#' @importFrom httr GET add_headers
+#' @importFrom tools file_ext
 #' @author Reto Stauffer
 #' @export
-download_dataset <- function(x, kind, level, date, parameter,
+download_dataset <- function(x,
                              output_file,
-                             output_format = c("grb", "nc"),
+                             output_format = c("guess", "grb", "nc"),
                              version = 0L, cache = NULL) {
 
+    # ----------------------------------------------
     # Sanity checks
-    inputargs <- download_inputcheck(x, kind, level, date, parameter, version, cache = cache)
-    for (n in names(inputargs)) eval(parse(text = sprintf("%1$s <- inputargs[[\"%1$s\"]]", n)))
+    # ----------------------------------------------
 
-    # Output format
+    # Checking main input object
+    stopifnot(inherits(x, c("eupp_config", "eupp_inventory")))
+
+    # Sanity check for putput file
     stopifnot(is.character(output_file), length(output_file) == 1L)
     if (dir.exists(output_file)) stop("'output_file' is an existing directory.")
-
-    #' TODO: We can also just ... kill it?
+    # TODO: We can also just ... kill it?
     if (file.exists(output_file)) stop("'output_file' exists.")
     # Checking if output path exists
     if (!dir.exists(dirname(output_file)))
         stop("Cannot write 'output_file' to \"{:s}\", directory does not exist.", dirname(output_file))
 
+    # Now guessing output file type
+    if (grepl("[;<>]", output_file)) stop("'output_file' contains illegal characters.")
     output_format <- match.arg(output_format)
+    if (output_format == "guess") {
+        # pattern matches grb, grib, GRIB, GRIB1 ...
+        fext <- file_ext(output_file)
+        if (length(regmatches(fext, gregexpr("[grb]", fext, ignore.case = TRUE))[[1]]) >= 3) {
+            output_format <- "grb"
+        } else if (length(regmatches(fext, gregexpr("[nc]", fext, ignore.case = TRUE))[[1]]) >= 2) {
+            output_format <- "nc"
+        } else {
+            stop("Please provide 'output_format'.")
+        }
+    }
+
+    # If the user requests netCDF: check grib_to_netcdf is available.
     if (output_format == "nc") {
         g2nc_bin <- Sys.which("grib_to_netcdf")
         if (nchar(g2nc_bin) == 0) {
@@ -41,19 +59,15 @@ download_dataset <- function(x, kind, level, date, parameter,
     }
 
     # Reforecasts only initialized on Mondays (1) and Thursdays (4)
-    if (grepl(x, "^reforecast$") & !all(format(date, "%w") %in% c(1, 4)))
+    if (grepl(x$type, "^reforecast$") & !all(format(x$date, "%w") %in% c(1, 4)))
         stop("Reforecasts only available on Mondays and Thursdays, check 'date'.")
 
     # ----------------------------------------------
-    # Getting public URL
+    # Main content of the function
     # ----------------------------------------------
-    inv       <- do.call(get_inventory, inputargs)
-    print(inv)
-    print(dim(inv))
-
-    # Source URL of the grib file
-    grib_url  <- do.call(get_source_url, inputargs)
-    tmp_file <- tempfile(fileext = ".grb")
+    inv       <- get_inventory(x)           # Loading inventory information
+    grib_url  <- get_source_url(x)          # Getting data url (location of grib file)
+    tmp_file <- tempfile(fileext = ".grb")  # Temporary location for download
     print(tmp_file)
 
     # Open binary file connection; temporary file.
@@ -63,14 +77,22 @@ download_dataset <- function(x, kind, level, date, parameter,
     for (i in seq_len(nrow(inv))) {
         setTxtProgressBar(pb, i)
         rng <- sprintf("bytes=%d-%d", inv$offset[i], inv$offset[i] + inv$length[i])
-        req <- GET(URL, add_headers(Range = rng))
+        req <- GET(grib_url, add_headers(Range = rng))
         writeBin(req$content, con = con)
     }
     close(pb)
 
 
+    # Move file to final destination
+    if (output_format == "grb") {
+        file.rename(tmp_file, output_file)
+    } else {
+        cat("Calling grib_to_netcdf to convert file format\n")
+        system(sprintf("grib_to_netcdf %s -o %s", tmp_file, output_file))
+    }
 
-    return(tmp_file)
+    unlink(tmp_file)         # Delete temporary file
+    invisible(output_file)   # Return final file name
 
 }
 
@@ -86,14 +108,12 @@ download_dataset <- function(x, kind, level, date, parameter,
 #' @importFrom httr GET status_code content
 #' @author Reto Stauffer
 #' @export
-get_inventory <- function(x, kind, level, date, parameter, version = 0L, cache = NULL) {
+get_inventory <- function(x) {
 
-    # Sanity checks
-    inputargs <- download_inputcheck(x, kind, level, date, parameter, version, cache)
-    for (n in names(inputargs)) eval(parse(text = sprintf("%1$s <- inputargs[[\"%1$s\"]]", n)))
+    stopifnot(inherits(x, "eupp_config"))
 
     # Getting the URL where the grib file index is stored
-    index_url <- do.call(get_source_url, c("fileext" = "index", inputargs))
+    index_url <- do.call(get_source_url, list(x = x, fileext = "index"))
 
     # Helper function to download and parse requests
     fn_GET <- function(x) {
@@ -108,8 +128,8 @@ get_inventory <- function(x, kind, level, date, parameter, version = 0L, cache =
     # - hashing URL for unique file names
     # - If file does exist on disc: read file
     # - Else download data; save to cache file for next time
-    if (is.character(cache)) {
-        cached_file <- paste(file.path(cache, digest(index_url)), "index", sep = ".")
+    if (is.character(x$cache)) {
+        cached_file <- paste(file.path(x$cache, digest(index_url)), "index", sep = ".")
         if (file.exists(cached_file)) {
             inv <- readLines(cached_file)
         } else {
@@ -131,7 +151,7 @@ get_inventory <- function(x, kind, level, date, parameter, version = 0L, cache =
     inv <- within(inv, {date <- time <- NULL})
 
     # Subsetting to what the user has requested
-    inv <- subset(inv, init %in% date & param %in% parameter)
+    inv <- subset(inv, init %in% x$date & param %in% x$parameter)
     class(inv) <- c("eupp_inventory", class(inv))
     return(inv)
 }
@@ -139,25 +159,78 @@ get_inventory <- function(x, kind, level, date, parameter, version = 0L, cache =
 # -----------------------------------------------------------------------
 # -----------------------------------------------------------------------
 
-#' @param x character, length \code{1}. Either \code{reforecast} or \code{forecast}.
-#' @param level character, length \code{1}. Allowed are \code{surface}, \code{pressure}
-#'        and \code{efi} (extreme forecast index).
-#' @param date object of class \code{character}, \code{Date}, or inheriting from
-#'        \code{POSIXt}.
-#' @param version integer, defaults to \code{0L}.
-#' @param cache \code{NULL} or single character, used for data caching. Defaults to \code{NULL}.
+######' @param x character, length \code{1}. Either \code{reforecast} or \code{forecast}.
+######' @param level character, length \code{1}. Allowed are \code{surface}, \code{pressure}
+######'        and \code{efi} (extreme forecast index).
+######' @param date object of class \code{character}, \code{Date}, or inheriting from
+######'        \code{POSIXt}.
+######' @param version integer, defaults to \code{0L}.
+######' @param cache \code{NULL} or single character, used for data caching. Defaults to \code{NULL}.
+######'
+######' @rdname download
+######' @author Reto Stauffer
+######
+######download_inputcheck <- function(x     = c("reforecast", "forecast", "analysis"),
+######                                kind  = c("ctr", "ens", "hr"),
+######                                level = c("surface", "pressure", "efi"),
+######                                date, parameter, version = 0L, cache = NULL) {
+######
+######    # ----------------------------------------------
+######    # Sanity checks:
+######    # ----------------------------------------------
+######    stopifnot(is.character(x),          length(x) == 1L)
+######    stopifnot(is.character(kind),       length(kind) == 1L)
+######    stopifnot(is.character(level),      length(level) == 1L)
+######    stopifnot(is.character(parameter),  length(parameter) > 0L)
+######    stopifnot(is.integer(version),      length(version) == 1L)
+######    stopifnot(inherits(cache, c("NULL", "character")))
+######    if (!is.null(cache)) {
+######        stopifnot(length(cache) == 1L)
+######        if (!dir.exists(cache))
+######            stop("Argument 'code' must point to an existing folder if set.")
+######    }
+######
+######    x     <- match.arg(x)
+######    kind  <- match.arg(kind)
+######    level <- match.arg(level)
+######    if (anyDuplicated(parameter)) {
+######        warning("Got duplicated parameters; unified.")
+######        parameter <- unique(parameter)
+######    }
+######
+######    #@TODO: Allow to download multiple dates at once
+######    # Make sure input for 'date' is allowed.
+######    stopifnot(inherits(date, c("character", "Date", "POSIXt")), length(date) == 1L)
+######    # If input 'date' is character; try to convert to character.
+######    if (is.character(date)) {
+######        tryCatch(date <- as.POSIXct(date),
+######                 warning = function(w) warning(w),
+######                 error   = function(e) stop("Input 'date' not recognized; use ISO format."))
+######    # If input was of class Date or POSIXlt: convert to POSIXct.
+######    } else if (!inherits(date, "POSIXct")) {
+######        date <- as.POSIXct(date)
+######    }
+######
+######    return(list(x = x, kind = kind, level = level, date = date,
+######                parameter = parameter, version = version, cache = cache))
+######}
+
+
+#' Creates EUPP Config used as Data Descriptor
 #'
-#' @rdname download
+#' Used to retrieve data and inventories. 
+#'
 #' @author Reto Stauffer
-download_inputcheck <- function(x     = c("reforecast", "forecast", "analysis"),
-                                kind  = c("ctr", "ens", "hr"),
-                                level = c("surface", "pressure", "efi"),
-                                date, parameter, version = 0L, cache = NULL) {
+#' @export
+eupp_config <- function(type  = c("reforecast", "forecast", "analysis"),
+                        kind  = c("ctr", "ens", "hr"),
+                        level = c("surf", "pressure", "efi"),
+                        date, parameter, version = 0L, cache = NULL) {
 
     # ----------------------------------------------
     # Sanity checks:
     # ----------------------------------------------
-    stopifnot(is.character(x),          length(x) == 1L)
+    stopifnot(is.character(type),       length(type) == 1L)
     stopifnot(is.character(kind),       length(kind) == 1L)
     stopifnot(is.character(level),      length(level) == 1L)
     stopifnot(is.character(parameter),  length(parameter) > 0L)
@@ -169,7 +242,7 @@ download_inputcheck <- function(x     = c("reforecast", "forecast", "analysis"),
             stop("Argument 'code' must point to an existing folder if set.")
     }
 
-    x     <- match.arg(x)
+    type  <- match.arg(type)
     kind  <- match.arg(kind)
     level <- match.arg(level)
     if (anyDuplicated(parameter)) {
@@ -190,6 +263,29 @@ download_inputcheck <- function(x     = c("reforecast", "forecast", "analysis"),
         date <- as.POSIXct(date)
     }
 
-    return(list(x = x, kind = kind, level = level, date = date,
-                parameter = parameter, version = version, cache = cache))
+    type_abbr  <- c(reforecast = "rfcs", forecast = "fcs", analysis = "ana")[type]
+
+    res <- list(type = type, type_abbr = type_abbr,
+                kind = kind, level = level, date = date,
+                parameter = parameter, version = version, cache = cache)
+    class(res) <- "eupp_config"
+    return(res)
 }
+
+
+#' @export
+print.eupp_config <- function(x, ...) {
+    fmt <- "   %-20s %s"
+    res <- c("EUPP Config",
+             sprintf(fmt, "Type:", sprintf("%s (%s)", x$type, x$type_abbr)),
+             sprintf(fmt, "Kind:", x$kind),
+             sprintf(fmt, "Level:", x$level),
+             sprintf(fmt, "Parameter:", paste(x$parameter, collapse = ", ")),
+             sprintf(fmt, "Version:", as.character(x$version)),
+             sprintf(fmt, "Cache:", ifelse(is.null(x$cache), "disabled", x$cache)))
+    cat(res, sep = "\n")
+    invisible(x)
+}
+
+
+
