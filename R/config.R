@@ -9,7 +9,7 @@
 eupp_config <- function(type  = c("reforecast", "forecast", "analysis"),
                         kind  = c("ctr", "ens", "hr"),
                         level = c("surf", "pressure", "efi"),
-                        date, parameter,
+                        date, parameter, area = NULL,
                         version = 0L, cache = NULL) {
 
     # ----------------------------------------------
@@ -21,6 +21,7 @@ eupp_config <- function(type  = c("reforecast", "forecast", "analysis"),
     stopifnot(is.character(parameter),  length(parameter) > 0L)
     stopifnot(is.integer(version),      length(version) == 1L)
     stopifnot(inherits(cache, c("NULL", "character")))
+    stopifnot(inherits(area,  c("NULL", "bbox")))
     if (!is.null(cache)) {
         stopifnot(length(cache) == 1L)
         if (!dir.exists(cache))
@@ -69,7 +70,8 @@ print.eupp_config <- function(x, ...) {
              sprintf(fmt, "Level:", x$level),
              sprintf(fmt, "Parameter:", paste(x$parameter, collapse = ", ")),
              sprintf(fmt, "Version:", as.character(x$version)),
-             sprintf(fmt, "Cache:", ifelse(is.null(x$cache), "disabled", x$cache)))
+             sprintf(fmt, "Cache:", ifelse(is.null(x$cache), "disabled", x$cache)),
+             sprintf(fmt, "Area:", ifelse(is.null(x$area), "not defined", "defined!")))
     cat(res, sep = "\n")
     invisible(x)
 }

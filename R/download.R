@@ -62,6 +62,11 @@ download_dataset <- function(x,
         }
     }
 
+    # We will make use of stars for spatial subsets which
+    # is only possible if we store the data as NetCDF.
+    if (output_format == "nc" & !is.null(x$area))
+        stop("Areal subsets ('eupp_config area') only allowed in combination with NetCDF file format.")
+
     # Reforecasts only initialized on Mondays (1) and Thursdays (4)
     if (grepl(x$type, "^reforecast$") & !all(format(x$date, "%w") %in% c(1, 4)))
         stop("Reforecasts only available on Mondays and Thursdays, check 'date'.")
