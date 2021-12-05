@@ -10,10 +10,10 @@
     <loc>http://localhost/articles/getting-started.html</loc>
   </url>
   <url>
-    <loc>http://localhost/articles/index.html</loc>
+    <loc>http://localhost/articles/gridded.html</loc>
   </url>
   <url>
-    <loc>http://localhost/articles/test.html</loc>
+    <loc>http://localhost/articles/index.html</loc>
   </url>
   <url>
     <loc>http://localhost/authors.html</loc>
@@ -41,6 +41,9 @@
   </url>
   <url>
     <loc>http://localhost/reference/eupp_get_url_config.html</loc>
+  </url>
+  <url>
+    <loc>http://localhost/reference/gridded.html</loc>
   </url>
   <url>
     <loc>http://localhost/reference/index.html</loc>
