@@ -4,11 +4,18 @@
 #'
 #' Requires ncdf4 and the NetCDF Library to be installed.
 #'
-#' @return Yes :) TODO
+#' @param x object of class \code{\link{eupp_config}}.
+#' @param verbose logical, sets verbosity level. Defaults to \code{FALSE}.
+#'
+#' @return TODO
+#'
+#' @seealso \code{\link{eupp_download_dataset}}
 #'
 #' @author Reto Stauffer
 #' @export
-get_dataset <- function(x, verbose = FALSE) {
+eupp_get_dataset <- function(x, verbose = FALSE) {
+    stopifnot(inherits(x, "eupp_config"))
+    stopifnot(isTRUE(verbose) || isFALSE(verbose))
 
     tmp_file <- tempfile(fileext = ".nc")
     tmp_file <- download_dataset(x, tmp_file, "nc", verbose = verbose)
@@ -34,7 +41,8 @@ get_dataset <- function(x, verbose = FALSE) {
 #' grib file itself.
 #'
 #' @author Reto Stauffer
-get_config <- function() {
+#' @keywords internal
+eupp_get_url_config <- function() {
     list("BASEURL" = "https://storage.ecmwf.europeanweather.cloud/benchmark-dataset",
          "PATTERN" = "data/{{type_abbr}}/{{level}}/EU_{{type}}_ctr_{{level}}_params_{{isodate}}_{{version}}.grb")
 }
@@ -50,7 +58,8 @@ get_config <- function() {
 #' @return Returns a character of length 1, URL to retrieve the data set.
 #'
 #' @author Reto Stauffer
-get_source_url <- function(x, fileext = NULL, ...) {
+#' @export
+eupp_get_source_url <- function(x, fileext = NULL, ...) {
     stopifnot(inherits(x, "eupp_config"))
 
     if (length(fileext) == 0) fileext <- NULL
@@ -66,7 +75,7 @@ get_source_url <- function(x, fileext = NULL, ...) {
     level     <- c(surface = "surf", pressure = "pressure", efi = "efi")[x$level]
 
     # Getting basic config
-    conf <- get_config()
+    conf <- eupp_get_url_config()
 
     URL <- paste(conf$BASEURL, conf$PATTERN, sep = "/")
     URL <- gsub("\\{\\{type_abbr\\}\\}",   x$type_abbr,  URL)

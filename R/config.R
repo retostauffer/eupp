@@ -2,15 +2,74 @@
 
 #' Creates EUPP Config used as Data Descriptor
 #'
-#' Used to retrieve data and inventories. 
+#' Generates an object of class \code{eupp_config} Containing all the required
+#' settings for downloadin data set inventories (index files) and the data
+#' itself.
+#'
+#' @param type character of length \code{1} (see Details).
+#' @param kind character of length \code{1} (see Details).
+#' @param level character of length \code{1} (see Details).
+#' @param date an object which can be converted to \code{POSIXct}. Character string
+#'        in ISO representation or an object of class \code{Date} or \code{POSIXt}.
+#' @param parameter \code{NULL} (default) or character. When \code{NULL} all available
+#'        parameters will be processed. Can be used to retrieve/process subsets.
+#' @param steps \code{NULL} (default) or integer. If set to \code{NULL} all available forecast
+#'        steps will be processed. An integer sequence can be provided to only process
+#'        specific forecast steps; given in hours (e.g., \code{c(6, 12)} for \code{+6}
+#'        and \code{+12} hour ahead forecasts).
+#' @param area \code{NULL} (default) or an object of class \code{bbox}. Used for spatial subsetting.
+#' @param cache \code{NULL} or character of length \code{1} pointing to an existing
+#'        directory. Is used for data caching (caching grib index information/inventories)
+#'        which can be handy to save some time.
+#' @param version integer lengt \code{1}; version of the data set. Defaults to \code{0L}.
+#'        Typically not changed by an end-user.
+#'
+#' @return Returns an object of class \code{eupp_config}.
+#'
+#' @details Input argument \code{type}:
+#'
+#' \itemize{
+#'   \item \code{"reforecast"}: Reforecasts (or hindcasts).
+#'   \item \code{"forecast"}: Forecast data.
+#'   \item \code{"analysis"}: Analysis data; based on ECMWF ERA5 used as ground truth.
+#' }
+#'
+#' Input argument \code{kind}:
+#'
+#' \itemize{
+#'   \item \code{"ctr"}: Control run.
+#'   \item \code{"ens"}: Ensemble members.
+#'   \item \code{"hr"}: High-resolution forecast.
+#' }
+#'
+#' Input argument \code{level}:
+#'
+#' \itemize{
+#'   \item \code{"surf"}: Surface data.
+#'   \item \code{"pressure"}: Pressure level data.
+#'   \item \code{"efi"}: Extreme forecast index data.
+#' }
+#'
+#' Note that reforecasts always only become available on Mondays and Thursdays.
+#' If \code{type = "reforecast"} and the \code{date} does not point to Mon/Thu
+#' the function will throw an error.
+#'
+#' @examples
+#' conf_A <- eupp_config(type = "reforecast", kind = "ctr", level = "surf",
+#'                       date = "2017-01-02", parameter = "2t")
+#'
+#' conf_B <- eupp_config(type = "reforecast", kind = "ctr", level = "surf",
+#'                       date = "2017-01-02", parameter = "2t",
+#'                       steps = c(6, 12))
 #'
 #' @author Reto Stauffer
 #' @export
 eupp_config <- function(type  = c("reforecast", "forecast", "analysis"),
                         kind  = c("ctr", "ens", "hr"),
                         level = c("surf", "pressure", "efi"),
-                        date, parameter, area = NULL,
-                        version = 0L, cache = NULL) {
+                        date, parameter,
+                        steps = NULL, area = NULL,
+                        cache = NULL, version = 0L) {
 
     # ----------------------------------------------
     # Sanity checks:
@@ -19,9 +78,11 @@ eupp_config <- function(type  = c("reforecast", "forecast", "analysis"),
     stopifnot(is.character(kind),       length(kind) == 1L)
     stopifnot(is.character(level),      length(level) == 1L)
     stopifnot(is.character(parameter),  length(parameter) > 0L)
+    stopifnot(inherits(area,  c("NULL", "bbox")))
+    stopifnot(inherits(steps, c("NULL", "integer")))
+    if (!is.null(steps)) stopifnot(all(steps >= 0))
     stopifnot(is.integer(version),      length(version) == 1L)
     stopifnot(inherits(cache, c("NULL", "character")))
-    stopifnot(inherits(area,  c("NULL", "bbox")))
     if (!is.null(cache)) {
         stopifnot(length(cache) == 1L)
         if (!dir.exists(cache))
@@ -69,6 +130,7 @@ print.eupp_config <- function(x, ...) {
              sprintf(fmt, "Kind:", x$kind),
              sprintf(fmt, "Level:", x$level),
              sprintf(fmt, "Parameter:", paste(x$parameter, collapse = ", ")),
+             sprintf(fmt, "Steps:", ifelse(is.null(x$steps), "all", paste(x$steps, collapse = ", "))),
              sprintf(fmt, "Version:", as.character(x$version)),
              sprintf(fmt, "Cache:", ifelse(is.null(x$cache), "disabled", x$cache)),
              sprintf(fmt, "Area:", ifelse(is.null(x$area), "not defined", "defined!")))

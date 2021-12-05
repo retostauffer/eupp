@@ -5,19 +5,37 @@
 # -----------------------------------------------------------------------
 # -----------------------------------------------------------------------
 
-#' @param x an object of class \code{eupp_config}.
+#' Downloading EUPP Datasets
+#'
+#' Main function downloading data.
+#'
+#' @param x an object of class \code{\link{eupp_config}}.
 #' @param output_file character length 1, name of the output file.
 #' @param output_format character length 1, defaults to \code{"guess"} (see details).
 #' @param verbose logical length 1, verbosity, defaults to \code{FALSE}.
 #'
-#' @details Using partial matching for \code{x} and \code{level}.
+#' @details The function allows to store data sets in either GRIB version 1 or
+#' NetCDF (classic 64bit; v3). The original data set is provided as GRIB, the 
+#' conversion to NetCDF is done locally usning ECMWFs ecCodes tools which must
+#' be installed when using NetCDF.
+#'
+#' By default (\code{output_format = "guess"}) the function tires to guess the
+#' \code{output_format} based on the \code{output_file} name and will stop if
+#' not possible. You can always use \code{output_format} to control this explicitly.
+#'
+#' \itemize{
+#'    \item \code{output_format = "guess"}: Guess output format based on \code{output_file}.
+#'    \item \code{output_format = "grb"}: Store result in GRIB version 1.
+#'    \item \code{output_format = "nc"}: Store result as NetCDF file.
+#' }
 #'
 #' @rdname download
 #' @importFrom httr GET add_headers
 #' @importFrom tools file_ext
+#'
 #' @author Reto Stauffer
 #' @export
-download_dataset <- function(x,
+eupp_download_dataset <- function(x,
                              output_file,
                              output_format = c("guess", "grb", "nc"),
                              verbose = FALSE) {
@@ -74,8 +92,8 @@ download_dataset <- function(x,
     # ----------------------------------------------
     # Main content of the function
     # ----------------------------------------------
-    inv       <- get_inventory(x)           # Loading inventory information
-    grib_url  <- get_source_url(x)          # Getting data url (location of grib file)
+    inv       <- eupp_get_inventory(x)           # Loading inventory information
+    grib_url  <- eupp_get_source_url(x)          # Getting data url (location of grib file)
     tmp_file <- tempfile(fileext = ".grb")  # Temporary location for download
     print(tmp_file)
 
@@ -114,14 +132,13 @@ download_dataset <- function(x,
 #' @importFrom rjson fromJSON
 #' @importFrom digest digest
 #' @importFrom httr GET status_code content
-#' @author Reto Stauffer
 #' @export
-get_inventory <- function(x) {
+eupp_get_inventory <- function(x) {
 
     stopifnot(inherits(x, "eupp_config"))
 
     # Getting the URL where the grib file index is stored
-    index_url <- do.call(get_source_url, list(x = x, fileext = "index"))
+    index_url <- do.call(eupp_get_source_url, list(x = x, fileext = "index"))
 
     # Helper function to download and parse requests
     fn_GET <- function(x) {
@@ -168,62 +185,6 @@ get_inventory <- function(x) {
 
 # -----------------------------------------------------------------------
 # -----------------------------------------------------------------------
-
-######' @param x character, length \code{1}. Either \code{reforecast} or \code{forecast}.
-######' @param level character, length \code{1}. Allowed are \code{surface}, \code{pressure}
-######'        and \code{efi} (extreme forecast index).
-######' @param date object of class \code{character}, \code{Date}, or inheriting from
-######'        \code{POSIXt}.
-######' @param version integer, defaults to \code{0L}.
-######' @param cache \code{NULL} or single character, used for data caching. Defaults to \code{NULL}.
-######'
-######' @rdname download
-######' @author Reto Stauffer
-######
-######download_inputcheck <- function(x     = c("reforecast", "forecast", "analysis"),
-######                                kind  = c("ctr", "ens", "hr"),
-######                                level = c("surface", "pressure", "efi"),
-######                                date, parameter, version = 0L, cache = NULL) {
-######
-######    # ----------------------------------------------
-######    # Sanity checks:
-######    # ----------------------------------------------
-######    stopifnot(is.character(x),          length(x) == 1L)
-######    stopifnot(is.character(kind),       length(kind) == 1L)
-######    stopifnot(is.character(level),      length(level) == 1L)
-######    stopifnot(is.character(parameter),  length(parameter) > 0L)
-######    stopifnot(is.integer(version),      length(version) == 1L)
-######    stopifnot(inherits(cache, c("NULL", "character")))
-######    if (!is.null(cache)) {
-######        stopifnot(length(cache) == 1L)
-######        if (!dir.exists(cache))
-######            stop("Argument 'code' must point to an existing folder if set.")
-######    }
-######
-######    x     <- match.arg(x)
-######    kind  <- match.arg(kind)
-######    level <- match.arg(level)
-######    if (anyDuplicated(parameter)) {
-######        warning("Got duplicated parameters; unified.")
-######        parameter <- unique(parameter)
-######    }
-######
-######    #@TODO: Allow to download multiple dates at once
-######    # Make sure input for 'date' is allowed.
-######    stopifnot(inherits(date, c("character", "Date", "POSIXt")), length(date) == 1L)
-######    # If input 'date' is character; try to convert to character.
-######    if (is.character(date)) {
-######        tryCatch(date <- as.POSIXct(date),
-######                 warning = function(w) warning(w),
-######                 error   = function(e) stop("Input 'date' not recognized; use ISO format."))
-######    # If input was of class Date or POSIXlt: convert to POSIXct.
-######    } else if (!inherits(date, "POSIXct")) {
-######        date <- as.POSIXct(date)
-######    }
-######
-######    return(list(x = x, kind = kind, level = level, date = date,
-######                parameter = parameter, version = version, cache = cache))
-######}
 
 
 

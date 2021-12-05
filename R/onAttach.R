@@ -4,6 +4,8 @@
 #' onAttach function
 #'
 #' @author Reto Stauffer
+#' @keywords internal
+#' @noRd
 .onAttach <- function(...) {
 
     # Terms of use

@@ -1,0 +1,33 @@
+
+url: "http://localhost"
+destination: "docs"
+
+navbar:
+    left:
+        - text: "Getting started"
+          href: articles/test.html
+        - text: "Reference"
+          href: reference/index.html
+        - text: "Changelog"
+          href: news/index.html
+        - text: "Contact"
+          href: contact.html
+
+
+home:
+    links:
+        - text: "ecCodes home"
+          href: "https://confluence.ecmwf.int/display/ECC/ecCodes+Home"
+        - text: "Python plugin"
+          href: "https://github.com/Climdyn/climetlab-eumetnet-postprocessing-benchmark"
+
+reference:
+    - title: "Retrieving data"
+      desc: "The description of this section."
+    - contents:
+        - eupp_config
+        - eupp_get_source_url
+        - eupp_download_dataset
+        - eupp_get_dataset
+
+
