@@ -1,0 +1,84 @@
+---
+title: "Getting gridded data"
+---
+
+
+![Rough scheme on the download/processing process.](images/download_grib.svg)
+
+The data sets are stored as GRIB version 1 files on the servers alongside
+with a grib index file which contains the inventory. The inventory contains
+information of all fields inside the GRIB file and allows to partially
+download the fields.
+
+When downloading data, the package always first accesses the index file
+via `eupp_get_inventory()` before starting to download the data.
+`eupp_download_gridded()` will download (parts) of the GRIB file and
+either store it as GRIB, or converts it to NetCDF (requires NetCDF support and ecCodes
+to be installed; see installation notes).
+
+`eupp_get_gridded()` interfaces `eupp_download_gridded()` but deletes the file
+after use and returns an _R_ object. This can be handy for small tasks or checks,
+or if you want to store the data as _R_ objects yourself. Also requires NetCDF support.
+
+
+## Specify data to be downloaded
+
+Before starting downloading data a configuration object must be created using
+`eupp_config()` which contains the specification of the data to be retrieved.
+
+```{r, include = FALSE}
+library("eupp")
+```
+
+
+```{r}
+# Loading the package
+library("eupp")
+
+# Create custom configuration
+conf <- eupp_config(type = "forecast",
+                    kind = "ctr",
+                    level = "surf",
+                    date  = "2017-01-02",
+                    parameter = c("cp", "2t"),
+                    steps  = c(6L, 12L),
+                    cache = "_cache") # cache is not required
+```
+
+## Where is the data?
+
+If you are interested where the data is stored, you can make use of the
+function `eupp_get_source_url()`. Typically not required to be used by an end-user.
+
+```{r}
+eupp_get_source_url(conf)                           # GRIB file
+eupp_get_source_url(conf, fileext = "index")        # GRIB index/inventory
+```
+
+## Getting grib inventory
+
+Given the same object `conf` we can retrieve the grib inventory which matches
+our requirements.
+
+```{r}
+inv <- eupp_get_inventory(conf)
+inv
+```
+
+As we have set `cache` when calling `eupp_config()` the GRIB index file is stored
+locally, if the same index file is required once again the loading times should
+be much faster. Not required but may save some time in certain situations.
+
+
+## Getting data
+
+```{r}
+if (!file.exists("_test.grb")) {
+    eupp_download_gridded(conf, output_file = "_test.grb", output_format = "grb")
+}
+```
+
+
+
+
+

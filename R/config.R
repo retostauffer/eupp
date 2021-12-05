@@ -115,7 +115,7 @@ eupp_config <- function(type  = c("reforecast", "forecast", "analysis"),
 
     # Crete return; a simple list of class eupp_config.
     res <- list(type = type, type_abbr = type_abbr,
-                kind = kind, level = level, date = date,
+                kind = kind, level = level, date = date, steps = steps,
                 parameter = parameter, version = version, cache = cache)
     class(res) <- "eupp_config"
     return(res)

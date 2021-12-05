@@ -1,10 +1,4 @@
 
-
-
-
-# -----------------------------------------------------------------------
-# -----------------------------------------------------------------------
-
 #' Downloading EUPP Datasets
 #'
 #' Main function downloading data.
@@ -34,8 +28,9 @@
 #' @importFrom tools file_ext
 #'
 #' @author Reto Stauffer
+#' @rdname gridded
 #' @export
-eupp_download_dataset <- function(x,
+eupp_download_gridded <- function(x,
                              output_file,
                              output_format = c("guess", "grb", "nc"),
                              verbose = FALSE) {
@@ -123,11 +118,37 @@ eupp_download_dataset <- function(x,
 }
 
 
+#' Getting Grib Data as stars
+#'
+#' Requires ncdf4 and the NetCDF Library to be installed.
+#'
+#' @param x object of class \code{\link{eupp_config}}.
+#' @param verbose logical, sets verbosity level. Defaults to \code{FALSE}.
+#'
+#' @return TODO
+#'
+#' @seealso \code{\link{eupp_download_gridded}}
+#'
+#' @author Reto Stauffer
+#' @rdname gridded
+#' @export
+eupp_get_gridded <- function(x, verbose = FALSE) {
+    stopifnot(inherits(x, "eupp_config"))
+    stopifnot(isTRUE(verbose) || isFALSE(verbose))
 
-# -----------------------------------------------------------------------
-# -----------------------------------------------------------------------
+    tmp_file <- tempfile(fileext = ".nc")
+    tmp_file <- download_dataset(x, tmp_file, "nc", verbose = verbose)
 
-#' @rdname download
+    # Reading the NetCDF file as stars
+    data <- read_stars(tmp_file)
+    # Subsetting requested?
+    if (!is.null(x$area)) data[x$area]
+
+    return(data)
+}
+
+
+#' @rdname gridded
 #' @importFrom dplyr bind_rows
 #' @importFrom rjson fromJSON
 #' @importFrom digest digest
@@ -175,17 +196,17 @@ eupp_get_inventory <- function(x) {
     names(inv) <- gsub("^_(?=[a-zA-Z])", "", names(inv), perl = TRUE)
     inv <- transform(inv, init  = as.POSIXct(paste(date, time), tz = "UTC", format = "%Y%m%d %H%M"))
     inv <- transform(inv, valid = init + as.integer(step) * 3600)
+    inv <- transform(inv, step  = as.integer(inv$step))
     inv <- within(inv, {date <- time <- NULL})
 
     # Subsetting to what the user has requested
-    inv <- subset(inv, init %in% x$date & param %in% x$parameter)
+    inv <- subset(inv, init %in% x$date)
+    if (is.character(x$parameter))     inv <- subset(inv, param %in% x$parameter)
+    if (is.integer(x$steps))           inv <- subset(inv, step  %in% x$steps)
+
     class(inv) <- c("eupp_inventory", class(inv))
     return(inv)
 }
-
-# -----------------------------------------------------------------------
-# -----------------------------------------------------------------------
-
 
 
 

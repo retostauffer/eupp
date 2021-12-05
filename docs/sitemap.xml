@@ -7,6 +7,9 @@
     <loc>http://localhost/LICENSE-text.html</loc>
   </url>
   <url>
+    <loc>http://localhost/articles/getting-started.html</loc>
+  </url>
+  <url>
     <loc>http://localhost/articles/index.html</loc>
   </url>
   <url>
@@ -25,31 +28,19 @@
     <loc>http://localhost/news/index.html</loc>
   </url>
   <url>
-    <loc>http://localhost/reference/dot-onAttach.html</loc>
-  </url>
-  <url>
     <loc>http://localhost/reference/download.html</loc>
   </url>
   <url>
     <loc>http://localhost/reference/eupp_config.html</loc>
   </url>
   <url>
-    <loc>http://localhost/reference/eupp_get_dataset.html</loc>
+    <loc>http://localhost/reference/eupp_get_gridded.html</loc>
   </url>
   <url>
     <loc>http://localhost/reference/eupp_get_source_url.html</loc>
   </url>
   <url>
     <loc>http://localhost/reference/eupp_get_url_config.html</loc>
-  </url>
-  <url>
-    <loc>http://localhost/reference/get_dataset.html</loc>
-  </url>
-  <url>
-    <loc>http://localhost/reference/get_source_url.html</loc>
-  </url>
-  <url>
-    <loc>http://localhost/reference/get_url_config.html</loc>
   </url>
   <url>
     <loc>http://localhost/reference/index.html</loc>

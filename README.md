@@ -1,4 +1,7 @@
 
+# Documentation
+
+Full documentation can be found on <https://retostauffer.github.io/eupp/>.
 
 # Licenses
 

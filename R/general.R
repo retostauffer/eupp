@@ -1,34 +1,5 @@
 
 
-#' Getting Grib Data as stars
-#'
-#' Requires ncdf4 and the NetCDF Library to be installed.
-#'
-#' @param x object of class \code{\link{eupp_config}}.
-#' @param verbose logical, sets verbosity level. Defaults to \code{FALSE}.
-#'
-#' @return TODO
-#'
-#' @seealso \code{\link{eupp_download_dataset}}
-#'
-#' @author Reto Stauffer
-#' @export
-eupp_get_dataset <- function(x, verbose = FALSE) {
-    stopifnot(inherits(x, "eupp_config"))
-    stopifnot(isTRUE(verbose) || isFALSE(verbose))
-
-    tmp_file <- tempfile(fileext = ".nc")
-    tmp_file <- download_dataset(x, tmp_file, "nc", verbose = verbose)
-
-    # Reading the NetCDF file as stars
-    data <- read_stars(tmp_file)
-    # Subsetting requested?
-    if (!is.null(x$area)) data[x$area]
-
-    return(data)
-}
-
-
 #' Get Configuration
 #'
 #' Provides a series of parameters. Internal use only.

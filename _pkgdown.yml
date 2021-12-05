@@ -5,7 +5,7 @@ destination: "docs"
 navbar:
     left:
         - text: "Getting started"
-          href: articles/test.html
+          href: articles/getting-started.html
         - text: "Reference"
           href: reference/index.html
         - text: "Changelog"
@@ -27,7 +27,7 @@ reference:
     - contents:
         - eupp_config
         - eupp_get_source_url
-        - eupp_download_dataset
-        - eupp_get_dataset
+        - eupp_download_gridded
+        - eupp_get_gridded
 
 

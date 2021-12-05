@@ -2,8 +2,8 @@
 
 S3method(print,eupp_config)
 export(eupp_config)
-export(eupp_download_dataset)
-export(eupp_get_dataset)
+export(eupp_download_gridded)
+export(eupp_get_gridded)
 export(eupp_get_inventory)
 export(eupp_get_source_url)
 importFrom(digest,digest)
