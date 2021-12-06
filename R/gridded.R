@@ -29,6 +29,7 @@
 #' @rdname download
 #' @importFrom httr GET add_headers
 #' @importFrom tools file_ext
+#' @importFrom utils txtProgressBar setTxtProgressBar
 #'
 #' @author Reto Stauffer
 #' @rdname gridded

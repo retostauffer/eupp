@@ -121,14 +121,8 @@ expect_equivalent(nc_time, config$date + config$steps * 3600,
 
 
 
-
-
-
-
-
-
-
-
-
-
-
+# ----------------------------------------------------------------
+# Cleaning up
+# ----------------------------------------------------------------
+if (file.exists(grib_file)) unlink(grib_file)
+if (file.exists(nc_file)) unlink(nc_file)

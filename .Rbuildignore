@@ -1,3 +1,5 @@
 ^\.travis\.yml$
 ^\.github$
 ^docs$
+^LICENSE$
+^DATA_LICENSE$

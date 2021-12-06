@@ -3,6 +3,12 @@
 
 Full documentation can be found on <https://retostauffer.github.io/eupp/>.
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/retostauffer/eupp/workflows/R-CMD-check/badge.svg)](https://github.com/retostauffer/eupp/actions)
+[![Travis build status](https://travis-ci.com/retostauffer/eupp.svg?branch=main)](https://travis-ci.com/retostauffer/eupp)
+<!-- badges: end -->
+
+
 # Licenses
 
 * Software license see <https://github.com/retostauffer/eupp/blob/main/LICENSE>
@@ -33,6 +39,7 @@ R version `4.1.2` using the following packages/package versions:
 | `httr`       | 1.4.2     | Downloading data via https |
 | `dplyr`      | 1.0.7     | `dplyr::bind_rows` used in one instance |
 | `stars`      | 0.5.5     | Handling/reading spatio-temporal data |
+| `digest`     | 0.6.27    | Hashing for caching |
 
 Suggested packages ...
 
