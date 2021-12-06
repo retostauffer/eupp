@@ -7,6 +7,9 @@
 #' @param output_file character length 1, name of the output file.
 #' @param output_format character length 1, defaults to \code{"guess"} (see details).
 #' @param verbose logical length 1, verbosity, defaults to \code{FALSE}.
+#' @param overwrite logical length 1, defaults to \code{FALSE}. If set to \code{TRUE}
+#'        the \code{output_file} will be overwritten if needed. If \code{FALSE} and
+#'        \code{output_file} exists an error will be raised.
 #'
 #' @details The function allows to store data sets in either GRIB version 1 or
 #' NetCDF (classic 64bit; v3). The original data set is provided as GRIB, the 
@@ -33,20 +36,17 @@
 eupp_download_gridded <- function(x,
                              output_file,
                              output_format = c("guess", "grb", "nc"),
-                             verbose = FALSE) {
-
-    # ----------------------------------------------
-    # Sanity checks
-    # ----------------------------------------------
+                             verbose = FALSE, overwrite = FALSE) {
 
     # Checking main input object
     stopifnot(inherits(x, c("eupp_config", "eupp_inventory")))
+    stopifnot(isTRUE(overwrite) || isFALSE(overwrite))
 
     # Sanity check for putput file
     stopifnot(is.character(output_file), length(output_file) == 1L)
     if (dir.exists(output_file)) stop("'output_file' is an existing directory.")
     # TODO: We can also just ... kill it?
-    if (file.exists(output_file)) stop("'output_file' exists.")
+    if (!overwrite && file.exists(output_file)) stop("'output_file' exists.")
     # Checking if output path exists
     if (!dir.exists(dirname(output_file)))
         stop("Cannot write 'output_file' to \"{:s}\", directory does not exist.", dirname(output_file))
@@ -94,15 +94,16 @@ eupp_download_gridded <- function(x,
 
     # Open binary file connection; temporary file.
     # Download everything and then create final ouptut file.
-    con      <- file(tmp_file, "wb"); on.exit(close(con))
-    pb <- txtProgressBar(0, nrow(inv), style = 3)
+    con      <- file(tmp_file, "wb")
+    if (verbose) pb <- txtProgressBar(0, nrow(inv), style = 3)
     for (i in seq_len(nrow(inv))) {
-        setTxtProgressBar(pb, i)
+        if (verbose) setTxtProgressBar(pb, i)
         rng <- sprintf("bytes=%d-%d", inv$offset[i], inv$offset[i] + inv$length[i])
         req <- GET(grib_url, add_headers(Range = rng))
         writeBin(req$content, con = con)
     }
-    close(pb)
+    if (verbose) close(pb)
+    close(con) # Properly closing the binary file connection
 
     # Move file to final destination
     if (output_format == "grb") {
