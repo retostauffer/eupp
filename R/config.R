@@ -67,20 +67,20 @@
 eupp_config <- function(type  = c("reforecast", "forecast", "analysis"),
                         kind  = c("ctr", "ens", "hr"),
                         level = c("surf", "pressure", "efi"),
-                        date, parameter,
+                        date, parameter = NULL,
                         steps = NULL, area = NULL,
                         cache = NULL, version = 0L) {
 
     # ----------------------------------------------
     # Sanity checks:
     # ----------------------------------------------
-    stopifnot(is.character(type),       length(type) == 1L)
-    stopifnot(is.character(kind),       length(kind) == 1L)
-    stopifnot(is.character(level),      length(level) == 1L)
-    stopifnot(is.character(parameter),  length(parameter) > 0L)
-    stopifnot(inherits(area,  c("NULL", "bbox")))
-    stopifnot(inherits(steps, c("NULL", "integer")))
-    if (!is.null(steps)) stopifnot(all(steps >= 0))
+    stopifnot(is.character(type),  length(type) == 1L)
+    stopifnot(is.character(kind),  length(kind) == 1L)
+    stopifnot(is.character(level), length(level) == 1L)
+    stopifnot(inherits(parameter,  c("NULL", "character")))
+    stopifnot(inherits(area,       c("NULL", "bbox")))
+    stopifnot(inherits(steps,      c("NULL", "numeric", "integer")))
+    if (!is.null(steps)) { stopifnot(all(steps >= 0)); steps <- as.integer(steps) }
     stopifnot(is.integer(version),      length(version) == 1L)
     stopifnot(inherits(cache, c("NULL", "character")))
     if (!is.null(cache)) {
@@ -115,7 +115,7 @@ eupp_config <- function(type  = c("reforecast", "forecast", "analysis"),
 
     # Crete return; a simple list of class eupp_config.
     res <- list(type = type, type_abbr = type_abbr,
-                kind = kind, level = level, date = date, steps = steps,
+                kind = kind, level = level, date = date, steps = steps, area = area,
                 parameter = parameter, version = version, cache = cache)
     class(res) <- "eupp_config"
     return(res)
@@ -126,14 +126,16 @@ eupp_config <- function(type  = c("reforecast", "forecast", "analysis"),
 print.eupp_config <- function(x, ...) {
     fmt <- "   %-20s %s"
     res <- c("EUPP Config",
-             sprintf(fmt, "Type:", sprintf("%s (%s)", x$type, x$type_abbr)),
-             sprintf(fmt, "Kind:", x$kind),
-             sprintf(fmt, "Level:", x$level),
-             sprintf(fmt, "Parameter:", paste(x$parameter, collapse = ", ")),
-             sprintf(fmt, "Steps:", ifelse(is.null(x$steps), "all", paste(x$steps, collapse = ", "))),
-             sprintf(fmt, "Version:", as.character(x$version)),
-             sprintf(fmt, "Cache:", ifelse(is.null(x$cache), "disabled", x$cache)),
-             sprintf(fmt, "Area:", ifelse(is.null(x$area), "not defined", "defined!")))
+             sprintf(fmt, "Type:",      sprintf("%s (%s)", x$type, x$type_abbr)),
+             sprintf(fmt, "Kind:",      x$kind),
+             sprintf(fmt, "Level:",     x$level),
+             sprintf(fmt, "Parameter:", ifelse(is.null(x$parameter), "all available",
+                                               paste(x$parameter, collapse = ", "))),
+             sprintf(fmt, "Steps:",     ifelse(is.null(x$steps),     "all available",
+                                               paste(x$steps, collapse = ", "))),
+             sprintf(fmt, "Version:",   as.character(x$version)),
+             sprintf(fmt, "Cache:",     ifelse(is.null(x$cache), "disabled", x$cache)),
+             sprintf(fmt, "Area:",      ifelse(is.null(x$area), "not defined", "defined!")))
     cat(res, sep = "\n")
     invisible(x)
 }
