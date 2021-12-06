@@ -7,12 +7,14 @@
 ^_pkgdown.yml$
 ^contact.md$
 
+
 ^_.*\.nc$
 ^_.*\.grb$
 
 
 ^test.R$
 ^_cache$
+
 
 ^vignettes/_.*\.nc$
 ^vignettes/_.*\.grb$
