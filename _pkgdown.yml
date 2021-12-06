@@ -6,8 +6,10 @@ navbar:
     left:
         - text: "Getting data"
           menu:
-          - text: "Gridded"
+          - text: "Gridded data"
             href: articles/gridded.html
+          - text: "Station data"
+            href: articles/station.html
         - text: "Reference"
           href: reference/index.html
         - text: "Changelog"
