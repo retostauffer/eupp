@@ -6,7 +6,7 @@ title: "Getting gridded data"
 ![Rough scheme on the download/processing process.](images/download_grib.svg)
 
 The data sets are stored as GRIB version 1 files on the servers alongside
-with a grib index file which contains the inventory. The inventory contains
+with a GRIB index file which contains the inventory. The inventory contains
 information of all fields inside the GRIB file and allows to partially
 download the fields.
 
@@ -41,7 +41,7 @@ conf <- eupp_config(type = "forecast",
                     level = "surf",
                     date  = "2017-01-02",
                     parameter = c("cp", "2t"),
-                    steps  = c(6L, 12L),
+                    steps  = c(24L, 120L, 240L), # +1, +5, +10 days ahead
                     cache = "_cache") # cache is not required
 ```
 
@@ -55,9 +55,9 @@ eupp_get_source_url(conf)                           # GRIB file
 eupp_get_source_url(conf, fileext = "index")        # GRIB index/inventory
 ```
 
-## Getting grib inventory
+## Getting GRIB inventory
 
-Given the same object `conf` we can retrieve the grib inventory which matches
+Given the same object `conf` we can retrieve the GRIB inventory which matches
 our requirements.
 
 ```{r}
@@ -70,12 +70,82 @@ locally, if the same index file is required once again the loading times should
 be much faster. Not required but may save some time in certain situations.
 
 
-## Getting data
+## Getting data: GRIB format
+
+From `eupp_get_inventory()` we know that there are `r nrow(inv)` fields matching
+our configuration. `eupp_download_gridded()` allows us to retrieve the data in
+either GRIB or NetCDF (next section). 
+
+Will internally access the GRIB index and download the fields matching our
+configuration. The data is stored in `output_file` (GRIB version 1 format).
 
 ```{r}
-if (!file.exists("_test.grb")) {
-    eupp_download_gridded(conf, output_file = "_test.grb", output_format = "grb")
-}
+eupp_download_gridded(conf, output_file = "_test.grb", output_format = "grb", overwrite = TRUE)
+```
+
+## Getting data: NetCDF
+
+When the `output_file` can be identified as a NetCDF file or `output_format` is explicitly
+set to `"nc"` the resulting file will be a NetCDF file (classic 64 bit NetCDF) file.
+This requires [ecCodes](https://confluence.ecmwf.int/display/ECC/ecCodes+Home) to be installed
+as the R package will call `grib_to_netcdf` for format conversion.
+
+```{r}
+eupp_download_gridded(conf, output_file = "_test.nc", output_format = "nc", overwrite = TRUE)
+```
+
+Which can be processed using e.g., `[ncdf4](https://cran.r-project.org/package=ncdf4)`,
+`[stars](https://cran.r-project.org/package=stars)` or the package of your choice.
+
+##### Reading data using `ncdf4`
+
+```{r}
+library("ncdf4")
+nc <- nc_open("_test.nc")
+nc
+```
+
+##### Reading data using `stars`
+
+```{r, fig = TRUE, fig.width = 10, fig.height = 5, out.width = "60%"}
+library("stars")
+x <- read_stars("_test.nc")
+print(x)
+
+# Plotting 2m dry air temperature
+plot(x["t2m"],
+     main   = "t2m",
+     col    = hcl.colors(21, "Blue-Red 2", rev = TRUE),
+     breaks = seq(min(x$t2m), max(x$t2m), length = 22))
+
+# Plotting convective precipitation (mm)
+plot(x["cp"] * 1e3,
+     main   = "cp",
+     col    = hcl.colors(10, "Purple-Yellow", rev = TRUE),
+     breaks = 1e3 * seq(0, as.numeric(max(x$cp)), length = 11))
+```
+
+An alternative way to visualize the data using `[ggplot2](https://cran.r-project.org/package=ggplot2)`,
+`[colorspace](https://cran.r-project.org/package=colorspace)` and 
+`[sf](https://cran.r-project.org/package=sf)` as well as 
+`[rnaturalearth](https://cran.r-project.org/package=rnaturalearth)` for outlines:
+```
+
+
+```{r, fig = TRUE, fig.width = 10, fig.height = 7, out.width = "60%"}
+library("sf")
+library("ggplot2")
+library("colorspace")
+library("rnaturalearth")
+
+ne <- ne_countries(returnclass = "sf")
+st_crs(x) <- st_crs(ne)
+
+ggplot() + geom_stars(data = x["cp"] * 1e3, sf = TRUE) +
+           facet_wrap("time") +
+           scale_fill_continuous_sequential("Purple-Yellow") +
+           geom_sf(data = ne, fill = "transparent") +
+           coord_sf(xlim = c(-6, 17), ylim = c(36, 67), expand = FALSE)
 ```
 
 

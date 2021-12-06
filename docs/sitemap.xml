@@ -16,6 +16,9 @@
     <loc>http://localhost/articles/index.html</loc>
   </url>
   <url>
+    <loc>http://localhost/articles/station.html</loc>
+  </url>
+  <url>
     <loc>http://localhost/authors.html</loc>
   </url>
   <url>

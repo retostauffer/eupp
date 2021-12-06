@@ -50,7 +50,10 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="articles/gridded.html">Gridded</a>
+      <a href="articles/gridded.html">Gridded data</a>
+    </li>
+    <li>
+      <a href="articles/station.html">Station data</a>
     </li>
   </ul>
 </li>
@@ -127,6 +130,12 @@
 </h1>
 <ul>
 <li>Spatial extent: longitude <code>6E/17W</code>, latitude <code>36N/67N</code>.</li>
+<li>Spatial resolution: <code>0.25</code> times <code>0.25</code> degrees (<code>rectangular_ll</code> grid)</li>
+</ul>
+<div class="section level2">
+<h2 id="surface-forecast-variables">Surface forecast variables<a class="anchor" aria-label="anchor" href="#surface-forecast-variables"></a>
+</h2>
+<ul>
 <li>Forecast steps (in hours):
 <ul>
 <li>Hourly forecasts from <code>+0h</code> to <code>+90h</code>
@@ -136,9 +145,6 @@
 </ul>
 </li>
 </ul>
-<div class="section level2">
-<h2 id="surface-forecast-variables">Surface forecast variables<a class="anchor" aria-label="anchor" href="#surface-forecast-variables"></a>
-</h2>
 <table class="table">
 <thead><tr class="header">
 <th align="left">Parameter name</th>
@@ -257,6 +263,16 @@
 <div class="section level2">
 <h2 id="pressure-level-forecast-variables">Pressure level forecast variables<a class="anchor" aria-label="anchor" href="#pressure-level-forecast-variables"></a>
 </h2>
+<ul>
+<li>Forecast steps (in hours):
+<ul>
+<li>Hourly forecasts from <code>+0h</code> to <code>+90h</code>
+</li>
+<li>Three-hourly intervals from <code>+90h</code> to <code>+144h</code> (6 days ahead)</li>
+<li>Six-hourly intervals from <code>+144h</code> to <code>+240h</code> (10 days ahead)</li>
+</ul>
+</li>
+</ul>
 <table class="table">
 <thead><tr class="header">
 <th align="left">Parameter name</th>
@@ -307,6 +323,9 @@
 <div class="section level2">
 <h2 id="extreme-forecast-index-variables">Extreme forecast index variables<a class="anchor" aria-label="anchor" href="#extreme-forecast-index-variables"></a>
 </h2>
+<ul>
+<li>Forecast ranges (in hours): <code>0-24</code>, <code>24-48</code>, <code>48-72</code>, <code>72-96</code>, <code>96-120</code>, <code>120-144</code> and <code>144-168</code>.</li>
+</ul>
 <table class="table">
 <thead><tr class="header">
 <th align="left">Parameter name</th>
