@@ -90,7 +90,6 @@ eupp_download_gridded <- function(x,
     inv       <- eupp_get_inventory(x)           # Loading inventory information
     grib_url  <- eupp_get_source_url(x)          # Getting data url (location of grib file)
     tmp_file <- tempfile(fileext = ".grb")  # Temporary location for download
-    print(tmp_file)
 
     # Open binary file connection; temporary file.
     # Download everything and then create final ouptut file.
