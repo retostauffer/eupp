@@ -79,6 +79,11 @@ expect_error(eupp_config("forecast", "ctr", "surf", "2017-0-101", version = -1L)
              info = "'version' must be larger or equal to 0")
 
 
+# EFI forces the user to set kind = NULL
+expect_error(eupp_config("forecast", "ctr", "efi", "2017-01-01",
+                         parameter = "2t", steps = c(0, 12), cache = cache_dir),
+             info = "'kind' must be NULL when 'level = \"efi\"'")
+
 
 
 
@@ -89,8 +94,10 @@ for (n in c("reforecast", "forecast", "analysis"))
     expect_silent(eupp_config(n, "ctr", "surf", "2021-01-01"), info = "Issue with 'type' defaults")
 for (n in c("ctr", "ens", "hr"))
     expect_silent(eupp_config("forecast", n, "surf", "2021-01-01"), info = "Issue with 'kind' defaults")
-for (n in c("surf", "pressure", "efi"))
-    expect_silent(eupp_config("forecast", "ctr", n, "2021-01-01"), info = "Issue with 'level' defaults")
+for (n in c("surf", "pressure", "efi")) {
+    kind <- if (n == "efi") NULL else "ctr"
+    expect_silent(eupp_config("forecast", kind, n, "2021-01-01"), info = "Issue with 'level' defaults")
+}
 
 # Testing partial matching
 expect_silent(c3 <- eupp_config("ref", "c", "su", "2017-01-01"))
