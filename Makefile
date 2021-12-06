@@ -9,7 +9,7 @@ install: document
 	Rscript -e 'devtools::install(upgrade = FALSE)'
 
 check: document
-	Rscript -e 'devtools::check()'
+	Rscript -e 'devtools::check(vignettes = FALSE)'
 
 .PHONY: docs
 docs:
