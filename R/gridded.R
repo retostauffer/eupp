@@ -40,6 +40,7 @@ eupp_download_gridded <- function(x,
 
     # Checking main input object
     stopifnot(inherits(x, c("eupp_config", "eupp_inventory")))
+    stopifnot(isTRUE(verbose)   || isFALSE(verbose))
     stopifnot(isTRUE(overwrite) || isFALSE(overwrite))
 
     # Sanity check for putput file

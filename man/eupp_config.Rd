@@ -9,7 +9,7 @@ eupp_config(
   kind = c("ctr", "ens", "hr"),
   level = c("surf", "pressure", "efi"),
   date,
-  parameter,
+  parameter = NULL,
   steps = NULL,
   area = NULL,
   cache = NULL,

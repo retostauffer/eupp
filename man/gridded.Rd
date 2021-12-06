@@ -15,10 +15,18 @@ eupp_get_inventory(x)
 \item{verbose}{logical, sets verbosity level. Defaults to \code{FALSE}.}
 }
 \value{
-TODO
+Object of class \code{stars}; see Details.
 }
 \description{
 Requires ncdf4 and the NetCDF Library to be installed.
+}
+\details{
+This function interfaces \code{\link{eupp_download_gridded}}
+to download the data and converts the original data set (GRIB version 1)
+to NetCDF. Thus NetCDF support and ecCodes tools are required.
+
+If \code{x} (\code{\link{eupp_config}}) contains a \code{bbox} definition
+on \code{area} the data is subsetted directly.
 }
 \seealso{
 \code{\link{eupp_download_gridded}}
