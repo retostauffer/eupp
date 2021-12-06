@@ -16,8 +16,8 @@ docs:
 	make install
 	Rscript -e 'pkgdown::build_site()'
 
-#test:
-#	Rscript -e 'devtools::load_all(); tinytest::test_all()'
+test:
+	Rscript -e 'devtools::load_all(); tinytest::test_all()'
 #
 #coverage:
 #	Rscript -e 'covr::report(covr::package_coverage(), file = "coverage.html")'

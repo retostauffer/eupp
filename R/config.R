@@ -102,7 +102,7 @@ eupp_config <- function(type  = c("reforecast", "forecast", "analysis"),
     stopifnot(inherits(date, c("character", "Date", "POSIXt")), length(date) == 1L)
     # If input 'date' is character; try to convert to character.
     if (is.character(date)) {
-        tryCatch(date <- as.POSIXct(date),
+        tryCatch(date <- as.POSIXct(date, tz = "UTC"),
                  warning = function(w) warning(w),
                  error   = function(e) stop("Input 'date' not recognized; use ISO format."))
     # If input was of class Date or POSIXlt: convert to POSIXct.
