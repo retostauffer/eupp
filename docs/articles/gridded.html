@@ -158,7 +158,7 @@
 <p>Will internally access the GRIB index and download the fields matching our configuration. The data is stored in <code>output_file</code> (GRIB version 1 format).</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/download.html">eupp_download_gridded</a></span><span class="op">(</span><span class="va">conf</span>, output_file <span class="op">=</span> <span class="st">"_test.grb"</span>, output_format <span class="op">=</span> <span class="st">"grb"</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## [1] "/tmp/RtmpFoXU6x/file20eca3dedd710.grb"</span></code></pre>
+<pre><code><span class="co">## [1] "/tmp/RtmpRypgDQ/file2118b2c209b7f.grb"</span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="getting-data-netcdf">Getting data: NetCDF<a class="anchor" aria-label="anchor" href="#getting-data-netcdf"></a>
@@ -166,7 +166,7 @@
 <p>When the <code>output_file</code> can be identified as a NetCDF file or <code>output_format</code> is explicitly set to <code>"nc"</code> the resulting file will be a NetCDF file (classic 64 bit NetCDF) file. This requires <a href="https://confluence.ecmwf.int/display/ECC/ecCodes+Home" class="external-link">ecCodes</a> to be installed as the R package will call <code>grib_to_netcdf</code> for format conversion.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/download.html">eupp_download_gridded</a></span><span class="op">(</span><span class="va">conf</span>, output_file <span class="op">=</span> <span class="st">"_test.nc"</span>, output_format <span class="op">=</span> <span class="st">"nc"</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## [1] "/tmp/RtmpFoXU6x/file20eca3d534ca8.grb"</span>
+<pre><code><span class="co">## [1] "/tmp/RtmpRypgDQ/file2118b37dc2f14.grb"</span>
 <span class="co">## Calling grib_to_netcdf to convert file format</span></code></pre>
 <p>Which can be processed using e.g., <code>[ncdf4](https://cran.r-project.org/package=ncdf4)</code>, <code>[stars](https://cran.r-project.org/package=stars)</code> or the package of your choice.</p>
 <div class="section level5">
@@ -209,7 +209,7 @@
 <span class="co">## </span>
 <span class="co">##     2 global attributes:</span>
 <span class="co">##         Conventions: CF-1.6</span>
-<span class="co">##         history: 2021-12-06 08:56:26 GMT by grib_to_netcdf-2.16.0: grib_to_netcdf /tmp/RtmpFoXU6x/file20eca3d534ca8.grb -o _test.nc</span></code></pre>
+<span class="co">##         history: 2021-12-06 09:00:57 GMT by grib_to_netcdf-2.16.0: grib_to_netcdf /tmp/RtmpRypgDQ/file2118b37dc2f14.grb -o _test.nc</span></code></pre>
 </div>
 <div class="section level5">
 <h5 id="reading-data-using-stars">Reading data using <code>stars</code><a class="anchor" aria-label="anchor" href="#reading-data-using-stars"></a>
@@ -243,14 +243,14 @@
      main   <span class="op">=</span> <span class="st">"t2m"</span>,
      col    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html" class="external-link">hcl.colors</a></span><span class="op">(</span><span class="fl">21</span>, <span class="st">"Blue-Red 2"</span>, rev <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
      breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">t2m</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">t2m</span><span class="op">)</span>, length <span class="op">=</span> <span class="fl">22</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<p><img src="gridded_files/figure-html/unnamed-chunk-8-1.png" width="60%"></p>
+<p><img src="gridded_files/figure-html/demoplot_stars-1.png" width="60%"></p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># Plotting convective precipitation (mm)</span>
 <span class="fu"><a href="https://r-spatial.github.io/stars/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span><span class="op">[</span><span class="st">"cp"</span><span class="op">]</span> <span class="op">*</span> <span class="fl">1e3</span>,
      main   <span class="op">=</span> <span class="st">"cp"</span>,
      col    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html" class="external-link">hcl.colors</a></span><span class="op">(</span><span class="fl">10</span>, <span class="st">"Purple-Yellow"</span>, rev <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
      breaks <span class="op">=</span> <span class="fl">1e3</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">cp</span><span class="op">)</span><span class="op">)</span>, length <span class="op">=</span> <span class="fl">11</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<p><img src="gridded_files/figure-html/unnamed-chunk-8-2.png" width="60%"></p>
+<p><img src="gridded_files/figure-html/demoplot_stars-2.png" width="60%"></p>
 <p>An alternative way to visualize the data using <code>[ggplot2](https://cran.r-project.org/package=ggplot2)</code>, <code>[colorspace](https://cran.r-project.org/package=colorspace)</code> and <code>[sf](https://cran.r-project.org/package=sf)</code> as well as <code>[rnaturalearth](https://cran.r-project.org/package=rnaturalearth)</code> for outlines: ```</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://r-spatial.github.io/sf/" class="external-link">"sf"</a></span><span class="op">)</span>
@@ -266,7 +266,7 @@
            <span class="fu"><a href="https://colorspace.R-Forge.R-project.org//reference/scale_colour_continuous_sequential.html" class="external-link">scale_fill_continuous_sequential</a></span><span class="op">(</span><span class="st">"Purple-Yellow"</span><span class="op">)</span> <span class="op">+</span>
            <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">ne</span>, fill <span class="op">=</span> <span class="st">"transparent"</span><span class="op">)</span> <span class="op">+</span>
            <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">coord_sf</a></span><span class="op">(</span>xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">6</span>, <span class="fl">17</span><span class="op">)</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">36</span>, <span class="fl">67</span><span class="op">)</span>, expand <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
-<p><img src="gridded_files/figure-html/unnamed-chunk-9-1.png" width="60%"></p>
+<p><img src="gridded_files/figure-html/demoplot_ggplot-1.png" width="60%"></p>
 </div>
 </div>
   </div>
