@@ -1,8 +1,8 @@
 Package: eupp
 Type: Package
 Title: European PostProcessing Benchmark Data Downloader
-Version: 0.0-1
-Date: 2021-12-02
+Version: 0.0-2
+Date: 2021-12-06
 Author: Reto Stauffer
 Maintainer: Reto Stauffer <reto.stauffer@uibk.ac.at>
 Description: Provides access to the European PostProcessing Benchmark Project
