@@ -55,6 +55,7 @@ eupp_download_gridded <- function(x,
 
     # Now guessing output file type
     if (grepl("[;<>]", output_file)) stop("'output_file' contains illegal characters.")
+    stopifnot(is.character(output_format), length(output_format) == 1L)
     output_format <- match.arg(output_format)
     if (output_format == "guess") {
         # pattern matches grb, grib, GRIB, GRIB1 ...
@@ -205,7 +206,14 @@ eupp_get_inventory <- function(x) {
     inv <- as.data.frame(bind_rows(inv))
     names(inv) <- gsub("^_(?=[a-zA-Z])", "", names(inv), perl = TRUE)
     inv <- transform(inv, init  = as.POSIXct(paste(date, time), tz = "UTC", format = "%Y%m%d %H%M"))
-    inv <- transform(inv, valid = init + as.integer(step) * 3600)
+
+    # Extracting 'step' as integer. We either only get an integer (as text)
+    # such as "0" or "12", or a step range like "0-12" or "24-48". In both
+    # cases we extract the last numeric part and store it on 'step' again.
+    # To keep the old 'step' (from the index file) we will rename it to 'step_char'.
+    names(inv)[names(inv) == "step"] <- "step_char"
+    inv$step <- as.integer(regmatches(inv$step_char, regexpr("[0-9]+$", inv$step_char))) # <- integer
+    inv <- transform(inv, valid = init + step * 3600)
     inv <- transform(inv, step  = as.integer(inv$step))
     inv <- within(inv, {date <- time <- NULL})
 
@@ -215,6 +223,7 @@ eupp_get_inventory <- function(x) {
     if (is.integer(x$steps))           inv <- subset(inv, step  %in% x$steps)
 
     class(inv) <- c("eupp_inventory", class(inv))
+    if (nrow(inv) == 0) warning("No field match found; check your 'eupp_config()' settings.")
     return(inv)
 }
 

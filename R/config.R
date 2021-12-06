@@ -7,7 +7,7 @@
 #' itself.
 #'
 #' @param type character of length \code{1} (see Details).
-#' @param kind character of length \code{1} (see Details).
+#' @param kind character of length \code{1} or \code{NULL} (see Details).
 #' @param level character of length \code{1} (see Details).
 #' @param date an object which can be converted to \code{POSIXct}. Character string
 #'        in ISO representation or an object of class \code{Date} or \code{POSIXt}.
@@ -34,7 +34,7 @@
 #'   \item \code{"analysis"}: Analysis data; based on ECMWF ERA5 used as ground truth.
 #' }
 #'
-#' Input argument \code{kind}:
+#' Input argument \code{kind}. Will be ignored if \code{level = "efi"} (has no kind).
 #'
 #' \itemize{
 #'   \item \code{"ctr"}: Control run.
@@ -74,12 +74,22 @@ eupp_config <- function(type  = c("reforecast", "forecast", "analysis"),
     # ----------------------------------------------
     # Sanity checks:
     # ----------------------------------------------
-    stopifnot(is.character(type),  length(type) == 1L)
-    stopifnot(is.character(kind),  length(kind) == 1L)
+    stopifnot(is.character(type), length(type) == 1L)
+    type  <- match.arg(type)
     stopifnot(is.character(level), length(level) == 1L)
+    level <- match.arg(level)
+
+    if (level == "efi") {
+        if (!is.null(kind)) stop("Please set 'kind = NULL' when requesting 'level = \"efi\"'.")
+    } else {
+        stopifnot(is.character(kind), length(kind) == 1L)
+        kind  <- match.arg(kind)
+    }
+
     stopifnot(inherits(parameter,  c("NULL", "character")))
     stopifnot(inherits(area,       c("NULL", "bbox")))
     stopifnot(inherits(steps,      c("NULL", "numeric", "integer")))
+
     if (!is.null(steps)) { stopifnot(all(steps >= 0)); steps <- as.integer(steps) }
     stopifnot(is.integer(version),      length(version) == 1L)
     stopifnot(inherits(cache, c("NULL", "character")))
@@ -89,17 +99,17 @@ eupp_config <- function(type  = c("reforecast", "forecast", "analysis"),
             stop("Argument 'code' must point to an existing folder if set.")
     }
 
-    type  <- match.arg(type)
-    kind  <- match.arg(kind)
-    level <- match.arg(level)
     if (anyDuplicated(parameter)) {
         warning("Got duplicated parameters; unified.")
         parameter <- unique(parameter)
     }
 
     #@TODO: Allow to download multiple dates at once
+    #       Idea: allow for POSIXt vector; take unique(URLs)
+    #       and start to download Put everything into one file??????
     # Make sure input for 'date' is allowed.
     stopifnot(inherits(date, c("character", "Date", "POSIXt")), length(date) == 1L)
+
     # If input 'date' is character; try to convert to character.
     if (is.character(date)) {
         tryCatch(date <- as.POSIXct(date, tz = "UTC"),

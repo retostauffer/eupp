@@ -15,7 +15,8 @@
 #' @keywords internal
 eupp_get_url_config <- function() {
     list("BASEURL" = "https://storage.ecmwf.europeanweather.cloud/benchmark-dataset",
-         "PATTERN" = "data/{{type_abbr}}/{{level}}/EU_{{type}}_ctr_{{level}}_params_{{isodate}}_{{version}}.grb")
+         "PATTERN" = "data/{{type_abbr}}/{{level}}/EU_{{type}}_{{kind}}_{{level}}_params_{{isodate}}_{{version}}.grb",
+         "PATTERN_EFI" = "data/{{type_abbr}}/{{level}}/EU_{{type}}_{{level}}_params_{{isodate}}_{{version}}.grb")
 }
 
 
@@ -42,7 +43,8 @@ eupp_get_source_url <- function(x, fileext = NULL, ...) {
 
     # Get date in the format required for the URL; must be
     # done before converting 'x' below.
-    fmt <- c(reforecast = "%Y-%m-%d", forecast = "%Y-%m", analysis = "%Y-%m")[x$type]
+    ###fmt <- c(reforecast = "%Y-%m-%d", forecast = "%Y-%m", analysis = "%Y-%m")[x$type]
+    fmt <- c(ctr = "%Y-%m", hr = "%Y-%m", ens = "%Y-%m-%d", efi = "%Y-%m")[x$kind]
     x$date <- format(x$date, fmt)
 
     # Convert 'x' (type) and level
@@ -52,12 +54,13 @@ eupp_get_source_url <- function(x, fileext = NULL, ...) {
     # Getting basic config
     conf <- eupp_get_url_config()
 
-    URL <- paste(conf$BASEURL, conf$PATTERN, sep = "/")
+    URL <- paste(conf$BASEURL, if (x$level == "efi") conf$PATTERN_EFI else conf$PATTERN, sep = "/")
     URL <- gsub("\\{\\{type_abbr\\}\\}",   x$type_abbr,  URL)
     URL <- gsub("\\{\\{type\\}\\}",        x$type,       URL)
     URL <- gsub("\\{\\{level\\}\\}",       x$level,      URL)
     URL <- gsub("\\{\\{isodate\\}\\}",     x$date,       URL)
     URL <- gsub("\\{\\{version\\}\\}",     x$version,    URL)
+    if (!is.null(x$kind))  URL <- gsub("\\{\\{kind\\}\\}",        x$kind,       URL)
     if (!is.null(fileext)) URL <- paste(URL, fileext, sep = ".")
 
     return(URL)
