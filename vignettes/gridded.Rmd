@@ -138,7 +138,7 @@ library("ggplot2")
 library("colorspace")
 library("rnaturalearth")
 
-ne <- ne_countries(returnclass = "sf")
+ne <- ne_countries(continent = "europe", returnclass = "sf")
 st_crs(x) <- st_crs(ne)
 
 ggplot() + geom_stars(data = x["cp"] * 1e3, sf = TRUE) +
@@ -146,6 +146,12 @@ ggplot() + geom_stars(data = x["cp"] * 1e3, sf = TRUE) +
            scale_fill_continuous_sequential("Purple-Yellow") +
            geom_sf(data = ne, fill = "transparent") +
            coord_sf(xlim = c(-6, 17), ylim = c(36, 67), expand = FALSE)
+```
+```{r, eval = FALSE, include = FALSE}
+# Wanted to first crop 'ne' to the bbox of 'x'
+# beore using a different projection (as xlim/ylim change).
+# not working; issues with ne?
+crs = st_crs("ESRI:102014")
 ```
 
 
