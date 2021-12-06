@@ -12,23 +12,48 @@ Full documentation can be found on <https://retostauffer.github.io/eupp/>.
 
 ## System requirements
 
-* `curl` support for downloading the data via https
-* `gdal` tools/library required by the _R_ package 'stars'
-* Allows to retrieve the data as NetCDF (classic 64bit format). This conversion
-    is done locally and requires the ecCodes tools to be installed, namely
-    `grib_to_netcdf`. On most Linux systems install `libeccodes-tools` via
-    package manager.
+| Software/libs | Remarks |
+|:--------------|:--------|
+| `curl`        | Required for downloading data |
+| `gdal`        | Geospatial Data Abstraction Library (req. by R package `stars`) |
+| ecCodes       | ECMWF ecCodes toolbox; `grib_to_netcdf` is called to convert GRIB to NetCDF if requested |
+
+On most up-to-date Linux systems the ecCodes tools can be installed via package
+manager (e.g., `apt get install libeccodes-tools -y`).
+
 
 ## R packages
 
-* `dplyr::bind_rows` is used in one instance.
-* `stars` for processing spatial data
-* `httr` for downloading data (curl based)
-* ...
+Shows required packages. Defined as dependencies; should be installed automatically
+when using `github_install()` (see below). The package has been developed/tested using
+R version `4.1.2` using the following packages/package versions:
 
-* **Suggested**: `sf` ...
+| Package name | Tested on | Remarks |
+|:-------------|:---------:|:--------|
+| `httr`       | 1.4.2     | Downloading data via https |
+| `dplyr`      | 1.0.7     | `dplyr::bind_rows` used in one instance |
+| `stars`      | 0.5.5     | Handling/reading spatio-temporal data |
 
-@TODO
+Suggested packages ...
+
+| Package name | Tested on | Remarks |
+|:-------------|:---------:|:--------|
+| `sf`         | 1.0.4     | Plotting, processing data, spatial subsetting |
+
+
+## Installation
+
+The package is currently only available via `[github](https://github.com/retostauffer/eupp)`.
+The simplest way to install:
+
+```
+library("remotes")
+github_install("retostauffer/eupp")
+```
+
+This will install the current version from the `main` branch. Once stable, a stable
+release will be provided.
+
 
 # Available data
 
