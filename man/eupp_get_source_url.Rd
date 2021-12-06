@@ -7,6 +7,12 @@
 eupp_get_source_url(x, fileext = NULL, ...)
 }
 \arguments{
+\item{x}{object of class \code{eupp_config} returned by \code{\link{eupp_config}}.}
+
+\item{fileext}{\code{NULL} or character length \code{1}. File extension (or
+URL extension) added to the URL. Used to generate URLs to GRIB index files.
+Defaults to \code{NULL}.}
+
 \item{...}{unused.}
 }
 \value{

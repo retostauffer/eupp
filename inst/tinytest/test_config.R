@@ -2,6 +2,8 @@
 # Testing eupp_config()
 # ----------------------------------------------------------------
 
+require("tinytest")
+
 expect_true(is.function(eupp_config), info = "Cannot find function eupp_config")
 
 # ----------------------------------------------------------------

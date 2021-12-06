@@ -2,8 +2,10 @@
 # Testing eupp_*_gridded()
 # ----------------------------------------------------------------
 
+require("tinytest")
+
 # Setting up cache-dir
-cache_dir <- "_cache"
+cache_dir <- file.path(tempdir(), "_cache")
 dir.create(cache_dir, showWarnings = FALSE)
 
 # Basic check for functions
@@ -75,7 +77,7 @@ expect_error(eupp_download_gridded(config, "_foo.grb", overwrite = NA),
 
 
 # Proper usage
-grib_file <- "_test.grb"
+grib_file <- file.path(tempdir(), "_test.grb")
 if (file.exists(grib_file)) unlink(grib_file)
 expect_silent(grb <- eupp_download_gridded(config, grib_file))
 # -> overwrite = FALSE and we should see an error
@@ -101,7 +103,7 @@ expect_identical(nrow(inv), tmp,
 # Note that output_format should be guessed by file name
 # ----------------------------------------------------------------
 library("ncdf4")
-nc_file   <- "_test.nc"
+nc_file   <- file.path(tempdir(), "_test.nc")
 if (file.exists(nc_file)) unlink(nc_file)
 expect_silent(nc  <- eupp_download_gridded(config, nc_file))
 # -> overwrite = FALSE and we should see an error

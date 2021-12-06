@@ -155,6 +155,12 @@ crs = st_crs("ESRI:102014")
 ```
 
 
+```{r gridded_cleaning_up, include = FALSE}
+if (dir.exists("_cache")) unlink("_cache")
+if (file.exists("_test.nc")) unlink("_test.nc")
+if (file.exists("_test.grb")) unlink("_test.grb")
+```
+
 
 
 

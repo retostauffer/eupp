@@ -143,15 +143,15 @@ eupp_download_gridded <- function(x,
 #' @rdname gridded
 #' @export
 eupp_get_gridded <- function(x, verbose = FALSE) {
-    require("stars")
     stopifnot(inherits(x, "eupp_config"))
     stopifnot(isTRUE(verbose) || isFALSE(verbose))
+    stopifnot(requireNamespace("stars", quietly = TRUE))
 
     tmp_file <- tempfile(fileext = ".nc")
     tmp_file <- eupp_download_gridded(x, tmp_file, "nc", verbose = verbose)
 
     # Reading the NetCDF file as stars
-    data <- read_stars(tmp_file)
+    data <- stars::read_stars(tmp_file)
 
     # Return; perform subsetting if required
     return(if (!is.null(x$area)) data[x$area] else data)

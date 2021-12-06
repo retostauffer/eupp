@@ -24,6 +24,10 @@ eupp_get_url_config <- function() {
 #' For internal use only, returns the URL to the \code{.grb} file given
 #' the input parameters. Called by the download functions.
 #'
+#' @param x object of class \code{eupp_config} returned by \code{\link{eupp_config}}.
+#' @param fileext \code{NULL} or character length \code{1}. File extension (or
+#'        URL extension) added to the URL. Used to generate URLs to GRIB index files.
+#'        Defaults to \code{NULL}.
 #' @param ... unused.
 #'
 #' @return Returns a character of length 1, URL to retrieve the data set.

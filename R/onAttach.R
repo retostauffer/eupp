@@ -14,5 +14,5 @@
     https://github.com/retostauffer/eupp/blob/main/README.md
     If you do not agree with such terms, do not download the data.
     \n"
-    cat(tos)
+    packageStartupMessage(tos)
 }
