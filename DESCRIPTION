@@ -6,11 +6,12 @@ Date: 2021-12-02
 Author: Reto Stauffer
 Maintainer: Reto Stauffer <reto.stauffer@uibk.ac.at>
 Description: Provides access to the European PostProcessing Benchmark Project
-    data set. Data is provided as grib version 1; thus the libeccodes-dev
-    is required to build/install the package (to compile the C code contained
-    within the R package).
+    data set. Data is provided as grib version 1. To process the data the package
+    depends on ecCodes (system requirement) as well as gdal and netcdf support
+    for processing the data if requested (needed for the R packages stars and sf).
+URL: https://retostauffer.github.io/eupp/
+BugReports: https://github.com/retostauffer/eupp/issues
 Depends: R (>= 4.1.0)
-Imports: digest, rjson, dplyr, httr, stars
-Suggetsts: ncdf4, sf
+Imports: digest, rjson, dplyr, httr, stars, tinytest, ncdf4, sf
 License: GPL-2
 RoxygenNote: 7.1.1
