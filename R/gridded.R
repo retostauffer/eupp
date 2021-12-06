@@ -77,11 +77,11 @@ eupp_download_gridded <- function(x,
 
     # We will make use of stars for spatial subsets which
     # is only possible if we store the data as NetCDF.
-    if (output_format == "nc" & !is.null(x$area))
+    if (output_format != "nc" & !is.null(x$area))
         stop("Areal subsets ('eupp_config area') only allowed in combination with NetCDF file format.")
 
     # Reforecasts only initialized on Mondays (1) and Thursdays (4)
-    if (grepl(x$type, "^reforecast$") & !all(format(x$date, "%w") %in% c(1, 4)))
+    if (grepl("^reforecast$", x$type) && !all(format(x$date, "%w") %in% c(1, 4)))
         stop("Reforecasts only available on Mondays and Thursdays, check 'date'.")
 
     # ----------------------------------------------
@@ -125,26 +125,34 @@ eupp_download_gridded <- function(x,
 #' @param x object of class \code{\link{eupp_config}}.
 #' @param verbose logical, sets verbosity level. Defaults to \code{FALSE}.
 #'
-#' @return TODO
+#' @return Object of class \code{stars}; see Details.
+#'
+#' @details This function interfaces \code{\link{eupp_download_gridded}}
+#' to download the data and converts the original data set (GRIB version 1)
+#' to NetCDF. Thus NetCDF support and ecCodes tools are required.
+#'
+#' If \code{x} (\code{\link{eupp_config}}) contains a \code{bbox} definition
+#' on \code{area} the data is subsetted directly.
 #'
 #' @seealso \code{\link{eupp_download_gridded}}
 #'
+#' @importFrom stars read_stars
 #' @author Reto Stauffer
 #' @rdname gridded
 #' @export
 eupp_get_gridded <- function(x, verbose = FALSE) {
+    require("stars")
     stopifnot(inherits(x, "eupp_config"))
     stopifnot(isTRUE(verbose) || isFALSE(verbose))
 
     tmp_file <- tempfile(fileext = ".nc")
-    tmp_file <- download_dataset(x, tmp_file, "nc", verbose = verbose)
+    tmp_file <- eupp_download_gridded(x, tmp_file, "nc", verbose = verbose)
 
     # Reading the NetCDF file as stars
     data <- read_stars(tmp_file)
-    # Subsetting requested?
-    if (!is.null(x$area)) data[x$area]
 
-    return(data)
+    # Return; perform subsetting if required
+    return(if (!is.null(x$area)) data[x$area] else data)
 }
 
 
