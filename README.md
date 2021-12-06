@@ -33,12 +33,14 @@ Full documentation can be found on <https://retostauffer.github.io/eupp/>.
 # Available data
 
 * Spatial extent: longitude `6E/17W`, latitude `36N/67N`.
+* Spatial resolution: `0.25` times `0.25` degrees (`rectangular_ll` grid)
+
+## Surface forecast variables
+
 * Forecast steps (in hours):
     * Hourly forecasts from `+0h` to `+90h`
     * Three-hourly intervals from `+90h` to `+144h` (6 days ahead)
     * Six-hourly intervals from `+144h` to `+240h` (10 days ahead)
-
-## Surface forecast variables
 
 | Parameter name                        | ECMWF key | Remarks |
 |:--------------------------------------|:----------|:--------|
@@ -67,6 +69,11 @@ Full documentation can be found on <https://retostauffer.github.io/eupp/>.
 
 ## Pressure level forecast variables
 
+* Forecast steps (in hours):
+    * Hourly forecasts from `+0h` to `+90h`
+    * Three-hourly intervals from `+90h` to `+144h` (6 days ahead)
+    * Six-hourly intervals from `+144h` to `+240h` (10 days ahead)
+
 | Parameter name      | Level  | ECMWF key | Remarks |
 |:--------------------|:-------|:----------|:--------|
 | Temperature         | 850    | `t`       |         |
@@ -77,6 +84,9 @@ Full documentation can be found on <https://retostauffer.github.io/eupp/>.
 | Relative humidity   | 850    | `r`       |         |
 
 ## Extreme forecast index variables
+
+* Forecast ranges (in hours): `0-24`, `24-48`, `48-72`, `72-96`, `96-120`,
+  `120-144` and `144-168`.
 
 | Parameter name                | ECMWF key | Remarks |
 |:------------------------------|:----------|:--------|
