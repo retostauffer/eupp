@@ -17,6 +17,9 @@
 #'        steps will be processed. An integer sequence can be provided to only process
 #'        specific forecast steps; given in hours (e.g., \code{c(6, 12)} for \code{+6}
 #'        and \code{+12} hour ahead forecasts).
+#' @param steps \code{NULL} (default) or integer. If set to \code{NULL} all available forecast
+#'        members will be processed. An integer sequence can be provided to only process
+#'        specific forecast members.
 #' @param area \code{NULL} (default) or an object of class \code{bbox}. Used for spatial subsetting.
 #' @param cache \code{NULL} or character of length \code{1} pointing to an existing
 #'        directory. Is used for data caching (caching grib index information/inventories)
@@ -38,7 +41,7 @@
 #'
 #' \itemize{
 #'   \item \code{"ctr"}: Control run.
-#'   \item \code{"ens"}: Ensemble members.
+#'   \item \code{"ens"}: Ensemble members (allows for optional argument \code{members}).
 #'   \item \code{"hr"}: High-resolution forecast.
 #' }
 #'
@@ -54,6 +57,11 @@
 #' If \code{type = "reforecast"} and the \code{date} does not point to Mon/Thu
 #' the function will throw an error.
 #'
+#' The forecast ensemble (\code{type = "forecast"}, \code{kind = "ctr"}) consists
+#' of 50 ensemble members (\code{1-50}), the reforecasts or hindcasts
+#' (\code{type = "forecast"}, \code{kind = "ctr"}) only consists of 20 ensemble
+#' runs (\code{1-20}).
+#'
 #' @examples
 #' conf_A <- eupp_config(type = "reforecast", kind = "ctr", level = "surf",
 #'                       date = "2017-01-02", parameter = "2t")
@@ -68,8 +76,8 @@ eupp_config <- function(type  = c("reforecast", "forecast", "analysis"),
                         kind  = c("ctr", "ens", "hr"),
                         level = c("surf", "pressure", "efi"),
                         date, parameter = NULL,
-                        steps = NULL, area = NULL,
-                        cache = NULL, version = 0L) {
+                        steps = NULL, members = NULL,
+                        area = NULL, cache = NULL, version = 0L) {
 
     # ----------------------------------------------
     # Sanity checks:
@@ -89,8 +97,11 @@ eupp_config <- function(type  = c("reforecast", "forecast", "analysis"),
     stopifnot(inherits(parameter,  c("NULL", "character")))
     stopifnot(inherits(area,       c("NULL", "bbox")))
     stopifnot(inherits(steps,      c("NULL", "numeric", "integer")))
+    stopifnot(inherits(members,    c("NULL", "numeric", "integer")))
 
-    if (!is.null(steps)) { stopifnot(all(steps >= 0)); steps <- as.integer(steps) }
+    if (!is.null(steps))   { stopifnot(all(steps   >= 0)); steps   <- as.integer(steps) }
+    if (!is.null(members)) { stopifnot(all(members >  0)); members <- as.integer(members) }
+
     stopifnot(is.integer(version),      length(version) == 1L)
     stopifnot(inherits(cache, c("NULL", "character")))
     if (!is.null(cache)) {
@@ -143,6 +154,8 @@ print.eupp_config <- function(x, ...) {
                                                paste(x$parameter, collapse = ", "))),
              sprintf(fmt, "Steps:",     ifelse(is.null(x$steps),     "all available",
                                                paste(x$steps, collapse = ", "))),
+             sprintf(fmt, "Members:",   ifelse(is.null(x$members),     "all available",
+                                               paste(x$members, collapse = ", "))),
              sprintf(fmt, "Version:",   as.character(x$version)),
              sprintf(fmt, "Cache:",     ifelse(is.null(x$cache), "disabled", x$cache)),
              sprintf(fmt, "Area:",      ifelse(is.null(x$area), "not defined", "defined!")))

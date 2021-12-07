@@ -55,8 +55,8 @@ eupp_download_gridded <- function(x,
 
     # Now guessing output file type
     if (grepl("[;<>]", output_file)) stop("'output_file' contains illegal characters.")
-    stopifnot(is.character(output_format), length(output_format) == 1L)
     output_format <- match.arg(output_format)
+    stopifnot(length(output_format) == 1L)
     if (output_format == "guess") {
         # pattern matches grb, grib, GRIB, GRIB1 ...
         fext <- file_ext(output_file)

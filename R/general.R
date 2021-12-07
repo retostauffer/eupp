@@ -1,5 +1,4 @@
 
-
 #' Get Configuration
 #'
 #' Provides a series of parameters. Internal use only.
