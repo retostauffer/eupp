@@ -7,7 +7,7 @@
 \usage{
 eupp_get_gridded(x, verbose = FALSE)
 
-eupp_get_inventory(x)
+eupp_get_inventory(x, verbose = FALSE)
 }
 \arguments{
 \item{x}{object of class \code{\link{eupp_config}}.}

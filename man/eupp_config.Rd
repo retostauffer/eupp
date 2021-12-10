@@ -6,12 +6,14 @@
 \usage{
 eupp_config(
   type = c("reforecast", "forecast", "analysis"),
-  kind = c("ctr", "ens", "hr"),
+  kind = c("ens", "hr"),
   level = c("surf", "pressure", "efi"),
   date,
   parameter = NULL,
   steps = NULL,
+  members = NULL,
   area = NULL,
+  euppapi = TRUE,
   cache = NULL,
   version = 0L
 )
@@ -19,7 +21,7 @@ eupp_config(
 \arguments{
 \item{type}{character of length \code{1} (see Details).}
 
-\item{kind}{character of length \code{1} (see Details).}
+\item{kind}{character of length \code{1} or \code{NULL} (see Details).}
 
 \item{level}{character of length \code{1} (see Details).}
 
@@ -30,11 +32,13 @@ in ISO representation or an object of class \code{Date} or \code{POSIXt}.}
 parameters will be processed. Can be used to retrieve/process subsets.}
 
 \item{steps}{\code{NULL} (default) or integer. If set to \code{NULL} all available forecast
-steps will be processed. An integer sequence can be provided to only process
-specific forecast steps; given in hours (e.g., \code{c(6, 12)} for \code{+6}
-and \code{+12} hour ahead forecasts).}
+members will be processed. An integer sequence can be provided to only process
+specific forecast members.}
 
 \item{area}{\code{NULL} (default) or an object of class \code{bbox}. Used for spatial subsetting.}
+
+\item{euppapi}{logical, defaults to \code{TRUE}. Should the 'euppapi' be used or the
+plain GRIB index files from the S3 store?}
 
 \item{cache}{\code{NULL} or character of length \code{1} pointing to an existing
 directory. Is used for data caching (caching grib index information/inventories)
@@ -60,11 +64,11 @@ Input argument \code{type}:
   \item \code{"analysis"}: Analysis data; based on ECMWF ERA5 used as ground truth.
 }
 
-Input argument \code{kind}:
+Input argument \code{kind}. Will be ignored if \code{level = "efi"} (has no kind).
 
 \itemize{
-  \item \code{"ctr"}: Control run.
-  \item \code{"ens"}: Ensemble members.
+  \item \code{"ens"}: Ensemble members (allows for optional argument \code{members});
+        \code{"ens"} also includes the control run (\code{member} zero).
   \item \code{"hr"}: High-resolution forecast.
 }
 
@@ -79,6 +83,11 @@ Input argument \code{level}:
 Note that reforecasts always only become available on Mondays and Thursdays.
 If \code{type = "reforecast"} and the \code{date} does not point to Mon/Thu
 the function will throw an error.
+
+The forecast ensemble (\code{type = "forecast"}, \code{kind = "ctr"}) consists
+of 50 ensemble members (\code{1-50}), the reforecasts or hindcasts
+(\code{type = "forecast"}, \code{kind = "ctr"}) only consists of 20 ensemble
+runs (\code{1-20}).
 }
 \examples{
 conf_A <- eupp_config(type = "reforecast", kind = "ctr", level = "surf",

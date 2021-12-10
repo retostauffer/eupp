@@ -5,7 +5,7 @@
 #'
 #' @param x an object of class \code{\link{eupp_config}}.
 #' @param output_file character length 1, name of the output file.
-#' @param output_format character length 1, defaults to \code{"guess"} (see details).
+#' @param output_format character length 1, defaults to \code{"grib"} (see details).
 #' @param verbose logical length 1, verbosity, defaults to \code{FALSE}.
 #' @param overwrite logical length 1, defaults to \code{FALSE}. If set to \code{TRUE}
 #'        the \code{output_file} will be overwritten if needed. If \code{FALSE} and
@@ -21,8 +21,7 @@
 #' not possible. You can always use \code{output_format} to control this explicitly.
 #'
 #' \itemize{
-#'    \item \code{output_format = "guess"}: Guess output format based on \code{output_file}.
-#'    \item \code{output_format = "grb"}: Store result in GRIB version 1.
+#'    \item \code{output_format = "grib"}: Store result in GRIB version 1.
 #'    \item \code{output_format = "nc"}: Store result as NetCDF file.
 #' }
 #'
@@ -36,7 +35,7 @@
 #' @export
 eupp_download_gridded <- function(x,
                              output_file,
-                             output_format = c("guess", "grb", "nc"),
+                             output_format = c("grib", "nc"),
                              verbose = FALSE, overwrite = FALSE) {
 
     # Checking main input object
@@ -54,22 +53,10 @@ eupp_download_gridded <- function(x,
         stop("Cannot write 'output_file' to \"{:s}\", directory does not exist.", dirname(output_file))
 
     # Now guessing output file type
-    if (grepl("[;<>]", output_file)) stop("'output_file' contains illegal characters.")
     output_format <- match.arg(output_format)
-    stopifnot(length(output_format) == 1L)
-    if (output_format == "guess") {
-        # pattern matches grb, grib, GRIB, GRIB1 ...
-        fext <- file_ext(output_file)
-        if (length(regmatches(fext, gregexpr("[grb]", fext, ignore.case = TRUE))[[1]]) >= 3) {
-            output_format <- "grb"
-        } else if (length(regmatches(fext, gregexpr("[nc]", fext, ignore.case = TRUE))[[1]]) >= 2) {
-            output_format <- "nc"
-        } else {
-            stop("Please provide 'output_format'.")
-        }
-    }
 
     # If the user requests netCDF: check grib_to_netcdf is available.
+    # @TODO
     if (output_format == "nc") {
         g2nc_bin <- Sys.which("grib_to_netcdf")
         if (nchar(g2nc_bin) == 0) {
@@ -91,24 +78,40 @@ eupp_download_gridded <- function(x,
     # Main content of the function
     # ----------------------------------------------
     inv       <- eupp_get_inventory(x)           # Loading inventory information
-    grib_url  <- eupp_get_source_url(x)          # Getting data url (location of grib file)
-    tmp_file <- tempfile(fileext = ".grb")  # Temporary location for download
 
     # Open binary file connection; temporary file.
     # Download everything and then create final ouptut file.
+    tmp_file <- tempfile(fileext = ".grb")  # Temporary location for download
     con      <- file(tmp_file, "wb")
-    if (verbose) pb <- txtProgressBar(0, nrow(inv), style = 3)
-    for (i in seq_len(nrow(inv))) {
-        if (verbose) setTxtProgressBar(pb, i)
-        rng <- sprintf("bytes=%d-%d", inv$offset[i], inv$offset[i] + inv$length[i])
-        req <- GET(grib_url, add_headers(Range = rng))
-        writeBin(req$content, con = con)
+
+    # Differs depending on where we got our inventory
+    # --------- inventory from EUPP API
+    if (inherits(inv, "euppapi_inventory")) {
+        if (verbose) pb <- txtProgressBar(0, length(inv$messages), style = 3)
+        print(length(inv$messages))
+        for (i in seq_along(inv$messages)) {
+            if (verbose) setTxtProgressBar(pb, i)
+            rng <- sprintf("bytes=%s", inv$messages[[i]]$byterange)
+            req <- GET(sprintf("%s/%s", inv$baseurl, inv$messages[[i]]$path), add_headers(Range = rng))
+            writeBin(req$content, con = con)
+        }
+        if (verbose) close(pb)
+    # --------- inventory from GRIB index files (https/S3)
+    } else {
+        grib_url  <- eupp_get_source_url(x)          # Getting data url (location of grib file)
+        if (verbose) pb <- txtProgressBar(0, nrow(inv), style = 3)
+        for (i in seq_len(nrow(inv))) {
+            if (verbose) setTxtProgressBar(pb, i)
+            rng <- sprintf("bytes=%d-%d", inv$offset[i], inv$offset[i] + inv$length[i])
+            req <- GET(grib_url, add_headers(Range = rng))
+            writeBin(req$content, con = con)
+        }
+        if (verbose) close(pb)
     }
-    if (verbose) close(pb)
     close(con) # Properly closing the binary file connection
 
     # Move file to final destination
-    if (output_format == "grb") {
+    if (output_format == "grib") {
         file.rename(tmp_file, output_file)
     } else {
         cat("Calling grib_to_netcdf to convert file format\n")
@@ -165,7 +168,44 @@ eupp_get_gridded <- function(x, verbose = FALSE) {
 #' @importFrom digest digest
 #' @importFrom httr GET status_code content
 #' @export
-eupp_get_inventory <- function(x) {
+eupp_get_inventory <- function(x, verbose = FALSE) {
+    stopifnot(inherits(x, "eupp_config"))
+    stopifnot(isTRUE(verbose) || isFALSE(verbose))
+    if (x$euppapi) {
+        res <- eupp_get_inventory_api(x, verbose)
+    } else {
+        res <- eupp_get_inventory_S3(x, verbose)
+    }
+    return(res)
+}
+
+#' @importFrom httr GET content
+eupp_get_inventory_api <- function(x, verbose) {
+
+    url <- "http://127.0.0.1:8000/api/%s/%s/%s"
+    url <- sprintf(url, x$type, x$kind, format(x$date, "%Y-%m-%d"))
+    args <- list()
+    if (!is.null(x$step))      args$step  <- paste(x$steps, collapse = ":")
+    if (!is.null(x$parameter)) args$param <- paste(x$parameter, collapse = ":")
+
+    request <- GET(url, query = args)
+    if (verbose) cat("Calling", request$url, "\n")
+    res <- content(request)
+    class(res) <- "euppapi_inventory"
+    return(res)
+}
+
+# Print method for euppapi_inventory fetched via API
+print.euppapi_inventory <- function(x, ...) {
+    res <- "EUPP API Inventory"
+    res <- c(res, sprintf("    %-20s %d", "Number of messages:", x$nmsg))
+    res <- c(res, sprintf("    %-20s %s", "Note:", x$note))
+    res <- c(res, sprintf("    %-20s", "Rest TODO for now"))
+    cat(res, sep = "\n")
+    invisible(res)
+}
+
+eupp_get_inventory_S3 <- function(x) {
 
     stopifnot(inherits(x, "eupp_config"))
 

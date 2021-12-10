@@ -7,7 +7,7 @@
 eupp_download_gridded(
   x,
   output_file,
-  output_format = c("guess", "grb", "nc"),
+  output_format = c("grib", "nc"),
   verbose = FALSE,
   overwrite = FALSE
 )
@@ -17,7 +17,7 @@ eupp_download_gridded(
 
 \item{output_file}{character length 1, name of the output file.}
 
-\item{output_format}{character length 1, defaults to \code{"guess"} (see details).}
+\item{output_format}{character length 1, defaults to \code{"grib"} (see details).}
 
 \item{verbose}{logical length 1, verbosity, defaults to \code{FALSE}.}
 

@@ -21,6 +21,8 @@
 #'        members will be processed. An integer sequence can be provided to only process
 #'        specific forecast members.
 #' @param area \code{NULL} (default) or an object of class \code{bbox}. Used for spatial subsetting.
+#' @param euppapi logical, defaults to \code{TRUE}. Should the 'euppapi' be used or the
+#'        plain GRIB index files from the S3 store?
 #' @param cache \code{NULL} or character of length \code{1} pointing to an existing
 #'        directory. Is used for data caching (caching grib index information/inventories)
 #'        which can be handy to save some time.
@@ -40,8 +42,8 @@
 #' Input argument \code{kind}. Will be ignored if \code{level = "efi"} (has no kind).
 #'
 #' \itemize{
-#'   \item \code{"ctr"}: Control run.
-#'   \item \code{"ens"}: Ensemble members (allows for optional argument \code{members}).
+#'   \item \code{"ens"}: Ensemble members (allows for optional argument \code{members});
+#'         \code{"ens"} also includes the control run (\code{member} zero).
 #'   \item \code{"hr"}: High-resolution forecast.
 #' }
 #'
@@ -73,11 +75,11 @@
 #' @author Reto Stauffer
 #' @export
 eupp_config <- function(type  = c("reforecast", "forecast", "analysis"),
-                        kind  = c("ctr", "ens", "hr"),
+                        kind  = c("ens", "hr"),
                         level = c("surf", "pressure", "efi"),
                         date, parameter = NULL,
                         steps = NULL, members = NULL,
-                        area = NULL, cache = NULL, version = 0L) {
+                        area = NULL, euppapi = TRUE, cache = NULL, version = 0L) {
 
     # ----------------------------------------------
     # Sanity checks:
@@ -98,6 +100,7 @@ eupp_config <- function(type  = c("reforecast", "forecast", "analysis"),
     stopifnot(inherits(area,       c("NULL", "bbox")))
     stopifnot(inherits(steps,      c("NULL", "numeric", "integer")))
     stopifnot(inherits(members,    c("NULL", "numeric", "integer")))
+    stopifnot(isTRUE(euppapi) || isFALSE(euppapi))
 
     if (!is.null(steps))   { stopifnot(all(steps   >= 0)); steps   <- as.integer(steps) }
     if (!is.null(members)) { stopifnot(all(members >  0)); members <- as.integer(members) }
@@ -137,7 +140,7 @@ eupp_config <- function(type  = c("reforecast", "forecast", "analysis"),
     # Crete return; a simple list of class eupp_config.
     res <- list(type = type, type_abbr = type_abbr,
                 kind = kind, level = level, date = date, steps = steps, area = area,
-                parameter = parameter, version = version, cache = cache)
+                parameter = parameter, version = version, cache = cache, euppapi = euppapi)
     class(res) <- "eupp_config"
     return(res)
 }
@@ -158,7 +161,8 @@ print.eupp_config <- function(x, ...) {
                                                paste(x$members, collapse = ", "))),
              sprintf(fmt, "Version:",   as.character(x$version)),
              sprintf(fmt, "Cache:",     ifelse(is.null(x$cache), "disabled", x$cache)),
-             sprintf(fmt, "Area:",      ifelse(is.null(x$area), "not defined", "defined!")))
+             sprintf(fmt, "Area:",      ifelse(is.null(x$area), "not defined", "defined!")),
+             sprintf(fmt, "EUPP API:",  as.character(x$euppapi)))
     cat(res, sep = "\n")
     invisible(x)
 }
