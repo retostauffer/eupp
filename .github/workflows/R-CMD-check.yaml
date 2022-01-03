@@ -17,8 +17,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Installing gdal-lib
-        run: sudo apt-get install -y gdal-lib
+      - name: Installing libgdal-dev
+        run: sudo apt-get install -y libgdal-dev
 
       - name: Installing eccodes
         run: sudo apt-get install -y libeccodes-tools libeccodes-dev
