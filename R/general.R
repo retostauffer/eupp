@@ -43,7 +43,12 @@ eupp_get_source_url <- function(x, fileext = NULL, ...) {
     # Get date in the format required for the URL; must be
     # done before converting 'x' below.
     ###fmt <- c(reforecast = "%Y-%m-%d", forecast = "%Y-%m", analysis = "%Y-%m")[x$type]
-    fmt <- c(ctr = "%Y-%m", hr = "%Y-%m", ens = "%Y-%m-%d", efi = "%Y-%m")[x$kind]
+    if (x$level == "efi") {
+        # EFI has no 'kind'
+        fmt <- "%Y-%m"
+    } else {
+        fmt <- c(ctr = "%Y-%m", hr = "%Y-%m", ens = "%Y-%m-%d", efi = "%Y-%m")[x$kind]
+    }
     x$date <- format(x$date, fmt)
 
     # Convert 'x' (type) and level

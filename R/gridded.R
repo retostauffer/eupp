@@ -5,7 +5,8 @@
 #'
 #' @param x an object of class \code{\link{eupp_config}}.
 #' @param output_file character length 1, name of the output file.
-#' @param output_format character length 1, defaults to \code{"guess"} (see details).
+#' @param output_format character length 1 (\code{"grib"} or \code{"nc"}),
+#'        defaults to \code{"grib"} (see details).
 #' @param verbose logical length 1, verbosity, defaults to \code{FALSE}.
 #' @param overwrite logical length 1, defaults to \code{FALSE}. If set to \code{TRUE}
 #'        the \code{output_file} will be overwritten if needed. If \code{FALSE} and
@@ -15,16 +16,6 @@
 #' NetCDF (classic 64bit; v3). The original data set is provided as GRIB, the 
 #' conversion to NetCDF is done locally usning ECMWFs ecCodes tools which must
 #' be installed when using NetCDF.
-#'
-#' By default (\code{output_format = "guess"}) the function tires to guess the
-#' \code{output_format} based on the \code{output_file} name and will stop if
-#' not possible. You can always use \code{output_format} to control this explicitly.
-#'
-#' \itemize{
-#'    \item \code{output_format = "guess"}: Guess output format based on \code{output_file}.
-#'    \item \code{output_format = "grb"}: Store result in GRIB version 1.
-#'    \item \code{output_format = "nc"}: Store result as NetCDF file.
-#' }
 #'
 #' @rdname download
 #' @importFrom httr GET add_headers
@@ -36,7 +27,7 @@
 #' @export
 eupp_download_gridded <- function(x,
                              output_file,
-                             output_format = c("guess", "grb", "nc"),
+                             output_format = c("grib", "nc"),
                              verbose = FALSE, overwrite = FALSE) {
 
     # Checking main input object
@@ -56,18 +47,6 @@ eupp_download_gridded <- function(x,
     # Now guessing output file type
     if (grepl("[;<>]", output_file)) stop("'output_file' contains illegal characters.")
     output_format <- match.arg(output_format)
-    stopifnot(length(output_format) == 1L)
-    if (output_format == "guess") {
-        # pattern matches grb, grib, GRIB, GRIB1 ...
-        fext <- file_ext(output_file)
-        if (length(regmatches(fext, gregexpr("[grb]", fext, ignore.case = TRUE))[[1]]) >= 3) {
-            output_format <- "grb"
-        } else if (length(regmatches(fext, gregexpr("[nc]", fext, ignore.case = TRUE))[[1]]) >= 2) {
-            output_format <- "nc"
-        } else {
-            stop("Please provide 'output_format'.")
-        }
-    }
 
     # If the user requests netCDF: check grib_to_netcdf is available.
     if (output_format == "nc") {
@@ -108,7 +87,7 @@ eupp_download_gridded <- function(x,
     close(con) # Properly closing the binary file connection
 
     # Move file to final destination
-    if (output_format == "grb") {
+    if (output_format == "grib") {
         file.rename(tmp_file, output_file)
     } else {
         cat("Calling grib_to_netcdf to convert file format\n")
