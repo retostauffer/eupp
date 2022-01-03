@@ -17,6 +17,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: Installing gdal-lib
+        run: apt-get install gdal-lib
+
+      - uses: Installing eccodes
+        run: apt-get install libeccodes-tools libeccodes-dev
+
       - uses: r-lib/actions/setup-r@v1
         with:
           use-public-rspm: true
