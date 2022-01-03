@@ -13,9 +13,12 @@
 #' @author Reto Stauffer
 #' @keywords internal
 eupp_get_url_config <- function() {
-    list("BASEURL" = "https://storage.ecmwf.europeanweather.cloud/benchmark-dataset",
-         "PATTERN" = "data/{{type_abbr}}/{{level}}/EU_{{type}}_{{kind}}_{{level}}_params_{{isodate}}_{{version}}.grb",
-         "PATTERN_EFI" = "data/{{type_abbr}}/{{level}}/EU_{{type}}_{{level}}_params_{{isodate}}_{{version}}.grb")
+    list("BASEURL"  = "https://storage.ecmwf.europeanweather.cloud/benchmark-dataset",
+         "analysis" = "data/{{product_abbr}}/{{level}}/EU_{{product}}_{{level}}_params_{{yyyy-mm}}.grb",
+         "hr"       = "data/{{product_abbr}}/{{level}}/EU_{{product}}_{{type}}_{{level}}_params_{{yyyy-mm}}_{{version}}.grb",
+         "efi"      = "data/{{product_abbr}}/{{level}}/EU_{{product}}_{{level}}_params_{{yyyy-mm}}_{{version}}.grb",
+         "ens"      = c("data/{{product_abbr}}/{{level}}/EU_{{product}}_ctr_{{level}}_params_{{yyyy-mm}}_{{version}}.grb",
+                        "data/{{product_abbr}}/{{level}}/EU_{{product}}_ens_{{level}}_params_{{yyyy-mm-dd}}_{{version}}.grb"))
 }
 
 
@@ -34,37 +37,46 @@ eupp_get_url_config <- function() {
 #'
 #' @author Reto Stauffer
 #' @export
-eupp_get_source_url <- function(x, fileext = NULL, ...) {
+eupp_get_source_urls <- function(x, fileext = NULL, ...) {
     stopifnot(inherits(x, "eupp_config"))
 
     if (length(fileext) == 0) fileext <- NULL
     stopifnot(inherits(fileext, c("NULL", "character")))
 
-    # Get date in the format required for the URL; must be
-    # done before converting 'x' below.
-    ###fmt <- c(reforecast = "%Y-%m-%d", forecast = "%Y-%m", analysis = "%Y-%m")[x$type]
-    if (x$level == "efi") {
-        # EFI has no 'kind'
-        fmt <- "%Y-%m"
-    } else {
-        fmt <- c(ctr = "%Y-%m", hr = "%Y-%m", ens = "%Y-%m-%d", efi = "%Y-%m")[x$kind]
-    }
-    x$date <- format(x$date, fmt)
+    # Appending required date/dates.
+    x$`yyyy-mm`    <- format(x$date, "%Y-%m")
+    x$`yyyy-mm-dd` <- format(x$date, "%Y-%m-%d")
 
     # Convert 'x' (type) and level
-    type_abbr <- c(reforecast = "rfcs", forecast = "fcs", analysis = "ana")[x$type]
-    level     <- c(surface = "surf", pressure = "pressure", efi = "efi")[x$level]
+    x$level     <- c(surface = "surf", pressure = "pressure", efi = "efi")[x$level]
 
     # Getting basic config
     conf <- eupp_get_url_config()
+    if (!is.null(x$type) && x$type %in% names(conf)) {
+        URL <- paste(conf$BASEURL, conf[[x$type]], sep = "/")
+    } else if (x$level %in% names(conf)) {
+        URL <- paste(conf$BASEURL, conf[[x$level]], sep = "/")
+    } else if (x$product %in% names(conf)) {
+        URL <- paste(conf$BASEURL, conf[[x$product]], sep = "/")
+    } else {
+        stop("Whoops! Unexpected case identifying the URL pattern ... (yes, it's a bug).")
+    }
 
-    URL <- paste(conf$BASEURL, if (x$level == "efi") conf$PATTERN_EFI else conf$PATTERN, sep = "/")
-    URL <- gsub("\\{\\{type_abbr\\}\\}",   x$type_abbr,  URL)
-    URL <- gsub("\\{\\{type\\}\\}",        x$type,       URL)
-    URL <- gsub("\\{\\{level\\}\\}",       x$level,      URL)
-    URL <- gsub("\\{\\{isodate\\}\\}",     x$date,       URL)
-    URL <- gsub("\\{\\{version\\}\\}",     x$version,    URL)
-    if (!is.null(x$kind))  URL <- gsub("\\{\\{kind\\}\\}",        x$kind,       URL)
+    # In case 'type == "ens"' we are getting two URL's, one for the control run
+    # and one for the actual ensemble members. If 'members' is given check if we
+    # really need both or only one.
+    if (!is.null(x$type) && !is.null(x$members) && x$type == "ens") {
+        print(c(any(x$members == 0), any(x$members > 0)))
+        URL <- URL[c(any(x$members == 0), any(x$members > 0))]
+    }
+
+    # Replacing variables in the basic URL pattern
+    for (n in names(x)) {
+        ##cat("------\n", n, "\n", paste(x[[n]], collapse = ", "), "\n")
+        if (!is.null(x[[n]]) && length(x[[n]]) == 1L) URL <- gsub(sprintf("\\{\\{%s\\}\\}", n), x[[n]],  URL)
+    }
+
+    # Appending file extension if required (for .index files)
     if (!is.null(fileext)) URL <- paste(URL, fileext, sep = ".")
 
     return(URL)

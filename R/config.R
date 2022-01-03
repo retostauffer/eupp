@@ -6,9 +6,9 @@
 #' settings for downloadin data set inventories (index files) and the data
 #' itself.
 #'
+#' @param product character of length \code{1} (see Details).
+#' @param level character of length \code{1} or \code{NULL} (see Details).
 #' @param type character of length \code{1} (see Details).
-#' @param kind character of length \code{1} or \code{NULL} (see Details).
-#' @param level character of length \code{1} (see Details).
 #' @param date an object which can be converted to \code{POSIXct}. Character string
 #'        in ISO representation or an object of class \code{Date} or \code{POSIXt}.
 #' @param parameter \code{NULL} (default) or character. When \code{NULL} all available
@@ -29,7 +29,7 @@
 #'
 #' @return Returns an object of class \code{eupp_config}.
 #'
-#' @details Input argument \code{type}:
+#' @details Input argument \code{product}:
 #'
 #' \itemize{
 #'   \item \code{"reforecast"}: Reforecasts (or hindcasts).
@@ -37,44 +37,66 @@
 #'   \item \code{"analysis"}: Analysis data; based on ECMWF ERA5 used as ground truth.
 #' }
 #'
-#' Input argument \code{kind}. Will be ignored if \code{level = "efi"} (has no kind).
+#' Input argument \code{level}. Will be ignored if \code{type = "efi"} (has no level).
 #'
 #' \itemize{
-#'   \item \code{"ctr"}: Control run.
-#'   \item \code{"ens"}: Ensemble members (allows for optional argument \code{members}).
+#'   \item \code{"efi"}: Extreme forecast index (in this situation \code{type} will be ignored).
+#'   \item \code{"surf"}: Surface data.
+#'   \item \code{"pressure"}: Pressure level data.
+#' }
+#'
+#' Input argument \code{type}:
+#'
+#' \itemize{
+#'   \item \code{"ens"}: Ensemble members including control run (allows for optional argument \code{members}).
 #'   \item \code{"hr"}: High-resolution forecast.
 #' }
 #'
-#' Input argument \code{level}:
-#'
-#' \itemize{
-#'   \item \code{"surf"}: Surface data.
-#'   \item \code{"pressure"}: Pressure level data.
-#'   \item \code{"efi"}: Extreme forecast index data.
-#' }
 #'
 #' Note that reforecasts always only become available on Mondays and Thursdays.
 #' If \code{type = "reforecast"} and the \code{date} does not point to Mon/Thu
 #' the function will throw an error.
+#' TODO(R): This is not true, this happens when processing the data.
 #'
-#' The forecast ensemble (\code{type = "forecast"}, \code{kind = "ctr"}) consists
-#' of 50 ensemble members (\code{1-50}), the reforecasts or hindcasts
-#' (\code{type = "forecast"}, \code{kind = "ctr"}) only consists of 20 ensemble
-#' runs (\code{1-20}).
+#' Ensemble forecasts (\code{type = "ens"} consists of both, the ensemble control
+#' run plus \code{50} ensemble members if \code{members} is not specified.
+#' Same is true for reforecasts except that it only consists of \code{20} ensemble
+#' members. Possible combinations:
+#'
+#'
+#' | ID | product    | level      | type   |
+#' | -- | ---------- | ---------- | ------ |
+#' |  1 | analysis   | surface    | NULL   |
+#' |  2 |            | pressure   | NULL   |
+#' | 11 | forecast   | efi        |        |
+#' | 12 |            | surface    | ens    |
+#' | 13 |            |            | hr     |
+#' | 14 |            | pressure   | ens    |
+#' | 15 |            |            | hr     |
+#' | 21 | reforecast | surface    | ens    |
+#' | 22 |            | pressure   | ens    |
 #'
 #' @examples
-#' conf_A <- eupp_config(type = "reforecast", kind = "ctr", level = "surf",
-#'                       date = "2017-01-02", parameter = "2t")
+#' # Analysis
+#' (c1 <- eupp_config("analysis", "surface", date = "2017-01-01", steps = 12)
+#' (c2 <- eupp_config("analysis", "pressure", date = "2017-01-01", steps = 12)
 #'
-#' conf_B <- eupp_config(type = "reforecast", kind = "ctr", level = "surf",
-#'                       date = "2017-01-02", parameter = "2t",
-#'                       steps = c(6, 12))
+#' # Forecasts
+#' (c11 <- eupp_config("forecast", "efi", date = "2017-01-01", steps = 12)
+#' (c12 <- eupp_config("forecast", "surface", "ens", date = "2017-01-01", steps = 12)
+#' (c13 <- eupp_config("forecast", "surface", "hr", date = "2017-01-01", steps = 12)
+#' (c14 <- eupp_config("forecast", "pressure", "ens", date = "2017-01-01", steps = 12)
+#' (c15 <- eupp_config("forecast", "pressure", "hr", date = "2017-01-01", steps = 12)
+#'
+#' # Reforecasts
+#' (c21 <- eupp_config("reforecast", "surface", "ens", date = "2017-01-01", steps = 12)
+#' (c22 <- eupp_config("reforecast", "pressure", "ens", date = "2017-01-01", steps = 12)
 #'
 #' @author Reto Stauffer
 #' @export
-eupp_config <- function(type  = c("reforecast", "forecast", "analysis"),
-                        kind  = c("ctr", "ens", "hr"),
-                        level = c("surf", "pressure", "efi"),
+eupp_config <- function(product  = c("analysis", "forecast", "reforecast"),
+                        level    = c("surface", "pressure", "efi"),
+                        type     = c("ens", "hr"),
                         date, parameter = NULL,
                         steps = NULL, members = NULL,
                         area = NULL, cache = NULL, version = 0L) {
@@ -82,16 +104,17 @@ eupp_config <- function(type  = c("reforecast", "forecast", "analysis"),
     # ----------------------------------------------
     # Sanity checks:
     # ----------------------------------------------
-    stopifnot(is.character(type), length(type) == 1L)
-    type  <- match.arg(type)
+    stopifnot(is.character(product), length(product) == 1L)
+    product  <- match.arg(product)
+
     stopifnot(is.character(level), length(level) == 1L)
     level <- match.arg(level)
 
-    if (level == "efi") {
-        if (!is.null(kind)) stop("Please set 'kind = NULL' when requesting 'level = \"efi\"'.")
+    if (product == "analysis" || level == "efi") {
+        type <- NULL # Ignored
     } else {
-        stopifnot(is.character(kind), length(kind) == 1L)
-        kind  <- match.arg(kind)
+        stopifnot(is.character(type), length(type) == 1L)
+        type  <- match.arg(type)
     }
 
     stopifnot(inherits(parameter,  c("NULL", "character")))
@@ -100,7 +123,7 @@ eupp_config <- function(type  = c("reforecast", "forecast", "analysis"),
     stopifnot(inherits(members,    c("NULL", "numeric", "integer")))
 
     if (!is.null(steps))   { stopifnot(all(steps   >= 0)); steps   <- as.integer(steps) }
-    if (!is.null(members)) { stopifnot(all(members >  0)); members <- as.integer(members) }
+    if (!is.null(members)) { stopifnot(all(members >= 0)); members <- as.integer(members) }
 
     stopifnot(is.integer(version),      length(version) == 1L)
     stopifnot(inherits(cache, c("NULL", "character")))
@@ -131,12 +154,17 @@ eupp_config <- function(type  = c("reforecast", "forecast", "analysis"),
         date <- as.POSIXct(date)
     }
 
+    # Analysis: requires 'Date', hours are controlled via steps.
+    if (product == "analysis" && !all(as.POSIXct(as.Date(date)) == date))
+        stop("For product = \"analysis\" the 'date' argument must be date or 00 UTC; hours controlled via argument 'step'.")
+
     # Store abbrevation of the type to generate the URLs
-    type_abbr  <- c(reforecast = "rfcs", forecast = "fcs", analysis = "ana")[type]
+    product_abbr  <- c(reforecast = "rfcs", forecast = "fcs", analysis = "ana")[product]
 
     # Crete return; a simple list of class eupp_config.
-    res <- list(type = type, type_abbr = type_abbr,
-                kind = kind, level = level, date = date, steps = steps, area = area,
+    res <- list(product = product, product_abbr = product_abbr,
+                level = level, type = type, date = date, steps = steps,
+                members = members, area = area,
                 parameter = parameter, version = version, cache = cache)
     class(res) <- "eupp_config"
     return(res)
@@ -147,15 +175,16 @@ eupp_config <- function(type  = c("reforecast", "forecast", "analysis"),
 print.eupp_config <- function(x, ...) {
     fmt <- "   %-20s %s"
     res <- c("EUPP Config",
-             sprintf(fmt, "Type:",      sprintf("%s (%s)", x$type, x$type_abbr)),
-             sprintf(fmt, "Kind:",      x$kind),
+             sprintf(fmt, "Product:",   sprintf("%s (%s)", x$product, x$product_abbr)),
              sprintf(fmt, "Level:",     x$level),
+             sprintf(fmt, "Type:",      x$type),
              sprintf(fmt, "Parameter:", ifelse(is.null(x$parameter), "all available",
                                                paste(x$parameter, collapse = ", "))),
-             sprintf(fmt, "Steps:",     ifelse(is.null(x$steps),     "all available",
+             sprintf(fmt, if (x$product == "analysis") "Hours:" else "Steps:",     ifelse(is.null(x$steps),     "all available",
                                                paste(x$steps, collapse = ", "))),
-             sprintf(fmt, "Members:",   ifelse(is.null(x$members),     "all available",
-                                               paste(x$members, collapse = ", "))),
+             if (is.character(x$type) && x$type == "ens") 
+                sprintf(fmt, "Members:",   ifelse(is.null(x$members),     "all available",
+                                                  paste(x$members, collapse = ", "))) else NULL,
              sprintf(fmt, "Version:",   as.character(x$version)),
              sprintf(fmt, "Cache:",     ifelse(is.null(x$cache), "disabled", x$cache)),
              sprintf(fmt, "Area:",      ifelse(is.null(x$area), "not defined", "defined!")))

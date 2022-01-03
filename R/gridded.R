@@ -60,26 +60,30 @@ eupp_download_gridded <- function(x,
         stop("Areal subsets ('eupp_config area') only allowed in combination with NetCDF file format.")
 
     # Reforecasts only initialized on Mondays (1) and Thursdays (4)
-    if (grepl("^reforecast$", x$type) && !all(format(x$date, "%w") %in% c(1, 4)))
+    if (grepl("^reforecast$", x$product) && !all(format(x$date, "%w") %in% c(1, 4)))
         stop("Reforecasts only available on Mondays and Thursdays, check 'date'.")
 
     # ----------------------------------------------
     # Main content of the function
     # ----------------------------------------------
     inv       <- eupp_get_inventory(x)           # Loading inventory information
-    grib_url  <- eupp_get_source_url(x)          # Getting data url (location of grib file)
+    BASEURL   <- eupp_get_url_config()$BASEURL
     tmp_file <- tempfile(fileext = ".grb")  # Temporary location for download
 
     # Open binary file connection; temporary file.
     # Download everything and then create final ouptut file.
     con      <- file(tmp_file, "wb")
     if (verbose) pb <- txtProgressBar(0, nrow(inv), style = 3)
+    print(head(inv))
     for (i in seq_len(nrow(inv))) {
         if (verbose) setTxtProgressBar(pb, i)
         rng <- sprintf("bytes=%d-%d", inv$offset[i], inv$offset[i] + inv$length[i])
-        req <- GET(grib_url, add_headers(Range = rng))
+        print(rng)
+        print(paste(BASEURL, inv$path[i], sep = "/"))
+        req <- GET(paste(BASEURL, inv$path[i], sep = "/"), add_headers(Range = rng))
         writeBin(req$content, con = con)
     }
+    cat("xxx\n")
     if (verbose) close(pb)
     close(con) # Properly closing the binary file connection
 
@@ -141,12 +145,12 @@ eupp_get_gridded <- function(x, verbose = FALSE) {
 #' @importFrom digest digest
 #' @importFrom httr GET status_code content
 #' @export
-eupp_get_inventory <- function(x) {
+eupp_get_inventory <- function(x, verbose = FALSE) {
 
     stopifnot(inherits(x, "eupp_config"))
 
     # Getting the URL where the grib file index is stored
-    index_url <- do.call(eupp_get_source_url, list(x = x, fileext = "index"))
+    index_url <- do.call(eupp_get_source_urls, list(x = x, fileext = "index"))
 
     # Helper function to download and parse requests
     fn_GET <- function(x) {
@@ -161,19 +165,24 @@ eupp_get_inventory <- function(x) {
     # - hashing URL for unique file names
     # - If file does exist on disc: read file
     # - Else download data; save to cache file for next time
-    if (is.character(x$cache)) {
-        # Create file <cache_dir>/<hashed_url>-<version>.index
-        cached_file <- file.path(x$cache,
-                                 sprintf("%s-%s.index", digest(index_url), x$version))
-        if (file.exists(cached_file)) {
-            inv <- readLines(cached_file)
+    all_inv <- c()
+    for (i in seq_along(index_url)) {
+        if (verbose) cat("    Accessing", basename(index_url[i]), "\n")
+        if (is.character(x$cache)) {
+            # Create file <cache_dir>/<hashed_url>-<version>.index
+            cached_file <- file.path(x$cache,
+                                     sprintf("%s-%s.index", digest(index_url[i]), x$version))
+            if (file.exists(cached_file)) {
+                inv <- readLines(cached_file)
+            } else {
+                inv <- fn_GET(index_url[i])
+                writeLines(inv, con = cached_file)
+                all_inv <- c(all_inv, inv)
+            }
+        # In case cache is NULL (default): request and extract
         } else {
-            inv <- fn_GET(index_url)
-            writeLines(inv, con = cached_file)
+            all_inv <- c(all_inv, fn_GET(index_url[i]))
         }
-    # In case cache is NULL (default): request and extract
-    } else {
-        inv <- fn_GET(index_url)
     }
 
     # - Find non-empty rows (last is empty) and decode JSON string
@@ -194,9 +203,14 @@ eupp_get_inventory <- function(x) {
     inv <- within(inv, {date <- time <- NULL})
 
     # Subsetting to what the user has requested
-    inv <- subset(inv, init %in% x$date)
+    if (x$product == "analysis") {
+        inv <- subset(inv, as.Date(valid) %in% as.Date(x$date))
+        if (is.integer(x$steps)) inv <- subset(inv, as.POSIXlt(valid)$hour %in% x$steps)
+    } else {
+        inv <- subset(inv, init %in% x$date)
+        if (is.integer(x$steps)) inv <- subset(inv, step  %in% x$steps)
+    }
     if (is.character(x$parameter))     inv <- subset(inv, param %in% x$parameter)
-    if (is.integer(x$steps))           inv <- subset(inv, step  %in% x$steps)
 
     class(inv) <- c("eupp_inventory", class(inv))
     if (nrow(inv) == 0) warning("No field match found; check your 'eupp_config()' settings.")
