@@ -44,11 +44,8 @@ eupp_download_gridded <- function(x,
     if (!dir.exists(dirname(output_file)))
         stop("Cannot write 'output_file' to \"{:s}\", directory does not exist.", dirname(output_file))
 
-    # Now guessing output file type
-    if (grepl("[;<>]", output_file)) stop("'output_file' contains illegal characters.")
-    output_format <- match.arg(output_format)
-
     # If the user requests netCDF: check grib_to_netcdf is available.
+    output_format <- match.arg(output_format)
     if (output_format == "nc") {
         g2nc_bin <- Sys.which("grib_to_netcdf")
         if (nchar(g2nc_bin) == 0) {

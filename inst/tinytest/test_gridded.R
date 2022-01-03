@@ -74,6 +74,10 @@ expect_error(eupp_download_gridded(config, "_foo.grb", overwrite = 1),
 expect_error(eupp_download_gridded(config, "_foo.grb", overwrite = NA),
              info = "'overwrite' must be single logical TRUE or FALSE")
 
+# Output file is actually a directory
+expect_silent(tmpdir <- tempdir())
+expect_error(eupp_download_gridded(config, tempdir, overwrite = TRUE))
+expect_error(eupp_download_gridded(config, "/directory/does/not/exist/test.grb", overwrite = TRUE))
 
 # Proper usage
 grib_file <- file.path(tempdir(), "_test.grb")
