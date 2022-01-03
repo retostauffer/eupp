@@ -127,6 +127,27 @@ expect_equivalent(nc_time, config$date + config$steps * 3600,
                   info = "NetCDF time dimension not matching our config")
 
 
+# ----------------------------------------------------------------
+# Testing eupp_get_gridded which internally calls eupp_download_gridded
+# but should return a stars object directly. Thus, no need for
+# intensive testing.
+# ----------------------------------------------------------------
+expect_error(eupp_get_gridded("foo"),
+             info = "Main argument 'x' must be of class 'eupp_config'")
+expect_error(eupp_get_gridded(config, verbose = c(TRUE, FALSE)),
+             info = "Argument for 'verbose' not single TRUE or FALSE")
+expect_error(eupp_get_gridded(config, output_format = "nc"),
+             info = "Wrong/unexpected input argument")
+
+
+expect_silent(st <- eupp_get_gridded(config),
+              info = "Expected to be silent")
+expect_inherits(st, "stars",
+              info = "Return of wrong class; should be a stars object")
+expect_equal(dim(st), c(x = 93, y = 125, time = 2),
+             info = "Dimension of stars object is wrong")
+
+
 
 # ----------------------------------------------------------------
 # Cleaning up
