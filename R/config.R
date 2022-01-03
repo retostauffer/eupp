@@ -17,7 +17,7 @@
 #'        steps will be processed. An integer sequence can be provided to only process
 #'        specific forecast steps; given in hours (e.g., \code{c(6, 12)} for \code{+6}
 #'        and \code{+12} hour ahead forecasts).
-#' @param steps \code{NULL} (default) or integer. If set to \code{NULL} all available forecast
+#' @param members \code{NULL} (default) or integer. If set to \code{NULL} all available forecast
 #'        members will be processed. An integer sequence can be provided to only process
 #'        specific forecast members.
 #' @param area \code{NULL} (default) or an object of class \code{bbox}. Used for spatial subsetting.

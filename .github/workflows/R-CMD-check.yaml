@@ -33,9 +33,9 @@ jobs:
 
       - uses: r-lib/actions/check-r-package@v1
 
-      - name: Show testthat output
+      - name: Running tinytest
         if: always()
-        run: find check -name 'testthat.Rout*' -exec cat '{}' \; || true
+        run: Rscript -e "install.packages('tinytest'); tinytest::test_all()"
         shell: bash
 
       - name: Upload check results
