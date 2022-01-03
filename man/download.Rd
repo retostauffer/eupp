@@ -7,7 +7,7 @@
 eupp_download_gridded(
   x,
   output_file,
-  output_format = c("guess", "grb", "nc"),
+  output_format = c("grib", "nc"),
   verbose = FALSE,
   overwrite = FALSE
 )
@@ -17,7 +17,8 @@ eupp_download_gridded(
 
 \item{output_file}{character length 1, name of the output file.}
 
-\item{output_format}{character length 1, defaults to \code{"guess"} (see details).}
+\item{output_format}{character length 1 (\code{"grib"} or \code{"nc"}),
+defaults to \code{"grib"} (see details).}
 
 \item{verbose}{logical length 1, verbosity, defaults to \code{FALSE}.}
 
@@ -33,16 +34,6 @@ The function allows to store data sets in either GRIB version 1 or
 NetCDF (classic 64bit; v3). The original data set is provided as GRIB, the 
 conversion to NetCDF is done locally usning ECMWFs ecCodes tools which must
 be installed when using NetCDF.
-
-By default (\code{output_format = "guess"}) the function tires to guess the
-\code{output_format} based on the \code{output_file} name and will stop if
-not possible. You can always use \code{output_format} to control this explicitly.
-
-\itemize{
-   \item \code{output_format = "guess"}: Guess output format based on \code{output_file}.
-   \item \code{output_format = "grb"}: Store result in GRIB version 1.
-   \item \code{output_format = "nc"}: Store result as NetCDF file.
-}
 }
 \author{
 Reto Stauffer
