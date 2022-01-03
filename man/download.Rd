@@ -39,8 +39,7 @@ By default (\code{output_format = "guess"}) the function tires to guess the
 not possible. You can always use \code{output_format} to control this explicitly.
 
 \itemize{
-   \item \code{output_format = "guess"}: Guess output format based on \code{output_file}.
-   \item \code{output_format = "grb"}: Store result in GRIB version 1.
+   \item \code{output_format = "grib"}: Store result in GRIB version 1.
    \item \code{output_format = "nc"}: Store result as NetCDF file.
 }
 }
