@@ -31,6 +31,11 @@ in ISO representation or an object of class \code{Date} or \code{POSIXt}.}
 parameters will be processed. Can be used to retrieve/process subsets.}
 
 \item{steps}{\code{NULL} (default) or integer. If set to \code{NULL} all available forecast
+steps will be processed. An integer sequence can be provided to only process
+specific forecast steps; given in hours (e.g., \code{c(6, 12)} for \code{+6}
+and \code{+12} hour ahead forecasts).}
+
+\item{members}{\code{NULL} (default) or integer. If set to \code{NULL} all available forecast
 members will be processed. An integer sequence can be provided to only process
 specific forecast members.}
 
