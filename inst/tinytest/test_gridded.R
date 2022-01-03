@@ -31,7 +31,7 @@ expect_inherits(inv, "data.frame",
                 info = "inventory returned of wrong type")
 expect_inherits(inv, "eupp_inventory",
                 info = "inventory returned of wrong type")
-expect_identical(dim(inv), c(2L, 15L),
+expect_identical(dim(inv), c(2L, 16L),
                  info = "inventory returned of wrong dimension")
 expect_identical(inv$step, config$steps,
                  info = "inventory contains wrong steps")
@@ -104,15 +104,17 @@ expect_identical(nrow(inv), tmp,
 library("ncdf4")
 nc_file   <- file.path(tempdir(), "_test.nc")
 if (file.exists(nc_file)) unlink(nc_file)
-expect_silent(nc  <- eupp_download_gridded(config, nc_file))
+expect_silent(nc  <- eupp_download_gridded(config, nc_file, "nc"))
 # -> overwrite = FALSE and we should see an error
-expect_error(nc  <- eupp_download_gridded(config, nc_file))
+expect_error(nc  <- eupp_download_gridded(config, nc_file, "nc"))
 expect_true(file.exists(nc_file),
             info = "Output file not existing")
 
 # Open netcdf file and check content
-expect_silent(nc <- ncdf4::nc_open(nc_file),
+expect_silent(nc <- nc_open(nc_file),
                   info = "Problems loading NetCDF file")
+expect_inherits(nc, "ncdf4",
+                  info = "Object not of lcass 'ncdf4' (wrong return by nc_open())")
 expect_identical(names(nc$var), "t2m",
                   info = "NetCDF file contains wrong variable")
 expect_silent(nc_time <- as.POSIXct(ncvar_get(nc, "time") * 3600, origin = "1900-01-01", tz = "UTC"),

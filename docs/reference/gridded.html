@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">eupp</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0-1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0-2</span>
       </span>
     </div>
 
@@ -44,7 +44,13 @@
 <li>
   <a href="../contact.html">Contact</a>
 </li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/retostauffer/eupp/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -54,7 +60,7 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Getting Grib Data as stars</h1>
-    
+    <small class="dont-index">Source: <a href="https://github.com/retostauffer/eupp/blob/HEAD/R/gridded.R" class="external-link"><code>R/gridded.R</code></a></small>
     <div class="hidden name"><code>gridded.Rd</code></div>
     </div>
 
@@ -77,7 +83,15 @@
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>TODO</p>
+    <p>Object of class <code>stars</code>; see Details.</p>
+    </div>
+    <div id="details">
+    <h2>Details</h2>
+    <p>This function interfaces <code><a href="download.html">eupp_download_gridded</a></code>
+to download the data and converts the original data set (GRIB version 1)
+to NetCDF. Thus NetCDF support and ecCodes tools are required.</p>
+<p>If <code>x</code> (<code><a href="eupp_config.html">eupp_config</a></code>) contains a <code>bbox</code> definition
+on <code>area</code> the data is subsetted directly.</p>
     </div>
     <div id="see-also">
     <h2>See also</h2>

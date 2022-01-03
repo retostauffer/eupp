@@ -30,6 +30,9 @@ Before starting downloading data a configuration object must be created using
 library("eupp")
 ```
 
+```{r, include = FALSE}
+dir.create("_cache", showWarnings = FALSE) # Not mandatory
+```
 
 ```{r}
 # Loading the package
@@ -80,7 +83,7 @@ Will internally access the GRIB index and download the fields matching our
 configuration. The data is stored in `output_file` (GRIB version 1 format).
 
 ```{r}
-eupp_download_gridded(conf, output_file = "_test.grb", output_format = "grb", overwrite = TRUE)
+eupp_download_gridded(conf, output_file = "_test.grb", output_format = "grib", overwrite = TRUE)
 ```
 
 ## Getting data: NetCDF

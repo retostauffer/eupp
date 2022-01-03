@@ -107,7 +107,7 @@ eupp_config <- function(type  = c("reforecast", "forecast", "analysis"),
     if (!is.null(cache)) {
         stopifnot(length(cache) == 1L)
         if (!dir.exists(cache))
-            stop("Argument 'code' must point to an existing folder if set.")
+            stop("Argument 'cache' must point to an existing folder if set.")
     }
 
     if (anyDuplicated(parameter)) {

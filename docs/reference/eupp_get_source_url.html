@@ -18,7 +18,7 @@ the input parameters. Called by the download functions."><!-- mathjax --><script
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">eupp</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0-1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0-2</span>
       </span>
     </div>
 
@@ -45,7 +45,13 @@ the input parameters. Called by the download functions."><!-- mathjax --><script
 <li>
   <a href="../contact.html">Contact</a>
 </li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/retostauffer/eupp/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -55,7 +61,7 @@ the input parameters. Called by the download functions."><!-- mathjax --><script
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Get Source URL</h1>
-    
+    <small class="dont-index">Source: <a href="https://github.com/retostauffer/eupp/blob/HEAD/R/general.R" class="external-link"><code>R/general.R</code></a></small>
     <div class="hidden name"><code>eupp_get_source_url.Rd</code></div>
     </div>
 
@@ -70,7 +76,13 @@ the input parameters. Called by the download functions.</p>
 
     <div id="arguments">
     <h2>Arguments</h2>
-    <dl><dt>...</dt>
+    <dl><dt>x</dt>
+<dd><p>object of class <code>eupp_config</code> returned by <code><a href="eupp_config.html">eupp_config</a></code>.</p></dd>
+<dt>fileext</dt>
+<dd><p><code>NULL</code> or character length <code>1</code>. File extension (or
+URL extension) added to the URL. Used to generate URLs to GRIB index files.
+Defaults to <code>NULL</code>.</p></dd>
+<dt>...</dt>
 <dd><p>unused.</p></dd>
 </dl></div>
     <div id="value">

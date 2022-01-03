@@ -116,14 +116,16 @@ for (n in c("parameter", "steps", "area", "cache"))
 library("sf")
 bbox   <- st_bbox(c(xmin = -3, xmax = 3, ymin = 40, ymax = 50))
 tmpdir <- tempdir()
-expect_silent(c4 <- eupp_config(type = "forecast", kind = "ctr", level = "surf", date = "2017-01-01",
-                                parameter = c("t2m", "cp"), steps = 0:6, area = bbox, cache = tmpdir,
+expect_silent(c4 <- eupp_config(type = "forecast", kind = "ens", level = "surf", date = "2017-01-01",
+                                parameter = c("t2m", "cp"), steps = 0:6,
+                                members = 1:2, area = bbox, cache = tmpdir,
                                 version = 666L),
               info = "Testing all args (overwrite defaults); named args")
-expect_silent(c5 <- eupp_config("forecast", "ctr", "surf", "2017-01-01",
-                                c("t2m", "cp"), 0:6, bbox, tmpdir,
+expect_silent(c5 <- eupp_config("forecast", "ens", "surf", "2017-01-01",
+                                c("t2m", "cp"), 0:6, 1:2, bbox, tmpdir,
                                 666L),
               info = "Testing all args (overwrite defaults); unnamed args")
+
 # Return must be the same ...
 expect_identical(c4, c5)
 expect_identical(c4$parameter, c("t2m", "cp"))

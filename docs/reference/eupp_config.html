@@ -19,7 +19,7 @@ itself."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mat
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">eupp</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0-1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0-2</span>
       </span>
     </div>
 
@@ -46,7 +46,13 @@ itself."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mat
 <li>
   <a href="../contact.html">Contact</a>
 </li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/retostauffer/eupp/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -56,7 +62,7 @@ itself."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mat
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Creates EUPP Config used as Data Descriptor</h1>
-    
+    <small class="dont-index">Source: <a href="https://github.com/retostauffer/eupp/blob/HEAD/R/config.R" class="external-link"><code>R/config.R</code></a></small>
     <div class="hidden name"><code>eupp_config.Rd</code></div>
     </div>
 
@@ -72,8 +78,9 @@ itself.</p>
   kind <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ctr"</span>, <span class="st">"ens"</span>, <span class="st">"hr"</span><span class="op">)</span>,
   level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"surf"</span>, <span class="st">"pressure"</span>, <span class="st">"efi"</span><span class="op">)</span>,
   <span class="va">date</span>,
-  <span class="va">parameter</span>,
+  parameter <span class="op">=</span> <span class="cn">NULL</span>,
   steps <span class="op">=</span> <span class="cn">NULL</span>,
+  members <span class="op">=</span> <span class="cn">NULL</span>,
   area <span class="op">=</span> <span class="cn">NULL</span>,
   cache <span class="op">=</span> <span class="cn">NULL</span>,
   version <span class="op">=</span> <span class="fl">0L</span>
@@ -85,7 +92,7 @@ itself.</p>
     <dl><dt>type</dt>
 <dd><p>character of length <code>1</code> (see Details).</p></dd>
 <dt>kind</dt>
-<dd><p>character of length <code>1</code> (see Details).</p></dd>
+<dd><p>character of length <code>1</code> or <code>NULL</code> (see Details).</p></dd>
 <dt>level</dt>
 <dd><p>character of length <code>1</code> (see Details).</p></dd>
 <dt>date</dt>
@@ -96,9 +103,8 @@ in ISO representation or an object of class <code>Date</code> or <code>POSIXt</c
 parameters will be processed. Can be used to retrieve/process subsets.</p></dd>
 <dt>steps</dt>
 <dd><p><code>NULL</code> (default) or integer. If set to <code>NULL</code> all available forecast
-steps will be processed. An integer sequence can be provided to only process
-specific forecast steps; given in hours (e.g., <code>c(6, 12)</code> for <code>+6</code>
-and <code>+12</code> hour ahead forecasts).</p></dd>
+members will be processed. An integer sequence can be provided to only process
+specific forecast members.</p></dd>
 <dt>area</dt>
 <dd><p><code>NULL</code> (default) or an object of class <code>bbox</code>. Used for spatial subsetting.</p></dd>
 <dt>cache</dt>
@@ -119,9 +125,9 @@ Typically not changed by an end-user.</p></dd>
 <ul><li><p><code>"reforecast"</code>: Reforecasts (or hindcasts).</p></li>
 <li><p><code>"forecast"</code>: Forecast data.</p></li>
 <li><p><code>"analysis"</code>: Analysis data; based on ECMWF ERA5 used as ground truth.</p></li>
-</ul><p>Input argument <code>kind</code>:</p>
+</ul><p>Input argument <code>kind</code>. Will be ignored if <code>level = "efi"</code> (has no kind).</p>
 <ul><li><p><code>"ctr"</code>: Control run.</p></li>
-<li><p><code>"ens"</code>: Ensemble members.</p></li>
+<li><p><code>"ens"</code>: Ensemble members (allows for optional argument <code>members</code>).</p></li>
 <li><p><code>"hr"</code>: High-resolution forecast.</p></li>
 </ul><p>Input argument <code>level</code>:</p>
 <ul><li><p><code>"surf"</code>: Surface data.</p></li>
@@ -130,6 +136,10 @@ Typically not changed by an end-user.</p></dd>
 </ul><p>Note that reforecasts always only become available on Mondays and Thursdays.
 If <code>type = "reforecast"</code> and the <code>date</code> does not point to Mon/Thu
 the function will throw an error.</p>
+<p>The forecast ensemble (<code>type = "forecast"</code>, <code>kind = "ctr"</code>) consists
+of 50 ensemble members (<code>1-50</code>), the reforecasts or hindcasts
+(<code>type = "forecast"</code>, <code>kind = "ctr"</code>) only consists of 20 ensemble
+runs (<code>1-20</code>).</p>
     </div>
     <div id="author">
     <h2>Author</h2>
@@ -144,7 +154,6 @@ the function will throw an error.</p>
 <span class="r-in"><span class="va">conf_B</span> <span class="op">&lt;-</span> <span class="fu">eupp_config</span><span class="op">(</span>type <span class="op">=</span> <span class="st">"reforecast"</span>, kind <span class="op">=</span> <span class="st">"ctr"</span>, level <span class="op">=</span> <span class="st">"surf"</span>,</span>
 <span class="r-in">                      date <span class="op">=</span> <span class="st">"2017-01-02"</span>, parameter <span class="op">=</span> <span class="st">"2t"</span>,</span>
 <span class="r-in">                      steps <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">6</span>, <span class="fl">12</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in eupp_config(type = "reforecast", kind = "ctr", level = "surf",     date = "2017-01-02", parameter = "2t", steps = c(6, 12)):</span> inherits(steps, c("NULL", "integer")) is not TRUE</span>
 <span class="r-in"></span>
 </code></pre></div>
     </div>
