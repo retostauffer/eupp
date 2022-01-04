@@ -1,0 +1,83 @@
+---
+title: "Interpolating data"
+---
+
+```{r, include = FALSE}
+# Just here to suppress startup message
+for (x in c("eupp", "stars", "sf")) suppressPackageStartupMessages(x)
+```
+
+
+Loading the packages required to perform this action:
+
+```{r}
+library("eupp")  # for downloading/processing data
+library("sf")    # for point locations
+library("stars") # for interpolating data (st_extract)
+```
+
+### Setting up an `[sf][sf]` object
+
+Step 1, set up an `[sf][sf]` `data.frame` with point locations (`sf_point`)
+which will be used for interpolation. The `name` is not per se required,
+but used to further process the data.
+
+In this demo we are reading a CSV file from an object. This can be done
+in many different ways; check out the `[sf][sf]` package to find out more.
+
+```{r}
+locations <- "name, lon, lat
+Innsbruck,11.39333,47.26833
+Vienna,16.37255,48.20833
+Bonn,7.09981,50.73399
+Reading,-0.97305,51.45416"
+
+(locations <- st_as_sf(read.csv(text = locations), coords = c("lon", "lat")))
+```
+
+### Downloading EUPP data (surface analysis)
+
+For demonstration we will download surface analysis data from the
+EUPP data set for one specific date. Parameters `"2t"` (2m above
+ground dry air temperature) and `"cp"` (convectie precipitation) for
+every hour of the day (`step = NULL`).
+
+`eupp_get_gridded()` will return an object of class `c("eupp_stars", "stars")`
+(see `?eupp_stars`) which provides some convenience methods to process the
+data while, internally, being a barebone `stars` object.
+
+
+```{r}
+config <- eupp_config("analysis", "surface",
+                      date = "2017-03-01",
+                      parameter = "2t", cache = "_cache")
+ana <- eupp_get_gridded(config)
+```
+
+### Interpolating data
+
+Given we have our `c("eupp_stars", "stars")` object and the
+`c("sf", "data.frame")` object (`locations`) we can perform
+interpolation using the `[sf_extract()][sf]` function.
+
+The function returns a `stars` object which can be coerced
+into a `data.frame`.
+
+For plotting, we will append the `name` of the location again.
+
+```{r}
+res <- st_extract(ana, locations, bilinear = TRUE) |> as.data.frame()
+# Appending location name
+res$name <- locations$name[match(res$geometry, locations$geometry)]
+head(res)
+```
+
+### Plotting
+
+```{r, out.width = "100%", fig.width = 12, fig.height = 5}
+library("ggplot2")
+ggplot(res) + geom_line(aes(x = time, y = t2m - 273.15, group = name, colour = name))
+```
+
+
+[sf]: https://cran.r-project.org/package=sf
