@@ -74,9 +74,9 @@ itself.</p>
 
     <div id="ref-usage">
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">eupp_config</span><span class="op">(</span>
-  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"reforecast"</span>, <span class="st">"forecast"</span>, <span class="st">"analysis"</span><span class="op">)</span>,
-  kind <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ctr"</span>, <span class="st">"ens"</span>, <span class="st">"hr"</span><span class="op">)</span>,
-  level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"surf"</span>, <span class="st">"pressure"</span>, <span class="st">"efi"</span><span class="op">)</span>,
+  product <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"analysis"</span>, <span class="st">"forecast"</span>, <span class="st">"reforecast"</span><span class="op">)</span>,
+  level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"surface"</span>, <span class="st">"pressure"</span>, <span class="st">"efi"</span><span class="op">)</span>,
+  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ens"</span>, <span class="st">"hr"</span><span class="op">)</span>,
   <span class="va">date</span>,
   parameter <span class="op">=</span> <span class="cn">NULL</span>,
   steps <span class="op">=</span> <span class="cn">NULL</span>,
@@ -89,11 +89,11 @@ itself.</p>
 
     <div id="arguments">
     <h2>Arguments</h2>
-    <dl><dt>type</dt>
+    <dl><dt>product</dt>
 <dd><p>character of length <code>1</code> (see Details).</p></dd>
-<dt>kind</dt>
-<dd><p>character of length <code>1</code> or <code>NULL</code> (see Details).</p></dd>
 <dt>level</dt>
+<dd><p>character of length <code>1</code> or <code>NULL</code> (see Details).</p></dd>
+<dt>type</dt>
 <dd><p>character of length <code>1</code> (see Details).</p></dd>
 <dt>date</dt>
 <dd><p>an object which can be converted to <code>POSIXct</code>. Character string
@@ -102,6 +102,11 @@ in ISO representation or an object of class <code>Date</code> or <code>POSIXt</c
 <dd><p><code>NULL</code> (default) or character. When <code>NULL</code> all available
 parameters will be processed. Can be used to retrieve/process subsets.</p></dd>
 <dt>steps</dt>
+<dd><p><code>NULL</code> (default) or integer. If set to <code>NULL</code> all available forecast
+steps will be processed. An integer sequence can be provided to only process
+specific forecast steps; given in hours (e.g., <code>c(6, 12)</code> for <code>+6</code>
+and <code>+12</code> hour ahead forecasts).</p></dd>
+<dt>members</dt>
 <dd><p><code>NULL</code> (default) or integer. If set to <code>NULL</code> all available forecast
 members will be processed. An integer sequence can be provided to only process
 specific forecast members.</p></dd>
@@ -121,26 +126,22 @@ Typically not changed by an end-user.</p></dd>
     </div>
     <div id="details">
     <h2>Details</h2>
-    <p>Input argument <code>type</code>:</p>
-<ul><li><p><code>"reforecast"</code>: Reforecasts (or hindcasts).</p></li>
+    <p>Input argument <code>product</code>:</p><ul><li><p><code>"reforecast"</code>: Reforecasts (or hindcasts).</p></li>
 <li><p><code>"forecast"</code>: Forecast data.</p></li>
 <li><p><code>"analysis"</code>: Analysis data; based on ECMWF ERA5 used as ground truth.</p></li>
-</ul><p>Input argument <code>kind</code>. Will be ignored if <code>level = "efi"</code> (has no kind).</p>
-<ul><li><p><code>"ctr"</code>: Control run.</p></li>
-<li><p><code>"ens"</code>: Ensemble members (allows for optional argument <code>members</code>).</p></li>
-<li><p><code>"hr"</code>: High-resolution forecast.</p></li>
-</ul><p>Input argument <code>level</code>:</p>
-<ul><li><p><code>"surf"</code>: Surface data.</p></li>
+</ul><p>Input argument <code>level</code>. Will be ignored if <code>type = "efi"</code> (has no level).</p><ul><li><p><code>"efi"</code>: Extreme forecast index (in this situation <code>type</code> will be ignored).</p></li>
+<li><p><code>"surf"</code>: Surface data.</p></li>
 <li><p><code>"pressure"</code>: Pressure level data.</p></li>
-<li><p><code>"efi"</code>: Extreme forecast index data.</p></li>
+</ul><p>Input argument <code>type</code>:</p><ul><li><p><code>"ens"</code>: Ensemble members including control run (allows for optional argument <code>members</code>).</p></li>
+<li><p><code>"hr"</code>: High-resolution forecast.</p></li>
 </ul><p>Note that reforecasts always only become available on Mondays and Thursdays.
 If <code>type = "reforecast"</code> and the <code>date</code> does not point to Mon/Thu
-the function will throw an error.</p>
-<p>The forecast ensemble (<code>type = "forecast"</code>, <code>kind = "ctr"</code>) consists
-of 50 ensemble members (<code>1-50</code>), the reforecasts or hindcasts
-(<code>type = "forecast"</code>, <code>kind = "ctr"</code>) only consists of 20 ensemble
-runs (<code>1-20</code>).</p>
-    </div>
+the function will throw an error.
+TODO(R): This is not true, this happens when processing the data.</p>
+<p>Ensemble forecasts (<code>type = "ens"</code> consists of both, the ensemble control
+run plus <code>50</code> ensemble members if <code>members</code> is not specified.
+Same is true for reforecasts except that it only consists of <code>20</code> ensemble
+members. Possible combinations:</p><table class="table table"><tr><td>ID</td><td>product</td><td>level</td><td>type</td></tr><tr><td>1</td><td>analysis</td><td>surface</td><td>NULL</td></tr><tr><td>2</td><td></td><td>pressure</td><td>NULL</td></tr><tr><td>11</td><td>forecast</td><td>efi</td><td></td></tr><tr><td>12</td><td></td><td>surface</td><td>ens</td></tr><tr><td>13</td><td></td><td></td><td>hr</td></tr><tr><td>14</td><td></td><td>pressure</td><td>ens</td></tr><tr><td>15</td><td></td><td></td><td>hr</td></tr><tr><td>21</td><td>reforecast</td><td>surface</td><td>ens</td></tr><tr><td>22</td><td></td><td>pressure</td><td>ens</td></tr></table></div>
     <div id="author">
     <h2>Author</h2>
     <p>Reto Stauffer</p>
@@ -148,12 +149,21 @@ runs (<code>1-20</code>).</p>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="va">conf_A</span> <span class="op">&lt;-</span> <span class="fu">eupp_config</span><span class="op">(</span>type <span class="op">=</span> <span class="st">"reforecast"</span>, kind <span class="op">=</span> <span class="st">"ctr"</span>, level <span class="op">=</span> <span class="st">"surf"</span>,</span>
-<span class="r-in">                      date <span class="op">=</span> <span class="st">"2017-01-02"</span>, parameter <span class="op">=</span> <span class="st">"2t"</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"></span>
+<span class="r-in"><span class="co"># Analysis</span></span>
+<span class="r-in"><span class="va">c1</span> <span class="op">&lt;-</span> <span class="fu">eupp_config</span><span class="op">(</span><span class="st">"analysis"</span>, <span class="st">"surface"</span>, date <span class="op">=</span> <span class="st">"2017-01-01"</span>, steps <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span>
+<span class="r-in"><span class="va">c2</span> <span class="op">&lt;-</span> <span class="fu">eupp_config</span><span class="op">(</span><span class="st">"analysis"</span>, <span class="st">"pressure"</span>, date <span class="op">=</span> <span class="st">"2017-01-01"</span>, steps <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span>
 <span class="r-in"></span>
-<span class="r-in"><span class="va">conf_B</span> <span class="op">&lt;-</span> <span class="fu">eupp_config</span><span class="op">(</span>type <span class="op">=</span> <span class="st">"reforecast"</span>, kind <span class="op">=</span> <span class="st">"ctr"</span>, level <span class="op">=</span> <span class="st">"surf"</span>,</span>
-<span class="r-in">                      date <span class="op">=</span> <span class="st">"2017-01-02"</span>, parameter <span class="op">=</span> <span class="st">"2t"</span>,</span>
-<span class="r-in">                      steps <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">6</span>, <span class="fl">12</span><span class="op">)</span><span class="op">)</span></span>
+<span class="r-in"><span class="co"># Forecasts</span></span>
+<span class="r-in"><span class="va">c11</span> <span class="op">&lt;-</span> <span class="fu">eupp_config</span><span class="op">(</span><span class="st">"forecast"</span>, <span class="st">"efi"</span>, date <span class="op">=</span> <span class="st">"2017-01-01"</span>, steps <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span>
+<span class="r-in"><span class="va">c12</span> <span class="op">&lt;-</span> <span class="fu">eupp_config</span><span class="op">(</span><span class="st">"forecast"</span>, <span class="st">"surface"</span>, <span class="st">"ens"</span>, date <span class="op">=</span> <span class="st">"2017-01-01"</span>, steps <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span>
+<span class="r-in"><span class="va">c13</span> <span class="op">&lt;-</span> <span class="fu">eupp_config</span><span class="op">(</span><span class="st">"forecast"</span>, <span class="st">"surface"</span>, <span class="st">"hr"</span>, date <span class="op">=</span> <span class="st">"2017-01-01"</span>, steps <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span>
+<span class="r-in"><span class="va">c14</span> <span class="op">&lt;-</span> <span class="fu">eupp_config</span><span class="op">(</span><span class="st">"forecast"</span>, <span class="st">"pressure"</span>, <span class="st">"ens"</span>, date <span class="op">=</span> <span class="st">"2017-01-01"</span>, steps <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span>
+<span class="r-in"><span class="va">c15</span> <span class="op">&lt;-</span> <span class="fu">eupp_config</span><span class="op">(</span><span class="st">"forecast"</span>, <span class="st">"pressure"</span>, <span class="st">"hr"</span>, date <span class="op">=</span> <span class="st">"2017-01-01"</span>, steps <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span>
+<span class="r-in"></span>
+<span class="r-in"><span class="co"># Reforecasts</span></span>
+<span class="r-in"><span class="va">c21</span> <span class="op">&lt;-</span> <span class="fu">eupp_config</span><span class="op">(</span><span class="st">"reforecast"</span>, <span class="st">"surface"</span>, <span class="st">"ens"</span>, date <span class="op">=</span> <span class="st">"2017-01-02"</span>, steps <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span>
+<span class="r-in"><span class="va">c22</span> <span class="op">&lt;-</span> <span class="fu">eupp_config</span><span class="op">(</span><span class="st">"reforecast"</span>, <span class="st">"pressure"</span>, <span class="st">"ens"</span>, date <span class="op">=</span> <span class="st">"2017-01-02"</span>, steps <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span>
 <span class="r-in"></span>
 </code></pre></div>
     </div>

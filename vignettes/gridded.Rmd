@@ -42,7 +42,7 @@ library("eupp")
 conf <- eupp_config(product   = "forecast",
                     level     = "surf",
                     type      = "ens",
-                    date      = "2017-01-02",
+                    date      = "2017-07-01",
                     parameter = c("cp", "2t"),
                     steps     = c(24L, 240L), # +1 and +10 days ahead
                     cache     = "_cache") # cache is not required
@@ -110,7 +110,7 @@ nc
 
 ##### Reading data using `stars`
 
-```{r demoplot_stars, fig = TRUE, fig.width = 10, fig.height = 5, out.width = "60%"}
+```{r demoplot_stars, fig = TRUE, fig.width = 10, fig.height = 5, out.width = "100%"}
 library("stars")
 x <- read_stars("_test.nc")
 print(x)
@@ -135,7 +135,7 @@ An alternative way to visualize the data using `[ggplot2](https://cran.r-project
 ```
 
 
-```{r demoplot_ggplot, fig = TRUE, fig.width = 10, fig.height = 7, out.width = "60%"}
+```{r demoplot_ggplot, fig = TRUE, fig.width = 10, fig.height = 7, out.width = "60%", fig.align = "center"}
 library("sf")
 library("ggplot2")
 library("colorspace")

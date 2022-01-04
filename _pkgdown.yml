@@ -30,7 +30,7 @@ reference:
       desc: "The description of this section."
     - contents:
         - eupp_config
-        - eupp_get_source_url
+        - eupp_get_source_urls
         - eupp_download_gridded
         - eupp_get_gridded
 
