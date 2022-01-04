@@ -12,9 +12,9 @@ dir.create(cache_dir, showWarnings = FALSE)
 expect_true(is.function(eupp_get_inventory), info = "Cannot find function eupp_config")
 expect_true(is.function(eupp_download_gridded), info = "Cannot find function eupp_config")
 
-# Setting up an eupp_config object first
-expect_silent(config <- eupp_config("forecast", "ctr", "surf", "2017-01-01",
-                                    parameter = "2t", steps = c(0, 12), cache = cache_dir))
+# Setting up an eupp_config object first; member = 0 (control run only)
+expect_silent(config <- eupp_config("forecast", "surf", "ens", "2017-01-01",
+                                    parameter = "2t", steps = c(0, 12), members = 0, cache = cache_dir))
 
 # ----------------------------------------------------------------
 # Fetching GRIB index or inventory first; will be cached

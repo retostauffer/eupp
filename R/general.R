@@ -66,7 +66,6 @@ eupp_get_source_urls <- function(x, fileext = NULL, ...) {
     # and one for the actual ensemble members. If 'members' is given check if we
     # really need both or only one.
     if (!is.null(x$type) && !is.null(x$members) && x$type == "ens") {
-        print(c(any(x$members == 0), any(x$members > 0)))
         URL <- URL[c(any(x$members == 0), any(x$members > 0))]
     }
 
