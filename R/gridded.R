@@ -46,10 +46,11 @@ eupp_download_gridded <- function(x,
     # If the user requests netCDF: check grib_to_netcdf is available.
     output_format <- match.arg(output_format)
     if (output_format == "nc") {
+        gset     <- Sys.which("grib_set")
         g2nc_bin <- Sys.which("grib_to_netcdf")
-        if (nchar(g2nc_bin) == 0) {
+        if (nchar(gset) == 0 || nchar(g2nc_bin) == 0) {
             # Stop
-            stop("To be able to use 'output_format = \"nc\" you must install 'grib_to_netcdf' from ECMWFs ecCodes toolbox.")
+            stop("To be able to use 'output_format = \"nc\" the eccodes binaries must be installed. Requires both 'grib_set' and 'grib_to_netcdf' for the conversion.n")
         }
     }
 
@@ -86,7 +87,12 @@ eupp_download_gridded <- function(x,
     if (output_format == "grib") {
         file.rename(tmp_file, output_file)
     } else {
-        cat("  Calling grib_to_netcdf to convert file format\n")
+        cat("  Converting grib file to netcdf\n")
+        # Setting 'number' (perturbation number) for control forecasts to 0 and
+        # change type from 'cf' (control forecast) to 'pf' (perturbed forecast)
+        # not to lose the control run during conversion from grib1 to netcdf.
+        system(sprintf("grib_set -s number=0 -w type=cf %1$s %1$s", tmp_file), intern = !verbose)
+        system(sprintf("grib_set -s type=pf -w type=cf %1$s %1$s", tmp_file), intern = !verbose)
         system(sprintf("grib_to_netcdf %s -o %s", tmp_file, output_file), intern = !verbose)
     }
 
