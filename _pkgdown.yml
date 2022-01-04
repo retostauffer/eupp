@@ -27,11 +27,16 @@ home:
 
 reference:
     - title: "Retrieving data"
-      desc: "The description of this section."
+      desc: "Main end-user functionality to download/retrieve data."
     - contents:
         - eupp_config
-        - eupp_get_source_urls
         - eupp_download_gridded
         - eupp_get_gridded
-
+    - title: "Underlying infrastructure"
+    - desc: "Exported functions which can be used but are not typically called by end-users."
+    - contents:
+        - eupp_get_source_urls
+        - eupp_get_inventory
+        - "[.eupp_stars"
+        - "[[.eupp_stars"
 
