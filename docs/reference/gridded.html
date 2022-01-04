@@ -102,7 +102,7 @@ the <code>output_file</code> will be overwritten if needed. If <code>FALSE</code
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>Object of class <code>stars</code>; see Details.</p>
+    <p>Object of class <code>c("eupp_stars", "stars")</code>; see Details.</p>
     </div>
     <div id="details">
     <h2>Details</h2>
@@ -113,6 +113,10 @@ be installed when using NetCDF.</p>
 <p>This function interfaces <code>eupp_download_gridded</code>
 to download the data and converts the original data set (GRIB version 1)
 to NetCDF. Thus NetCDF support and ecCodes tools are required.</p>
+<p>The function <code><a href="https://r-spatial.github.io/stars/reference/read_stars.html" class="external-link">read_stars</a></code> is used to read the NetCDF
+file; note that the NetCDF file will be deleted after reading. The additional
+class <code>eupp_stars</code> is used to provide additional support for processing
+the data.</p>
 <p>If <code>x</code> (<code><a href="eupp_config.html">eupp_config</a></code>) contains a <code>bbox</code> definition
 on <code>area</code> the data is subsetted directly.</p>
     </div>
