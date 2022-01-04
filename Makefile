@@ -19,8 +19,12 @@ docs:
 test:
 	Rscript -e 'devtools::load_all(); tinytest::test_all()'
 
+testgridded:
+	Rscript -e 'devtools::load_all(); tinytest::run_test_file("inst/tinytest/test_gridded.R")'
+
 coverage:
 	Rscript -e 'covr::report(covr::package_coverage(), file = "coverage.html")'
+
 
 #clean:
 #	-rm -rf summary

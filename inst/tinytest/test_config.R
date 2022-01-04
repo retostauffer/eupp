@@ -148,16 +148,16 @@ for (obj in c("c21a", "c21b", "c22a", "c22b")) {
 # Testing response when defaults are overwritten and test
 # correct order of all function arguments.
 # ----------------------------------------------------------------
-library("sf")
-bbox   <- st_bbox(c(xmin = -3, xmax = 3, ymin = 40, ymax = 50))
-tmpdir <- tempdir()
+suppressPackageStartupMessages(library("sf"))
+bbox      <- st_bbox(c(xmin = -3, xmax = 3, ymin = 40, ymax = 50))
+cache_dir <- tempdir()
 expect_silent(c50 <- eupp_config(product = "forecast", level = "surf", type = "ens", date = "2017-10-01",
                                  parameter = c("t2m", "cp"), steps = 0:6,
-                                 members = 1:2, area = bbox, cache = tmpdir,
+                                 members = 1:2, area = bbox, cache = cache_dir,
                                  version = 666L),
               info = "Testing all args (overwrite defaults); named args")
 expect_silent(c51 <- eupp_config("forecast", "surf", "ens", "2017-10-01",
-                                 c("t2m", "cp"), 0:6, 1:2, bbox, tmpdir,
+                                 c("t2m", "cp"), 0:6, 1:2, bbox, cache_dir,
                                  666L),
               info = "Testing all args (overwrite defaults); unnamed args")
 
@@ -166,7 +166,7 @@ expect_identical(c50, c51)
 expect_identical(c50$parameter, c("t2m", "cp"))
 expect_identical(c50$steps,     0:6)
 expect_identical(c50$area,      bbox)
-expect_identical(c50$cache,     tmpdir)
+expect_identical(c50$cache,     cache_dir)
 expect_identical(c50$version,   666L)
 
 # Checking return

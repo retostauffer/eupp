@@ -5,40 +5,21 @@
 require("tinytest")
 
 # Setting up cache-dir
-cache_dir <- file.path(tempdir(), "_cache")
-dir.create(cache_dir, showWarnings = FALSE)
+cache_dir <- tempdir()
 
 # Basic check for functions
 expect_true(is.function(eupp_get_inventory), info = "Cannot find function eupp_config")
 expect_true(is.function(eupp_download_gridded), info = "Cannot find function eupp_config")
 
-# Setting up an eupp_config object first; member = 0 (control run only)
-expect_silent(config <- eupp_config("forecast", "surf", "ens", "2017-01-01",
-                                    parameter = "2t", steps = c(0, 12), members = 0, cache = cache_dir))
-
 # ----------------------------------------------------------------
 # Fetching GRIB index or inventory first; will be cached
+# Setting up an eupp_config object first; member = 0 (control run only)
+# and fetch inventory (tested extensively in dedicated test files)
 # ----------------------------------------------------------------
-
-# Wrong usage
-expect_error(eupp_get_inventory(1),
-             info = "Wrong input to function")
-
-# Proper usage
+expect_silent(config <- eupp_config("forecast", "surf", "ens", "2018-01-01",
+                                    parameter = "2t", steps = 0:12, members = 0, cache = cache_dir))
 expect_silent(inv <- eupp_get_inventory(config))
 
-expect_inherits(inv, "data.frame",
-                info = "inventory returned of wrong type")
-expect_inherits(inv, "eupp_inventory",
-                info = "inventory returned of wrong type")
-expect_identical(dim(inv), c(2L, 16L),
-                 info = "inventory returned of wrong dimension")
-expect_identical(inv$step, config$steps,
-                 info = "inventory contains wrong steps")
-expect_identical(inv$init, rep(config$date, 2L),
-                 info = "inventory contains wrong initialization date")
-expect_identical(inv$valid, config$date + config$step * 3600,
-                 info = "inventory contains wrong valid date/time")
 
 
 # ----------------------------------------------------------------
@@ -46,7 +27,7 @@ expect_identical(inv$valid, config$date + config$step * 3600,
 # Note that output_format should be guessed by file name
 # ----------------------------------------------------------------
 
-# Wrong usage
+# Testing wrong usage
 expect_error(eupp_download_gridded())
 expect_error(eupp_download_gridded(config))
 expect_error(eupp_download_gridded(config, output_file = 1),
@@ -105,7 +86,7 @@ expect_identical(nrow(inv), tmp,
 # Downloading as NetCDF
 # Note that output_format should be guessed by file name
 # ----------------------------------------------------------------
-library("ncdf4")
+suppressPackageStartupMessages(library("ncdf4"))
 nc_file   <- file.path(tempdir(), "_test.nc")
 if (file.exists(nc_file)) unlink(nc_file)
 expect_silent(nc  <- eupp_download_gridded(config, nc_file, "nc"))
@@ -143,9 +124,9 @@ expect_error(eupp_get_gridded(config, output_format = "nc"),
 expect_silent(st <- eupp_get_gridded(config),
               info = "Expected to be silent")
 expect_inherits(st, "stars",
-              info = "Return of wrong class; should be a stars object")
-expect_equal(dim(st), c(x = 93, y = 125, time = 2),
-             info = "Dimension of stars object is wrong")
+                info = "Return of wrong class; should be a stars object")
+expect_identical(dim(st), c(x = 93L, y = 125L, time = 13L),
+                 info = "Dimension of stars object is wrong")
 
 
 

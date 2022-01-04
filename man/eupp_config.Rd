@@ -58,28 +58,24 @@ itself.
 }
 \details{
 Input argument \code{product}:
-
 \itemize{
-  \item \code{"reforecast"}: Reforecasts (or hindcasts).
-  \item \code{"forecast"}: Forecast data.
-  \item \code{"analysis"}: Analysis data; based on ECMWF ERA5 used as ground truth.
+\item \code{"reforecast"}: Reforecasts (or hindcasts).
+\item \code{"forecast"}: Forecast data.
+\item \code{"analysis"}: Analysis data; based on ECMWF ERA5 used as ground truth.
 }
 
 Input argument \code{level}. Will be ignored if \code{type = "efi"} (has no level).
-
 \itemize{
-  \item \code{"efi"}: Extreme forecast index (in this situation \code{type} will be ignored).
-  \item \code{"surf"}: Surface data.
-  \item \code{"pressure"}: Pressure level data.
+\item \code{"efi"}: Extreme forecast index (in this situation \code{type} will be ignored).
+\item \code{"surf"}: Surface data.
+\item \code{"pressure"}: Pressure level data.
 }
 
 Input argument \code{type}:
-
 \itemize{
-  \item \code{"ens"}: Ensemble members including control run (allows for optional argument \code{members}).
-  \item \code{"hr"}: High-resolution forecast.
+\item \code{"ens"}: Ensemble members including control run (allows for optional argument \code{members}).
+\item \code{"hr"}: High-resolution forecast.
 }
-
 
 Note that reforecasts always only become available on Mondays and Thursdays.
 If \code{type = "reforecast"} and the \code{date} does not point to Mon/Thu
@@ -89,36 +85,35 @@ TODO(R): This is not true, this happens when processing the data.
 Ensemble forecasts (\code{type = "ens"} consists of both, the ensemble control
 run plus \code{50} ensemble members if \code{members} is not specified.
 Same is true for reforecasts except that it only consists of \code{20} ensemble
-members. Possible combinations:
-
-
-| ID | product    | level      | type   |
-| -- | ---------- | ---------- | ------ |
-|  1 | analysis   | surface    | NULL   |
-|  2 |            | pressure   | NULL   |
-| 11 | forecast   | efi        |        |
-| 12 |            | surface    | ens    |
-| 13 |            |            | hr     |
-| 14 |            | pressure   | ens    |
-| 15 |            |            | hr     |
-| 21 | reforecast | surface    | ens    |
-| 22 |            | pressure   | ens    |
+members. Possible combinations:\tabular{llll}{
+   ID \tab product \tab level \tab type \cr
+   1 \tab analysis \tab surface \tab NULL \cr
+   2 \tab  \tab pressure \tab NULL \cr
+   11 \tab forecast \tab efi \tab  \cr
+   12 \tab  \tab surface \tab ens \cr
+   13 \tab  \tab  \tab hr \cr
+   14 \tab  \tab pressure \tab ens \cr
+   15 \tab  \tab  \tab hr \cr
+   21 \tab reforecast \tab surface \tab ens \cr
+   22 \tab  \tab pressure \tab ens \cr
+}
 }
 \examples{
+
 # Analysis
-(c1 <- eupp_config("analysis", "surface", date = "2017-01-01", steps = 12)
-(c2 <- eupp_config("analysis", "pressure", date = "2017-01-01", steps = 12)
+c1 <- eupp_config("analysis", "surface", date = "2017-01-01", steps = 12)
+c2 <- eupp_config("analysis", "pressure", date = "2017-01-01", steps = 12)
 
 # Forecasts
-(c11 <- eupp_config("forecast", "efi", date = "2017-01-01", steps = 12)
-(c12 <- eupp_config("forecast", "surface", "ens", date = "2017-01-01", steps = 12)
-(c13 <- eupp_config("forecast", "surface", "hr", date = "2017-01-01", steps = 12)
-(c14 <- eupp_config("forecast", "pressure", "ens", date = "2017-01-01", steps = 12)
-(c15 <- eupp_config("forecast", "pressure", "hr", date = "2017-01-01", steps = 12)
+c11 <- eupp_config("forecast", "efi", date = "2017-01-01", steps = 12)
+c12 <- eupp_config("forecast", "surface", "ens", date = "2017-01-01", steps = 12)
+c13 <- eupp_config("forecast", "surface", "hr", date = "2017-01-01", steps = 12)
+c14 <- eupp_config("forecast", "pressure", "ens", date = "2017-01-01", steps = 12)
+c15 <- eupp_config("forecast", "pressure", "hr", date = "2017-01-01", steps = 12)
 
 # Reforecasts
-(c21 <- eupp_config("reforecast", "surface", "ens", date = "2017-01-01", steps = 12)
-(c22 <- eupp_config("reforecast", "pressure", "ens", date = "2017-01-01", steps = 12)
+c21 <- eupp_config("reforecast", "surface", "ens", date = "2017-01-01", steps = 12)
+c22 <- eupp_config("reforecast", "pressure", "ens", date = "2017-01-01", steps = 12)
 
 }
 \author{

@@ -31,27 +31,20 @@
 #'
 #' @details Input argument \code{product}:
 #'
-#' \itemize{
-#'   \item \code{"reforecast"}: Reforecasts (or hindcasts).
-#'   \item \code{"forecast"}: Forecast data.
-#'   \item \code{"analysis"}: Analysis data; based on ECMWF ERA5 used as ground truth.
-#' }
+#' * \code{"reforecast"}: Reforecasts (or hindcasts).
+#' * \code{"forecast"}: Forecast data.
+#' * \code{"analysis"}: Analysis data; based on ECMWF ERA5 used as ground truth.
 #'
 #' Input argument \code{level}. Will be ignored if \code{type = "efi"} (has no level).
 #'
-#' \itemize{
-#'   \item \code{"efi"}: Extreme forecast index (in this situation \code{type} will be ignored).
-#'   \item \code{"surf"}: Surface data.
-#'   \item \code{"pressure"}: Pressure level data.
-#' }
+#' * \code{"efi"}: Extreme forecast index (in this situation \code{type} will be ignored).
+#' * \code{"surf"}: Surface data.
+#' * \code{"pressure"}: Pressure level data.
 #'
 #' Input argument \code{type}:
 #'
-#' \itemize{
-#'   \item \code{"ens"}: Ensemble members including control run (allows for optional argument \code{members}).
-#'   \item \code{"hr"}: High-resolution forecast.
-#' }
-#'
+#' * \code{"ens"}: Ensemble members including control run (allows for optional argument \code{members}).
+#' * \code{"hr"}: High-resolution forecast.
 #'
 #' Note that reforecasts always only become available on Mondays and Thursdays.
 #' If \code{type = "reforecast"} and the \code{date} does not point to Mon/Thu
@@ -77,21 +70,23 @@
 #' | 22 |            | pressure   | ens    |
 #'
 #' @examples
+#'
 #' # Analysis
-#' (c1 <- eupp_config("analysis", "surface", date = "2017-01-01", steps = 12)
-#' (c2 <- eupp_config("analysis", "pressure", date = "2017-01-01", steps = 12)
+#' c1 <- eupp_config("analysis", "surface", date = "2017-01-01", steps = 12)
+#' c2 <- eupp_config("analysis", "pressure", date = "2017-01-01", steps = 12)
 #'
 #' # Forecasts
-#' (c11 <- eupp_config("forecast", "efi", date = "2017-01-01", steps = 12)
-#' (c12 <- eupp_config("forecast", "surface", "ens", date = "2017-01-01", steps = 12)
-#' (c13 <- eupp_config("forecast", "surface", "hr", date = "2017-01-01", steps = 12)
-#' (c14 <- eupp_config("forecast", "pressure", "ens", date = "2017-01-01", steps = 12)
-#' (c15 <- eupp_config("forecast", "pressure", "hr", date = "2017-01-01", steps = 12)
+#' c11 <- eupp_config("forecast", "efi", date = "2017-01-01", steps = 12)
+#' c12 <- eupp_config("forecast", "surface", "ens", date = "2017-01-01", steps = 12)
+#' c13 <- eupp_config("forecast", "surface", "hr", date = "2017-01-01", steps = 12)
+#' c14 <- eupp_config("forecast", "pressure", "ens", date = "2017-01-01", steps = 12)
+#' c15 <- eupp_config("forecast", "pressure", "hr", date = "2017-01-01", steps = 12)
 #'
 #' # Reforecasts
-#' (c21 <- eupp_config("reforecast", "surface", "ens", date = "2017-01-01", steps = 12)
-#' (c22 <- eupp_config("reforecast", "pressure", "ens", date = "2017-01-01", steps = 12)
+#' c21 <- eupp_config("reforecast", "surface", "ens", date = "2017-01-02", steps = 12)
+#' c22 <- eupp_config("reforecast", "pressure", "ens", date = "2017-01-02", steps = 12)
 #'
+#' @md
 #' @author Reto Stauffer
 #' @export
 eupp_config <- function(product  = c("analysis", "forecast", "reforecast"),

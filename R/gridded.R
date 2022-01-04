@@ -17,7 +17,6 @@
 #' conversion to NetCDF is done locally usning ECMWFs ecCodes tools which must
 #' be installed when using NetCDF.
 #'
-#' @rdname download
 #' @importFrom httr GET add_headers
 #' @importFrom tools file_ext
 #' @importFrom utils txtProgressBar setTxtProgressBar
@@ -74,7 +73,6 @@ eupp_download_gridded <- function(x,
     # Download everything and then create final ouptut file.
     con      <- file(tmp_file, "wb")
     if (verbose) pb <- txtProgressBar(0, nrow(inv), style = 3)
-    print(head(inv))
     for (i in seq_len(nrow(inv))) {
         if (verbose) setTxtProgressBar(pb, i)
         rng <- sprintf("bytes=%d-%d", inv$offset[i], inv$offset[i] + inv$length[i])
@@ -170,10 +168,9 @@ eupp_get_inventory <- function(x, verbose = FALSE) {
         if (verbose) cat("    Accessing", basename(index_url[i]), "\n")
         if (is.character(x$cache)) {
             # Create file <cache_dir>/<hashed_url>-<version>.index
-            cached_file <- file.path(x$cache,
-                                     sprintf("%s-%s.index", digest(index_url[i]), x$version))
+            cached_file <- file.path(x$cache, sprintf("%s-%s.index", digest(index_url[i]), x$version))
             if (file.exists(cached_file)) {
-                inv <- readLines(cached_file)
+                all_inv <- c(all_inv, readLines(cached_file))
             } else {
                 inv <- fn_GET(index_url[i])
                 writeLines(inv, con = cached_file)
@@ -186,11 +183,14 @@ eupp_get_inventory <- function(x, verbose = FALSE) {
     }
 
     # - Find non-empty rows (last is empty) and decode JSON string
-    inv <- lapply(inv, fromJSON)
+    inv <- lapply(all_inv, fromJSON); rm(all_inv)
     # - Convert to data.frame and fix leading underscores (not good)
     inv <- as.data.frame(bind_rows(inv))
     names(inv) <- gsub("^_(?=[a-zA-Z])", "", names(inv), perl = TRUE)
     inv <- transform(inv, init  = as.POSIXct(paste(date, time), tz = "UTC", format = "%Y%m%d %H%M"))
+
+    # - Control run (type = "cf") has no 'number'; set to member number 0
+    inv$number[inv$type == "cf"] <- 0
 
     # Extracting 'step' as integer. We either only get an integer (as text)
     # such as "0" or "12", or a step range like "0-12" or "24-48". In both
@@ -201,6 +201,11 @@ eupp_get_inventory <- function(x, verbose = FALSE) {
     inv <- transform(inv, valid = init + step * 3600)
     inv <- transform(inv, step  = as.integer(inv$step))
     inv <- within(inv, {date <- time <- NULL})
+
+    # Coerce 'number' (member number) to integer if available
+    if (!is.null(inv$number)) inv$number <- as.integer(inv$number)
+    # Subset or members if required
+    if (!is.null(x$members)) inv <- subset(inv, number %in% x$members)
 
     # Subsetting to what the user has requested
     if (x$product == "analysis") {
