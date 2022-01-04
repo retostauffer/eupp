@@ -65,16 +65,16 @@ eupp_download_gridded <- function(x,
     # ----------------------------------------------
     # Main content of the function
     # ----------------------------------------------
-    inv       <- eupp_get_inventory(x)           # Loading inventory information
+    inv       <- eupp_get_inventory(x, verbose = verbose) # Loading inventory information
     BASEURL   <- eupp_get_url_config()$BASEURL
     tmp_file <- tempfile(fileext = ".grb")  # Temporary location for download
 
     # Open binary file connection; temporary file.
     # Download everything and then create final ouptut file.
     con      <- file(tmp_file, "wb")
-    if (verbose) pb <- txtProgressBar(0, nrow(inv), style = 3)
+    if (verbose) { cat("  Downloading grib messages ...\n"); pb <- txtProgressBar(0, nrow(inv), style = 3) }
     for (i in seq_len(nrow(inv))) {
-        if (verbose) { counter <- counter + 1; setTxtProgressBar(pb, counter) }
+        if (verbose) setTxtProgressBar(pb, i)
         rng <- sprintf("bytes=%.0f-%.0f", inv$offset[i], inv$offset[i] + inv$length[i])
         req <- GET(paste(BASEURL, inv$path[i], sep = "/"), add_headers(Range = rng))
         writeBin(req$content, con = con)
@@ -86,7 +86,7 @@ eupp_download_gridded <- function(x,
     if (output_format == "grib") {
         file.rename(tmp_file, output_file)
     } else {
-        cat("Calling grib_to_netcdf to convert file format\n")
+        cat("  Calling grib_to_netcdf to convert file format\n")
         system(sprintf("grib_to_netcdf %s -o %s", tmp_file, output_file), intern = !verbose)
     }
 
@@ -103,18 +103,24 @@ eupp_download_gridded <- function(x,
 #' @param x object of class \code{\link{eupp_config}}.
 #' @param verbose logical, sets verbosity level. Defaults to \code{FALSE}.
 #'
-#' @return Object of class \code{stars}; see Details.
+#' @return Object of class \code{c("eupp_stars", "stars")}; see Details.
 #'
 #' @details This function interfaces \code{\link{eupp_download_gridded}}
 #' to download the data and converts the original data set (GRIB version 1)
 #' to NetCDF. Thus NetCDF support and ecCodes tools are required.
+#' 
+#' The function \code{\link[stars]{read_stars}} is used to read the NetCDF
+#' file; note that the NetCDF file will be deleted after reading. The additional
+#' class \code{eupp_stars} is used to provide additional support for processing
+#' the data.
 #'
 #' If \code{x} (\code{\link{eupp_config}}) contains a \code{bbox} definition
 #' on \code{area} the data is subsetted directly.
 #'
-#' @seealso \code{\link{eupp_download_gridded}}
+#' @seealso \code{\link{eupp_download_gridded}} and \code{\link{eupp_stars}}
 #'
 #' @importFrom stars read_stars
+#' @importFrom ncdf4 nc_open nc_close
 #' @author Reto Stauffer
 #' @rdname gridded
 #' @export
@@ -124,13 +130,25 @@ eupp_get_gridded <- function(x, verbose = FALSE) {
     stopifnot(requireNamespace("stars", quietly = TRUE))
 
     tmp_file <- tempfile(fileext = ".nc")
+    on.exit(file.remove(tmp_file))
     tmp_file <- eupp_download_gridded(x, tmp_file, "nc", verbose = verbose)
 
     # Reading the NetCDF file as stars
     data <- stars::read_stars(tmp_file)
 
+    # When having only one variable/parameter 'stars' names the
+    # variable like the file. We are checking that. In case this is the case,
+    # the variable name will be read from the NetCDF file.
+    if (names(data) == basename(tmp_file)) {
+        nc <- ncdf4::nc_open(tmp_file)
+        names(data) <- names(nc$var)
+        ncdf4::nc_close(nc)
+    }
+
     # Return; perform subsetting if required
-    return(if (!is.null(x$area)) data[x$area] else data)
+    if (!is.null(x$area)) data[x$area]
+    class(data) <- c("eupp_stars", class(data))
+    return(data)
 }
 
 
@@ -160,27 +178,28 @@ eupp_get_inventory <- function(x, verbose = FALSE) {
     # - hashing URL for unique file names
     # - If file does exist on disc: read file
     # - Else download data; save to cache file for next time
-    all_inv <- c()
+    inv <- list()
     for (i in seq_along(index_url)) {
-        if (verbose) cat("    Accessing", basename(index_url[i]), "\n")
+        if (verbose) cat("  Accessing", basename(index_url[i]), "\n")
         if (is.character(x$cache)) {
             # Create file <cache_dir>/<hashed_url>-<version>.index
-            cached_file <- file.path(x$cache, sprintf("%s-%s.index", digest(index_url[i]), x$version))
+            cached_file <- file.path(x$cache, sprintf("%s-%s.index.rds", digest(index_url[i]), x$version))
             if (file.exists(cached_file)) {
-                all_inv <- c(all_inv, readLines(cached_file))
+                if (verbose) cat("  - Index cached: loading", cached_file, "\n")
+                tmp <- readRDS(cached_file)
             } else {
-                inv <- fn_GET(index_url[i])
-                writeLines(inv, con = cached_file)
-                all_inv <- c(all_inv, inv)
+                if (verbose) cat("  - Index not cached: download and store as", cached_file, "\n")
+                tmp <- fn_GET(index_url[i])
+                tmp <- lapply(tmp, fromJSON)
+                saveRDS(tmp, cached_file)
             }
+            inv <- c(inv, tmp)
         # In case cache is NULL (default): request and extract
         } else {
-            all_inv <- c(all_inv, fn_GET(index_url[i]))
+            inv <- c(inv, lapply(fn_GET(index_url[i]), fromJSON))
         }
     }
 
-    # - Find non-empty rows (last is empty) and decode JSON string
-    inv <- lapply(all_inv, fromJSON); rm(all_inv)
     # - Convert to data.frame and fix leading underscores (not good)
     inv <- as.data.frame(bind_rows(inv))
     names(inv) <- gsub("^_(?=[a-zA-Z])", "", names(inv), perl = TRUE)

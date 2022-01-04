@@ -33,7 +33,7 @@ the \code{output_file} will be overwritten if needed. If \code{FALSE} and
 \code{output_file} exists an error will be raised.}
 }
 \value{
-Object of class \code{stars}; see Details.
+Object of class \code{c("eupp_stars", "stars")}; see Details.
 }
 \description{
 Main function downloading data.
@@ -50,11 +50,16 @@ This function interfaces \code{\link{eupp_download_gridded}}
 to download the data and converts the original data set (GRIB version 1)
 to NetCDF. Thus NetCDF support and ecCodes tools are required.
 
+The function \code{\link[stars]{read_stars}} is used to read the NetCDF
+file; note that the NetCDF file will be deleted after reading. The additional
+class \code{eupp_stars} is used to provide additional support for processing
+the data.
+
 If \code{x} (\code{\link{eupp_config}}) contains a \code{bbox} definition
 on \code{area} the data is subsetted directly.
 }
 \seealso{
-\code{\link{eupp_download_gridded}}
+\code{\link{eupp_download_gridded}} and \code{\link{eupp_stars}}
 }
 \author{
 Reto Stauffer
