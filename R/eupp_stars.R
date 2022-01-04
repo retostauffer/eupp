@@ -28,7 +28,7 @@
 
 
 #' @author Reto Stauffer
-#' @importFrom stars st_extract
+#' @importFrom stars st_extract st_get_dimension_values
 #' @rdname eupp_stars
 #' @export
 st_extract.eupp_stars <- function(x, at, bilinear = FALSE, ...) {
@@ -36,23 +36,35 @@ st_extract.eupp_stars <- function(x, at, bilinear = FALSE, ...) {
 
     #x <- NextMethod(x, bilinear = bilinear, ...)
     if (!bilinear) {
-        print('xxxxxxxxxx')
         res <- NextMethod(x, at = at, bilinear = bilinear, ...)
     } else {
         res <- list()
-        (idx_number <- which(attr(attr(x, "dimensions"), "names") == "number"))
-        (idx_time   <- which(attr(attr(x, "dimensions"), "names") == "time"))
-        if (!length(idx_number) == 0 && !length(idx_time) == 0) {
+        # Check if we have a 'number' (perturbation number/ensemble member) dimension.
+        # If so, we have to split the data set into member-by-member stars objects
+        # to be able to perform bilinar interpolation (mainly for bilinear).
+        idx_number <- which(attr(attr(x, "dimensions"), "names") == "number")
+
+        # If we don't have a member dimension: simply call NextMethod (st_extract.stars)
+        if (length(idx_number) == 0) {
+            res <- NextMethod(x, at = at, bilinear = bilinear, ...)
+        # Else (number dimension existing): loop over each number (member),
+        # Interpolate member-by-member and combine the resulting stars object.
+        # Variables (attributes) are renamed; adding '_<number>' to distinguish
+        # the different members.
+        } else {
+            val_number <- st_get_dimension_values(x, "number")
             ndim <- length(dim(x))
-            pat  <- paste(ifelse(seq(0, ndim) == idx_time, "%d", ""), collapse = ",")
-            for (i in seq_len(dim(x)[idx_time])) {
+            pat  <- paste(ifelse(seq(0, ndim) == idx_number, "%d", ""), collapse = ",")
+            for (i in seq_len(dim(x)[idx_number])) {
                 tmp <- sprintf("x[%s, drop = TRUE]", sprintf(pat, i))
-                print(tmp)
                 tmp <- eval(parse(text = tmp))
-                res <- c(res, stars::st_extract(tmp, at = at, bilinear = bilinear, ...))
+                class(tmp) <- "stars"
+                k <- stars::st_extract(tmp, at = at, bilinear = bilinear, ...)
+                names(k) <- paste(names(k), val_number[i], sep = "_")
+                res[[i]] <- k
             }
+            res <- do.call(c, res)
         }
     }
     return(res)
-
 }

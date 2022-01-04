@@ -3,11 +3,14 @@
 \name{[.eupp_stars}
 \alias{[.eupp_stars}
 \alias{[[.eupp_stars}
+\alias{st_extract.eupp_stars}
 \title{EUPP Stars Objects}
 \usage{
 \method{[}{eupp_stars}(x, ...)
 
 \method{[[}{eupp_stars}(x, ...)
+
+\method{st_extract}{eupp_stars}(x, at, bilinear = FALSE, ...)
 }
 \description{
 Custom class based on \code{stars} objects. The additional
@@ -19,6 +22,8 @@ Internally, an \code{eupp_stars} object is only a \code{stars}
 object with one additional attribute (the extra class).
 }
 \author{
+Reto Stauffer
+
 Reto Stauffer
 
 Reto Stauffer
