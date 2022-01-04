@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   gridded: gridded.html
   station: station.html
-last_built: 2022-01-03T11:18Z
+last_built: 2022-01-04T12:01Z
 urls:
   reference: http://localhost/reference
   article: http://localhost/articles
