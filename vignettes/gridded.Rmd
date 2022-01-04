@@ -39,13 +39,13 @@ dir.create("_cache", showWarnings = FALSE) # Not mandatory
 library("eupp")
 
 # Create custom configuration
-conf <- eupp_config(type = "forecast",
-                    kind = "ctr",
-                    level = "surf",
-                    date  = "2017-01-02",
+conf <- eupp_config(product   = "forecast",
+                    level     = "surf",
+                    type      = "ens",
+                    date      = "2017-01-02",
                     parameter = c("cp", "2t"),
-                    steps  = c(24L, 120L, 240L), # +1, +5, +10 days ahead
-                    cache = "_cache") # cache is not required
+                    steps     = c(24L, 240L), # +1 and +10 days ahead
+                    cache     = "_cache") # cache is not required
 ```
 
 ## Where is the data?
@@ -54,8 +54,8 @@ If you are interested where the data is stored, you can make use of the
 function `eupp_get_source_url()`. Typically not required to be used by an end-user.
 
 ```{r}
-eupp_get_source_url(conf)                           # GRIB file
-eupp_get_source_url(conf, fileext = "index")        # GRIB index/inventory
+urls <- eupp_get_source_urls(conf)                           # GRIB file
+urls <- eupp_get_source_urls(conf, fileext = "index")        # GRIB index/inventory
 ```
 
 ## Getting GRIB inventory
@@ -65,7 +65,7 @@ our requirements.
 
 ```{r}
 inv <- eupp_get_inventory(conf)
-inv
+head(inv)
 ```
 
 As we have set `cache` when calling `eupp_config()` the GRIB index file is stored
@@ -150,6 +150,7 @@ ggplot() + geom_stars(data = x["cp"] * 1e3, sf = TRUE) +
            geom_sf(data = ne, fill = "transparent") +
            coord_sf(xlim = c(-6, 17), ylim = c(36, 67), expand = FALSE)
 ```
+
 ```{r, eval = FALSE, include = FALSE}
 # Wanted to first crop 'ne' to the bbox of 'x'
 # beore using a different projection (as xlim/ylim change).

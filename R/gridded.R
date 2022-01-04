@@ -74,14 +74,11 @@ eupp_download_gridded <- function(x,
     con      <- file(tmp_file, "wb")
     if (verbose) pb <- txtProgressBar(0, nrow(inv), style = 3)
     for (i in seq_len(nrow(inv))) {
-        if (verbose) setTxtProgressBar(pb, i)
-        rng <- sprintf("bytes=%d-%d", inv$offset[i], inv$offset[i] + inv$length[i])
-        print(rng)
-        print(paste(BASEURL, inv$path[i], sep = "/"))
+        if (verbose) { counter <- counter + 1; setTxtProgressBar(pb, counter) }
+        rng <- sprintf("bytes=%.0f-%.0f", inv$offset[i], inv$offset[i] + inv$length[i])
         req <- GET(paste(BASEURL, inv$path[i], sep = "/"), add_headers(Range = rng))
         writeBin(req$content, con = con)
     }
-    cat("xxx\n")
     if (verbose) close(pb)
     close(con) # Properly closing the binary file connection
 

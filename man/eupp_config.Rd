@@ -112,8 +112,8 @@ c14 <- eupp_config("forecast", "pressure", "ens", date = "2017-01-01", steps = 1
 c15 <- eupp_config("forecast", "pressure", "hr", date = "2017-01-01", steps = 12)
 
 # Reforecasts
-c21 <- eupp_config("reforecast", "surface", "ens", date = "2017-01-01", steps = 12)
-c22 <- eupp_config("reforecast", "pressure", "ens", date = "2017-01-01", steps = 12)
+c21 <- eupp_config("reforecast", "surface", "ens", date = "2017-01-02", steps = 12)
+c22 <- eupp_config("reforecast", "pressure", "ens", date = "2017-01-02", steps = 12)
 
 }
 \author{
