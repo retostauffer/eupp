@@ -66,8 +66,8 @@ eupp_download_gridded <- function(x,
     # ----------------------------------------------
     # Main content of the function
     # ----------------------------------------------
-    inv       <- eupp_get_inventory(x, verbose = verbose) # Loading inventory information
-    BASEURL   <- eupp_get_url_config()$BASEURL
+    inv      <- eupp_get_inventory(x, verbose = verbose) # Loading inventory information
+    BASEURL  <- eupp_get_url_config()$BASEURL
     tmp_file <- tempfile(fileext = ".grb")  # Temporary location for download
 
     # Open binary file connection; temporary file.
@@ -78,6 +78,9 @@ eupp_download_gridded <- function(x,
         if (verbose) setTxtProgressBar(pb, i)
         rng <- sprintf("bytes=%.0f-%.0f", inv$offset[i], inv$offset[i] + inv$length[i])
         req <- GET(paste(BASEURL, inv$path[i], sep = "/"), add_headers(Range = rng))
+        if (!status_code(request) == 200L)
+            stop(sprintf("Problems accessing \"%s/%s\" (%s); return code %d.",
+                         BASEURL, inv$path[i], rng, status_code(request)))
         writeBin(req$content, con = con)
     }
     if (verbose) close(pb)
