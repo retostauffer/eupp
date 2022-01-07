@@ -53,7 +53,7 @@
       <a href="../articles/gridded_analysis.html">Analysis</a>
     </li>
     <li>
-      <a href="../articles/gridded_analysis.html">Forecasts</a>
+      <a href="../articles/gridded_forecast.html">Forecasts</a>
     </li>
   </ul>
 </li>
@@ -186,8 +186,8 @@
 <code class="sourceCode R"><span class="fu"><a href="../reference/gridded.html">eupp_download_gridded</a></span><span class="op">(</span><span class="va">conf</span>, output_file <span class="op">=</span> <span class="st">"_test.nc"</span>, output_format <span class="op">=</span> <span class="st">"nc"</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
 <pre><code><span class="co">##   Converting grib file to netcdf</span></code></pre>
 <pre><code><span class="co">## Warning in system(sprintf("grib_set -s number=0 -w type=cf %1$s %1$s",</span>
-<span class="co">## tmp_file), : running command 'grib_set -s number=0 -w type=cf /tmp/RtmpdTHAja/</span>
-<span class="co">## file4f44aba9a684.grb /tmp/RtmpdTHAja/file4f44aba9a684.grb' had status 211</span></code></pre>
+<span class="co">## tmp_file), : running command 'grib_set -s number=0 -w type=cf /tmp/RtmpE7Ftlv/</span>
+<span class="co">## file4fab77a38a276.grb /tmp/RtmpE7Ftlv/file4fab77a38a276.grb' had status 211</span></code></pre>
 <p>Which can be processed using e.g., <code>[ncdf4](https://cran.r-project.org/package=ncdf4)</code>, <code>[stars](https://cran.r-project.org/package=stars)</code> or the package of your choice.</p>
 <div class="section level5">
 <h5 id="reading-data-using-ncdf4">Reading data using <code>ncdf4</code><a class="anchor" aria-label="anchor" href="#reading-data-using-ncdf4"></a>
@@ -231,7 +231,7 @@
 <span class="co">## </span>
 <span class="co">##     2 global attributes:</span>
 <span class="co">##         Conventions: CF-1.6</span>
-<span class="co">##         history: 2022-01-07 18:58:54 GMT by grib_to_netcdf-2.16.0: grib_to_netcdf /tmp/RtmpdTHAja/file4f44aba9a684.grb -o _test.nc</span></code></pre>
+<span class="co">##         history: 2022-01-07 19:09:47 GMT by grib_to_netcdf-2.16.0: grib_to_netcdf /tmp/RtmpE7Ftlv/file4fab77a38a276.grb -o _test.nc</span></code></pre>
 </div>
 <div class="section level5">
 <h5 id="reading-data-using-stars">Reading data using <code>stars</code><a class="anchor" aria-label="anchor" href="#reading-data-using-stars"></a>

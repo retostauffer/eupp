@@ -11,7 +11,7 @@ navbar:
           - text: "Analysis"
             href: articles/gridded_analysis.html
           - text: "Forecasts"
-            href: articles/gridded_analysis.html
+            href: articles/gridded_forecast.html
         - text: "Station data"
           menu:
           - text: "Getting started"
