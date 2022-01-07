@@ -1,0 +1,133 @@
+---
+title: "Gridded Analysis"
+---
+
+
+## Specify data to be downloaded
+
+This example shows how to download gridded analysis data (based on ERA5) over
+four months, 12 UTC only.
+Step one is to set up Before starting downloading data a configuration object
+must be created using `eupp_config()` which contains the specification of the
+data to be retrieved.
+
+```{r, include = FALSE}
+suppressPackageStartupMessages(library("sf"))
+suppressPackageStartupMessages(library("eupp"))
+suppressPackageStartupMessages(library("stars"))
+```
+
+```{r, include = FALSE}
+dir.create("_cache", showWarnings = FALSE) # Not mandatory
+```
+
+```{r}
+# Loading the package
+library("eupp")
+
+# Create 'dates' vector
+dates <- seq(as.Date("2017-04-01"), as.Date("2017-06-30"), by = 1L)
+
+# Create custom configuration
+conf <- eupp_config(product   = "analysis",
+                    level     = "surface",
+                    date      = dates,         # dates
+                    parameter = c("2t", "cp"), # two different parameters/variables
+                    steps     = 12,            # 12 o'clock (UTC)
+                    cache     = "_cache")      # cache is not required
+```
+
+The function `eupp_config()` returns an object of class `r class(conf)`
+which contains all required information to download the data set.
+
+```{r}
+print(conf)
+```
+
+## Downloading data
+
+As for all gridded data sets, three options exist for downloading
+the data. `eupp_download_gridded()` allows to download and store
+the data set on disc (GRIB version 1 or NetCDF).
+Alternatively the data can be retrieved as `stars` object.
+
+Note that getting the data in the NetCDF format and retrieving
+the data as `stars` object require the [ecCodes tools](https://confluence.ecmwf.int/display/ECC)
+to be installed.
+
+```{r}
+# Retrieving the data set defined by 'config' as stars object
+devtools::load_all("../")
+library("stars")
+data <- eupp_get_gridded(conf)
+```
+
+## Interpolate data 
+
+We are interested in bi-linearely interpolated data for two
+different locations (Innsbruck and Brussles). This can be done
+by setting up a simple feature data.frame (package `sf`) ...
+
+```{r, out.width = "100%", fig.width = 10, fig.height = 6}
+library("sf")
+
+# Create simple features data.frame
+locations <- data.frame(name = c("Innsbruck", "Brussels"),
+                        lon  = c(11.39, 4.35),
+                        lat  = c(47.27, 50.85))
+locations <- st_as_sf(locations, coords = c("lon", "lat"))
+print(locations)
+```
+
+... to be used in combination with `st_extract()` to extract the
+data. This uses `st_extract.eupp_stars()`, a function interfacting
+`stars::st_extract.stars()`.
+
+```{r}
+# Perform interpolation based on stars::st_extract
+interpolated <- st_extract(data, locations, bilinear = TRUE)
+```
+
+The function `st_extract()` returns an object of class `star` which can
+be converted into a simple `data.frame`.
+
+```{r}
+interpolated_df <- as.data.frame(interpolated)
+head(interpolated_df)
+```
+
+As we have multiple locations we will append the name of the location
+via `match()` to be able to plot both time series (here using `ggplot2`).
+
+```{r}
+# Appending 'name'
+idx <- match(interpolated_df$geometry, locations$geometry)
+interpolated_df$name <- locations$name[idx]
+
+library("ggplot2")
+library("ggpubr")
+g1 <- ggplot(interpolated_df) + geom_line(aes(x = time, y = t2m, group = name, colour = name))
+g2 <- ggplot(interpolated_df) + geom_line(aes(x = time, y = cp,  group = name, colour = name))
+ggarrange(g1, g2, nrow = 2)
+```
+
+
+## `stars` functionality
+
+As `eupp_get_gridded()` returns an object of class `eupp_stars` which inherits
+from `stars`, complete stars functionality can be for plotting or subsetting.
+
+```{r, fig = TRUE, out.width = "100%", fig.width = 12, fig.height = 5}
+# 4 Dimensions, the first one is along variables
+names(data)
+dim(data)
+
+#          var  x y   time
+plot(data["t2m", , , 10:13])
+```
+
+
+
+
+
+

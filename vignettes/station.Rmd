@@ -1,6 +1,6 @@
 ---
-title: "Getting station data"
+title: "Station data: Getting started"
 ---
 
 
-Not yet implemented; data set not ready December 2021.
+Not yet implemented; data set not ready January 2022.

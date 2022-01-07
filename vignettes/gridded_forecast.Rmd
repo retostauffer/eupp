@@ -1,0 +1,159 @@
+---
+title: "Gridded Forecasts"
+---
+
+## High-resolution forecasts
+
+The first part showas an example how to access/download high-resolution
+forecasts (`type = "hr"`), the second part how to access ensemble forecasts.
+
+### Specify data to be downloaded
+
+TODO: Description
+
+```{r, include = FALSE}
+suppressPackageStartupMessages(library("sf"))
+suppressPackageStartupMessages(library("eupp"))
+suppressPackageStartupMessages(library("stars"))
+```
+
+```{r, include = FALSE}
+dir.create("_cache", showWarnings = FALSE) # Not mandatory
+```
+
+```{r}
+# Loading the package
+library("eupp")
+
+# Create 'dates' vector; character vectors (ISO format) work fine
+dates <- c("2018-01-01", "2018-01-08", "2018-01-15")
+
+# Create custom configuration
+conf <- eupp_config(product   = "forecast",
+                    level     = "surface",
+                    type      = "hr",           # high-resolution forecast run
+                    date      = dates,          # dates
+                    parameter = c("2t", "tcc"), # single parameter
+                    steps     = seq(12, 96, by = 12), # 12-hrly +12 to +96
+                    cache     = "_cache")       # cache is not required
+```
+
+TODO: Adjust text
+The function `eupp_config()` returns an object of class `r class(conf)`
+which contains all required information to download the data set.
+
+```{r}
+print(conf)
+```
+
+### Downloading data
+
+TODO: Adjust text
+As for all gridded data sets, three options exist for downloading
+the data. `eupp_download_gridded()` allows to download and store
+the data set on disc (GRIB version 1 or NetCDF).
+Alternatively the data can be retrieved as `stars` object.
+
+Note that getting the data in the NetCDF format and retrieving
+the data as `stars` object require the [ecCodes tools](https://confluence.ecmwf.int/display/ECC)
+to be installed.
+
+```{r}
+# Retrieving the data set defined by 'config' as stars object
+devtools::load_all("../")
+library("stars")
+data <- eupp_get_gridded(conf)
+```
+
+### Interpolate data 
+
+Interpolating data (see [Gridded Analysis](gridded_analysis.html) for more information).
+
+```{r, out.width = "100%", fig.width = 10, fig.height = 6}
+library("sf")
+
+# Create simple features data.frame; define locations
+locations <- data.frame(name = c("Innsbruck", "Brussels"),
+                        lon  = c(11.39, 4.35),
+                        lat  = c(47.27, 50.85))
+locations <- st_as_sf(locations, coords = c("lon", "lat"))
+
+# Perform interpolation based on stars::st_extract
+interpolated <- st_extract(data, locations, bilinear = TRUE)
+
+# Interpolate data (bilinear); conver to data.frame
+# Note that some information is not carried over (initialization date/time)
+interpolated_df <- as.data.frame(interpolated)
+head(interpolated_df)
+```
+
+### `stars` functionality
+
+As `eupp_get_gridded()` returns an object of class `eupp_stars` which inherits
+from `stars`, complete stars functionality can be for plotting or subsetting.
+
+```{r, fig = TRUE, out.width = "100%", fig.width = 12, fig.height = 5}
+# 4 Dimensions, the first one is along variables
+names(data)
+dim(data)
+
+#          var  x y   time
+plot(data["t2m", , , 1:4])
+plot(data["tcc", , , 1:4])
+```
+
+## Ensemble forecasts
+
+Works similar to accessing high-resolution forecasts except that the type
+is `"ens"`. The additional argument can be specified to download specific
+perturbations (or forecast members). If not set, all ensemble members
+plus the control forecast run (`member = 0`) will be downloaded.
+
+
+### Specify data to be downloaded
+
+```{r}
+# Loading the package
+library("eupp")
+
+# Create 'dates' vector; character vectors (ISO format) work fine
+dates <- c("2018-01-01", "2018-01-08", "2018-01-15")
+
+# Create custom configuration
+conf <- eupp_config(product   = "forecast",
+                    level     = "surface",
+                    type      = "ens",          # high-resolution forecast run
+                    date      = "2017-01-02",   # dates
+                    parameter = "cp",           # one parameter
+                    steps     = 120,            # only +10 days forecast
+                    members   = 0:3,            # control run + members 1, 2, 3
+                    cache     = "_cache")       # cache is not required
+```
+
+
+### Downloading data
+
+In case the data is required as GRIB 1 or NetCDF file please just
+use `eupp_download_gridded()` instead of `eupp_get_gridded()` which
+will return an `eupp_stars` object.
+
+
+```{r}
+library("stars")
+data <- eupp_get_gridded(conf)
+dim(data)
+st_get_dimension_values(data, "number")
+```
+
+
+TODO: Adjust text
+
+```{r, fig = TRUE, out.width = "50%", fig.width = 6, fig.height = 6}
+plot(data) # First 'time' all members
+
+#         var  x y  m time
+plot(data["cp", , , 1, 1]) # First 'number' (member 0)
+```
+
+
+
