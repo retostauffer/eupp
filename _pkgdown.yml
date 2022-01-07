@@ -4,11 +4,17 @@ destination: "docs"
 
 navbar:
     left:
-        - text: "Getting data"
+        - text: "Gridded data"
           menu:
-          - text: "Gridded data"
+          - text: "Getting started"
             href: articles/gridded.html
-          - text: "Station data"
+          - text: "Analysis"
+            href: articles/gridded_analysis.html
+          - text: "Forecasts"
+            href: articles/gridded_analysis.html
+        - text: "Station data"
+          menu:
+          - text: "Getting started"
             href: articles/station.html
         - text: "Reference"
           href: reference/index.html
