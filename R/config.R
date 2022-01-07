@@ -133,11 +133,8 @@ eupp_config <- function(product  = c("analysis", "forecast", "reforecast"),
         parameter <- unique(parameter)
     }
 
-    #@TODO: Allow to download multiple dates at once
-    #       Idea: allow for POSIXt vector; take unique(URLs)
-    #       and start to download Put everything into one file??????
     # Make sure input for 'date' is allowed.
-    stopifnot(inherits(date, c("character", "Date", "POSIXt")), length(date) == 1L)
+    stopifnot(inherits(date, c("character", "Date", "POSIXt")), length(date) > 0L)
 
     # If input 'date' is character; try to convert to character.
     if (is.character(date)) {
@@ -157,10 +154,12 @@ eupp_config <- function(product  = c("analysis", "forecast", "reforecast"),
     product_abbr  <- c(reforecast = "rfcs", forecast = "fcs", analysis = "ana")[product]
 
     # Crete return; a simple list of class eupp_config.
-    res <- list(product = product, product_abbr = product_abbr,
-                level = level, type = type, date = date, steps = steps,
-                members = members, area = area,
-                parameter = parameter, version = version, cache = cache)
+    res <- list(product   = product,   product_abbr = product_abbr,
+                level     = level,     type         = type,
+                date      = date,      steps        = steps,
+                members   = members,   area         = area,
+                parameter = parameter, version      = version,
+                cache     = cache)
     class(res) <- "eupp_config"
     return(res)
 }
@@ -173,6 +172,8 @@ print.eupp_config <- function(x, ...) {
              sprintf(fmt, "Product:",   sprintf("%s (%s)", x$product, x$product_abbr)),
              sprintf(fmt, "Level:",     x$level),
              sprintf(fmt, "Type:",      x$type),
+             sprintf(fmt, "Date(s):",   if (length(x$date) <= 3) paste(format(x$date), collapse = ",") else paste(length(x$date), "dates")),
+
              sprintf(fmt, "Parameter:", ifelse(is.null(x$parameter), "all available",
                                                paste(x$parameter, collapse = ", "))),
              sprintf(fmt, if (x$product == "analysis") "Hours:" else "Steps:",     ifelse(is.null(x$steps),     "all available",
