@@ -73,14 +73,20 @@ eupp_download_gridded <- function(x,
     # Open binary file connection; temporary file.
     # Download everything and then create final ouptut file.
     con      <- file(tmp_file, "wb")
-    if (verbose) { cat("  Downloading grib messages ...\n"); pb <- txtProgressBar(0, nrow(inv), style = 3) }
+    if (verbose) {
+        cat("  Downloading grib messages (", nrow(inv), ") ...\n", sep = "")
+        pb <- txtProgressBar(0, nrow(inv), style = 3)
+    }
+
+    # Looping over all rows of the inventory and download the data
     for (i in seq_len(nrow(inv))) {
         if (verbose) setTxtProgressBar(pb, i)
         rng <- sprintf("bytes=%.0f-%.0f", inv$offset[i], inv$offset[i] + inv$length[i])
         req <- GET(paste(BASEURL, inv$path[i], sep = "/"), add_headers(Range = rng))
-        if (!status_code(request) == 200L)
+        # Checking for status 200/206
+        if (!status_code(req) %/% 100L == 2L)
             stop(sprintf("Problems accessing \"%s/%s\" (%s); return code %d.",
-                         BASEURL, inv$path[i], rng, status_code(request)))
+                         BASEURL, inv$path[i], rng, status_code(req)))
         writeBin(req$content, con = con)
     }
     if (verbose) close(pb)
@@ -94,8 +100,12 @@ eupp_download_gridded <- function(x,
         # Setting 'number' (perturbation number) for control forecasts to 0 and
         # change type from 'cf' (control forecast) to 'pf' (perturbed forecast)
         # not to lose the control run during conversion from grib1 to netcdf.
-        system(sprintf("grib_set -s number=0 -w type=cf %1$s %1$s", tmp_file), intern = !verbose)
-        system(sprintf("grib_set -s type=pf -w type=cf %1$s %1$s", tmp_file), intern = !verbose)
+        if (!is.null(x$type) && x$type == "ens") {
+            system(sprintf("grib_set -s number=0 -w type=cf %1$s %1$s", tmp_file), intern = !verbose)
+            system(sprintf("grib_set -s type=pf -w type=cf %1$s %1$s", tmp_file), intern = !verbose)
+            # TODO: rm this
+            system(sprintf("grib_ls -p dataDate,dataTime,step,shortName,type,number %s", tmp_file))
+        }
         system(sprintf("grib_to_netcdf %s -o %s", tmp_file, output_file), intern = !verbose)
     }
 
@@ -148,7 +158,7 @@ eupp_get_gridded <- function(x, verbose = FALSE) {
     # When having only one variable/parameter 'stars' names the
     # variable like the file. We are checking that. In case this is the case,
     # the variable name will be read from the NetCDF file.
-    if (names(data) == basename(tmp_file)) {
+    if (length(names(data)) == 1L && names(data) == basename(tmp_file)) {
         nc <- ncdf4::nc_open(tmp_file)
         names(data) <- names(nc$var)
         ncdf4::nc_close(nc)
