@@ -41,16 +41,31 @@
       <ul class="nav navbar-nav">
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Getting data
+    Gridded data
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/gridded.html">Gridded data</a>
+      <a href="../articles/gridded.html">Getting started</a>
     </li>
     <li>
-      <a href="../articles/station.html">Station data</a>
+      <a href="../articles/gridded_analysis.html">Analysis</a>
+    </li>
+    <li>
+      <a href="../articles/gridded_analysis.html">Forecasts</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Station data
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+<li>
+      <a href="../articles/station.html">Getting started</a>
     </li>
   </ul>
 </li>
@@ -169,12 +184,15 @@
 <p>When the <code>output_file</code> can be identified as a NetCDF file or <code>output_format</code> is explicitly set to <code>"nc"</code> the resulting file will be a NetCDF file (classic 64 bit NetCDF) file. This requires <a href="https://confluence.ecmwf.int/display/ECC/ecCodes+Home" class="external-link">ecCodes</a> to be installed as the R package will call <code>grib_to_netcdf</code> for format conversion.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/gridded.html">eupp_download_gridded</a></span><span class="op">(</span><span class="va">conf</span>, output_file <span class="op">=</span> <span class="st">"_test.nc"</span>, output_format <span class="op">=</span> <span class="st">"nc"</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## Calling grib_to_netcdf to convert file format</span></code></pre>
+<pre><code><span class="co">##   Converting grib file to netcdf</span></code></pre>
+<pre><code><span class="co">## Warning in system(sprintf("grib_set -s number=0 -w type=cf %1$s %1$s",</span>
+<span class="co">## tmp_file), : running command 'grib_set -s number=0 -w type=cf /tmp/RtmpdTHAja/</span>
+<span class="co">## file4f44aba9a684.grb /tmp/RtmpdTHAja/file4f44aba9a684.grb' had status 211</span></code></pre>
 <p>Which can be processed using e.g., <code>[ncdf4](https://cran.r-project.org/package=ncdf4)</code>, <code>[stars](https://cran.r-project.org/package=stars)</code> or the package of your choice.</p>
 <div class="section level5">
 <h5 id="reading-data-using-ncdf4">Reading data using <code>ncdf4</code><a class="anchor" aria-label="anchor" href="#reading-data-using-ncdf4"></a>
 </h5>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="http://cirrus.ucsd.edu/~pierce/ncdf/" class="external-link">"ncdf4"</a></span><span class="op">)</span>
 <span class="va">nc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/nc_open.html" class="external-link">nc_open</a></span><span class="op">(</span><span class="st">"_test.nc"</span><span class="op">)</span>
 <span class="va">nc</span></code></pre></div>
@@ -182,15 +200,15 @@
 <span class="co">## </span>
 <span class="co">##      2 variables (excluding dimension variables):</span>
 <span class="co">##         short t2m[longitude,latitude,number,time]   </span>
-<span class="co">##             scale_factor: 0.000518137093143912</span>
-<span class="co">##             add_offset: 287.143783900203</span>
+<span class="co">##             scale_factor: 0.000448698228611921</span>
+<span class="co">##             add_offset: 287.375874283698</span>
 <span class="co">##             _FillValue: -32767</span>
 <span class="co">##             missing_value: -32767</span>
 <span class="co">##             units: K</span>
 <span class="co">##             long_name: 2 metre temperature</span>
 <span class="co">##         short cp[longitude,latitude,number,time]   </span>
-<span class="co">##             scale_factor: 2.22747631828859e-06</span>
-<span class="co">##             add_offset: 0.072985489045044</span>
+<span class="co">##             scale_factor: 9.41202754152727e-07</span>
+<span class="co">##             add_offset: 0.0308394494425682</span>
 <span class="co">##             _FillValue: -32767</span>
 <span class="co">##             missing_value: -32767</span>
 <span class="co">##             units: m</span>
@@ -204,7 +222,7 @@
 <span class="co">##         latitude  Size:125 </span>
 <span class="co">##             units: degrees_north</span>
 <span class="co">##             long_name: latitude</span>
-<span class="co">##         number  Size:50 </span>
+<span class="co">##         number  Size:21 </span>
 <span class="co">##             long_name: ensemble_member</span>
 <span class="co">##         time  Size:2 </span>
 <span class="co">##             units: hours since 1900-01-01 00:00:00.0</span>
@@ -213,18 +231,14 @@
 <span class="co">## </span>
 <span class="co">##     2 global attributes:</span>
 <span class="co">##         Conventions: CF-1.6</span>
-<span class="co">##         history: 2022-01-04 16:36:54 GMT by grib_to_netcdf-2.16.0: grib_to_netcdf /tmp/Rtmp6CnUX2/file3a5882bb93438.grb -o _test.nc</span></code></pre>
+<span class="co">##         history: 2022-01-07 18:58:54 GMT by grib_to_netcdf-2.16.0: grib_to_netcdf /tmp/RtmpdTHAja/file4f44aba9a684.grb -o _test.nc</span></code></pre>
 </div>
 <div class="section level5">
 <h5 id="reading-data-using-stars">Reading data using <code>stars</code><a class="anchor" aria-label="anchor" href="#reading-data-using-stars"></a>
 </h5>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://r-spatial.github.io/stars/" class="external-link">"stars"</a></span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## Loading required package: abind</span></code></pre>
-<pre><code><span class="co">## Loading required package: sf</span></code></pre>
-<pre><code><span class="co">## Linking to GEOS 3.8.0, GDAL 3.0.4, PROJ 6.3.1</span></code></pre>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/read_stars.html" class="external-link">read_stars</a></span><span class="op">(</span><span class="st">"_test.nc"</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://r-spatial.github.io/stars/" class="external-link">"stars"</a></span><span class="op">)</span>
+<span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/read_stars.html" class="external-link">read_stars</a></span><span class="op">(</span><span class="st">"_test.nc"</span><span class="op">)</span></code></pre></div>
 <pre><code><span class="co">## Warning in CPL_read_gdal(as.character(x), as.character(options),</span>
 <span class="co">## as.character(driver), : GDAL Message 1: The dataset has several variables</span>
 <span class="co">## that could be identified as vector fields, but not all share the same primary</span>
@@ -265,38 +279,45 @@
 <span class="co">## Warning in CPL_read_gdal(as.character(x), as.character(options),</span>
 <span class="co">## as.character(driver), : GDAL Message 1: dimension #1 (number) is not a Time</span>
 <span class="co">## dimension.</span></code></pre>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></code></pre></div>
 <pre><code><span class="co">## stars object with 4 dimensions and 2 attributes</span>
-<span class="co">## attribute(s), summary of first 1e+05 cells:</span>
+<span class="co">## attribute(s):</span>
 <span class="co">##             Min.      1st Qu.       Median         Mean      3rd Qu.</span>
-<span class="co">## t2m [K] 272.6738 2.841490e+02 2.867661e+02 2.873247e+02 289.15571023</span>
-<span class="co">## cp [m]    0.0000 6.682429e-06 2.583873e-04 9.337267e-04   0.00114715</span>
-<span class="co">##                 Max.</span>
-<span class="co">## t2m [K] 299.96664068</span>
-<span class="co">## cp [m]    0.02967444</span>
+<span class="co">## t2m [K] 272.6738 2.842395e+02 2.869092e+02 2.875348e+02 2.894860e+02</span>
+<span class="co">## cp [m]    0.0000 1.223564e-05 3.021261e-04 1.208465e-03 1.255564e-03</span>
+<span class="co">##                 Max.   NA's</span>
+<span class="co">## t2m [K] 302.07836914 232500</span>
+<span class="co">## cp [m]    0.06167984 232500</span>
 <span class="co">## dimension(s):</span>
 <span class="co">##        from  to         offset  delta  refsys point values x/y</span>
 <span class="co">## x         1  93         -6.125   0.25      NA    NA   NULL [x]</span>
 <span class="co">## y         1 125         67.125  -0.25      NA    NA   NULL [y]</span>
-<span class="co">## number    1  50              1      1      NA    NA   NULL    </span>
+<span class="co">## number    1  21              0      1      NA    NA   NULL    </span>
 <span class="co">## time      1   2 2017-07-02 UTC 9 days POSIXct    NA   NULL</span></code></pre>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">##      x      y number   time </span>
+<span class="co">##     93    125     21      2</span></code></pre>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">## [1] "t2m" "cp"</span></code></pre>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># Plotting 2m dry air temperature</span>
 <span class="fu"><a href="https://r-spatial.github.io/stars/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span><span class="op">[</span><span class="st">"t2m"</span><span class="op">]</span>,
      main   <span class="op">=</span> <span class="st">"t2m"</span>,
      col    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html" class="external-link">hcl.colors</a></span><span class="op">(</span><span class="fl">21</span>, <span class="st">"Blue-Red 2"</span>, rev <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
-     breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">t2m</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">t2m</span><span class="op">)</span>, length <span class="op">=</span> <span class="fl">22</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+     breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">t2m</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">t2m</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, length <span class="op">=</span> <span class="fl">22</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <p><img src="gridded_files/figure-html/demoplot_stars-1.png" width="100%"></p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># Plotting convective precipitation (mm)</span>
 <span class="fu"><a href="https://r-spatial.github.io/stars/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span><span class="op">[</span><span class="st">"cp"</span><span class="op">]</span> <span class="op">*</span> <span class="fl">1e3</span>,
      main   <span class="op">=</span> <span class="st">"cp"</span>,
      col    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html" class="external-link">hcl.colors</a></span><span class="op">(</span><span class="fl">10</span>, <span class="st">"Purple-Yellow"</span>, rev <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
-     breaks <span class="op">=</span> <span class="fl">1e3</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">cp</span><span class="op">)</span><span class="op">)</span>, length <span class="op">=</span> <span class="fl">11</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+     breaks <span class="op">=</span> <span class="fl">1e3</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">cp</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span>, length <span class="op">=</span> <span class="fl">11</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <p><img src="gridded_files/figure-html/demoplot_stars-2.png" width="100%"></p>
 <p>An alternative way to visualize the data using <code>[ggplot2](https://cran.r-project.org/package=ggplot2)</code>, <code>[colorspace](https://cran.r-project.org/package=colorspace)</code> and <code>[sf](https://cran.r-project.org/package=sf)</code> as well as <code>[rnaturalearth](https://cran.r-project.org/package=rnaturalearth)</code> for outlines: ```</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://r-spatial.github.io/sf/" class="external-link">"sf"</a></span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://ggplot2.tidyverse.org" class="external-link">"ggplot2"</a></span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://colorspace.R-Forge.R-project.org/" class="external-link">"colorspace"</a></span><span class="op">)</span>
@@ -311,6 +332,7 @@
            <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">ne</span>, fill <span class="op">=</span> <span class="st">"transparent"</span><span class="op">)</span> <span class="op">+</span>
            <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">coord_sf</a></span><span class="op">(</span>xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">6</span>, <span class="fl">17</span><span class="op">)</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">36</span>, <span class="fl">67</span><span class="op">)</span>, expand <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
 <p><img src="gridded_files/figure-html/demoplot_ggplot-1.png" width="60%" style="display: block; margin: auto;"></p>
+<p>TODOD: WHAT? :)</p>
 </div>
 </div>
   </div>

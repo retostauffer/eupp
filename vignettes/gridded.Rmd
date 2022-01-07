@@ -27,7 +27,9 @@ Before starting downloading data a configuration object must be created using
 `eupp_config()` which contains the specification of the data to be retrieved.
 
 ```{r, include = FALSE}
-library("eupp")
+suppressPackageStartupMessages(library("eupp"))
+suppressPackageStartupMessages(library("sf"))
+suppressPackageStartupMessages(library("stars"))
 ```
 
 ```{r, include = FALSE}
@@ -114,18 +116,20 @@ nc
 library("stars")
 x <- read_stars("_test.nc")
 print(x)
+dim(x)
+names(x)
 
 # Plotting 2m dry air temperature
 plot(x["t2m"],
      main   = "t2m",
      col    = hcl.colors(21, "Blue-Red 2", rev = TRUE),
-     breaks = seq(min(x$t2m), max(x$t2m), length = 22))
+     breaks = seq(min(x$t2m, na.rm = TRUE), max(x$t2m, na.rm = TRUE), length = 22))
 
 # Plotting convective precipitation (mm)
 plot(x["cp"] * 1e3,
      main   = "cp",
      col    = hcl.colors(10, "Purple-Yellow", rev = TRUE),
-     breaks = 1e3 * seq(0, as.numeric(max(x$cp)), length = 11))
+     breaks = 1e3 * seq(0, as.numeric(max(x$cp, na.rm = TRUE)), length = 11))
 ```
 
 An alternative way to visualize the data using `[ggplot2](https://cran.r-project.org/package=ggplot2)`,
@@ -157,6 +161,8 @@ ggplot() + geom_stars(data = x["cp"] * 1e3, sf = TRUE) +
 # not working; issues with ne?
 crs = st_crs("ESRI:102014")
 ```
+
+TODOD: WHAT? :)
 
 
 ```{r gridded_cleaning_up, include = FALSE}

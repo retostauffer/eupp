@@ -43,40 +43,48 @@ eupp_get_source_urls <- function(x, fileext = NULL, ...) {
     if (length(fileext) == 0) fileext <- NULL
     stopifnot(inherits(fileext, c("NULL", "character")))
 
-    # Appending required date/dates.
-    x$`yyyy-mm`    <- format(x$date, "%Y-%m")
-    x$`yyyy-mm-dd` <- format(x$date, "%Y-%m-%d")
-
-    # Convert 'x' (type) and level
-    x$level     <- c(surface = "surf", pressure = "pressure", efi = "efi")[x$level]
-
     # Getting basic config
     conf <- eupp_get_url_config()
     if (!is.null(x$type) && x$type %in% names(conf)) {
-        URL <- paste(conf$BASEURL, conf[[x$type]], sep = "/")
+        template <- paste(conf$BASEURL, conf[[x$type]], sep = "/")
     } else if (x$level %in% names(conf)) {
-        URL <- paste(conf$BASEURL, conf[[x$level]], sep = "/")
+        template <- paste(conf$BASEURL, conf[[x$level]], sep = "/")
     } else if (x$product %in% names(conf)) {
-        URL <- paste(conf$BASEURL, conf[[x$product]], sep = "/")
+        template <- paste(conf$BASEURL, conf[[x$product]], sep = "/")
     } else {
         stop("Whoops! Unexpected case identifying the URL pattern ... (yes, it's a bug).")
     }
 
-    # In case 'type == "ens"' we are getting two URL's, one for the control run
-    # and one for the actual ensemble members. If 'members' is given check if we
-    # really need both or only one.
-    if (!is.null(x$type) && !is.null(x$members) && x$type == "ens") {
-        URL <- URL[c(any(x$members == 0), any(x$members > 0))]
+    # Convert 'x' (type) and level
+    x$level     <- c(surface = "surf", pressure = "pressure", efi = "efi")[x$level]
+
+    URLS <- c()
+    for (i in seq_along(x$date)) {
+
+        # Make a copy of the URL template first
+        tmp <- template
+
+        # Appending required date/dates.
+        x$`yyyy-mm`    <- format(x$date[i], "%Y-%m")
+        x$`yyyy-mm-dd` <- format(x$date[i], "%Y-%m-%d")
+
+        # In case 'type == "ens"' we are getting two URL's, one for the control run
+        # and one for the actual ensemble members. If 'members' is given check if we
+        # really need both or only one.
+        if (!is.null(x$type) && !is.null(x$members) && x$type == "ens") {
+            tmp <- tmp[c(any(x$members == 0), any(x$members > 0))]
+        }
+
+        # Replacing variables in the basic URL pattern
+        for (n in names(x)) {
+            ##cat("------\n", n, "\n", paste(x[[n]], collapse = ", "), "\n")
+            if (!is.null(x[[n]]) && length(x[[n]]) == 1L) tmp <- gsub(sprintf("\\{\\{%s\\}\\}", n), x[[n]],  tmp)
+        }
+
+        # Appending file extension if required (for .index files)
+        if (!is.null(fileext)) tmp <- paste(tmp, fileext, sep = ".")
+        URLS <- c(URLS, tmp)
     }
 
-    # Replacing variables in the basic URL pattern
-    for (n in names(x)) {
-        ##cat("------\n", n, "\n", paste(x[[n]], collapse = ", "), "\n")
-        if (!is.null(x[[n]]) && length(x[[n]]) == 1L) URL <- gsub(sprintf("\\{\\{%s\\}\\}", n), x[[n]],  URL)
-    }
-
-    # Appending file extension if required (for .index files)
-    if (!is.null(fileext)) URL <- paste(URL, fileext, sep = ".")
-
-    return(URL)
+    return(unique(URLS))
 }
