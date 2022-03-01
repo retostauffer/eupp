@@ -11,7 +11,7 @@
 
 \method{[[}{eupp_stars}(x, ...)
 
-\method{st_extract}{eupp_stars}(x, at, bilinear = FALSE, ...)
+\method{st_extract}{eupp_stars}(x, at, bilinear = FALSE, atname = NULL, ...)
 }
 \arguments{
 \item{x}{stars object}
@@ -24,6 +24,13 @@
 \item{bilinear}{logical, forwarded to \code{\link[stars]{st_extract}}.
 Defaults to \code{TRUE} (bilinear interpolation); \code{FALSE}
 results in the use of nearest-neighbour interpolation.}
+
+\item{atname}{character length \code{1} or \code{NULL} (default).
+Can be used to specify a variable in the object \code{at} which should
+be appended to the final object.}
+}
+\value{
+Returns an object of class \code{c("sf", "data.frame")}.
 }
 \description{
 Custom class based on \code{stars} objects. The additional

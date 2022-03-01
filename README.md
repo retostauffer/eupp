@@ -25,7 +25,7 @@ Full documentation can be found on <https://retostauffer.github.io/eupp/>.
 | ecCodes       | ECMWF ecCodes toolbox; `grib_to_netcdf` is called to convert GRIB to NetCDF if requested |
 
 On most up-to-date Linux systems the ecCodes tools can be installed via package
-manager (e.g., `apt get install libeccodes-tools -y`).
+manager (e.g., `apt get install -y libeccodes-tools`).
 
 
 ## R packages
@@ -36,16 +36,16 @@ R version `4.1.2` using the following packages/package versions:
 
 | Package name | Tested on | Remarks |
 |:-------------|:---------:|:--------|
-| `httr`       | 1.4.2     | Downloading data via https |
-| `dplyr`      | 1.0.7     | `dplyr::bind_rows` used in one instance |
-| `stars`      | 0.5.5     | Handling/reading spatio-temporal data |
-| `digest`     | 0.6.27    | Hashing for caching |
+| [httr](https://cran.r-project.org/package=httr) | 1.4.2     | Downloading data via https |
+| [dplyr](https://cran.r-project.org/package=dplyr) | 1.0.7     | `dplyr::bind_rows` used in one instance |
+| [stars](https://cran.r-project.org/package=stars) | 0.5.5     | Handling/reading spatio-temporal data |
+| [digest](https://cran.r-project.org/package=digest) | 0.6.27    | Hashing for caching |
 
 Suggested packages ...
 
 | Package name | Tested on | Remarks |
 |:-------------|:---------:|:--------|
-| `sf`         | 1.0.4     | Plotting, processing data, spatial subsetting |
+| [sf](https://cran.r-project.org/package=sf) | 1.0.4     | Plotting, processing data, spatial subsetting |
 
 
 ## Installation

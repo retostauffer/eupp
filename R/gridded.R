@@ -113,14 +113,14 @@ eupp_download_gridded <- function(x,
         # change type from 'cf' (control forecast) to 'pf' (perturbed forecast)
         # not to lose the control run during conversion from grib1 to netcdf.
         if (!is.null(x$type) && x$type == "ens") {
-            system(sprintf("grib_set -s number=0 -w type=cf %s %s", tmp_file, tmp_file2), intern = !verbose)
-            system(sprintf("grib_set -s type=pf -w type=cf %s %s", tmp_file2, tmp_file), intern = !verbose)
-            file.remove(tmp_file2)
+            system(sprintf("%s -s number=0 -w type=cf %s %s", gset, tmp_file, tmp_file2), intern = !verbose)
+            system(sprintf("%s -s type=pf -w type=cf %s %s",  gset, tmp_file2, tmp_file), intern = !verbose)
+            file.remove(tmp_file2) # Delete one of the intermediate temporary files
         }
         system(sprintf("%s %s -k %d -o %s", g2nc_bin, tmp_file, netcdf_kind, output_file), intern = !verbose)
+        file.remove(tmp_file) # Delete temporary file
     }
 
-    file.remove(tmp_file)    # Delete temporary file
     invisible(output_file)   # Return final file name
 
 }
