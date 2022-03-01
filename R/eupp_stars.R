@@ -10,8 +10,11 @@
 #' Internally, an \code{eupp_stars} object is only a \code{stars}
 #' object with one additional attribute (the extra class).
 #'
+#' @param x stars object
+#' @param ... unused
+#'
 #' @author Reto Stauffer
-#' @rdname eupp_stars
+#' @name eupp_stars
 "[.eupp_stars" <- function(x, ...) {
     x <- NextMethod(x, ...)
     class(x) <- c("eupp_stars", class(x))
@@ -27,6 +30,13 @@
 }
 
 
+#'
+#' @param at object of class \code{sf} or \code{sfc} forwarded to
+#'        \code{\link[stars]{st_extract}}
+#' @param bilinear logical, forwarded to \code{\link[stars]{st_extract}}.
+#'        Defaults to \code{TRUE} (bilinear interpolation); \code{FALSE}
+#'        results in the use of nearest-neighbour interpolation.
+#'
 #' @author Reto Stauffer
 #' @importFrom stars st_extract st_get_dimension_values
 #' @rdname eupp_stars
