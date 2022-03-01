@@ -120,7 +120,7 @@ eupp_download_gridded <- function(x,
         system(sprintf("%s %s -k %d -o %s", g2nc_bin, tmp_file, netcdf_kind, output_file), intern = !verbose)
     }
 
-    unlink(tmp_file)         # Delete temporary file
+    file.remove(tmp_file)    # Delete temporary file
     invisible(output_file)   # Return final file name
 
 }
@@ -164,7 +164,7 @@ eupp_get_gridded <- function(x, verbose = FALSE) {
     tmp_file <- eupp_download_gridded(x, tmp_file, "nc", verbose = verbose)
 
     # Reading the NetCDF file as stars
-    data <- stars::read_stars(tmp_file)
+    data <- stars::read_stars(tmp_file, quiet = !verbose)
 
     # When having only one variable/parameter 'stars' names the
     # variable like the file. We are checking that. In case this is the case,
