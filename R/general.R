@@ -13,7 +13,9 @@
 #' @author Reto Stauffer
 #' @keywords internal
 eupp_get_url_config <- function() {
-    list("BASEURL"  = "https://storage.ecmwf.europeanweather.cloud/benchmark-dataset",
+    BASEURL <- Sys.getenv("EUPP_BASEURL")
+    if (nchar(BASEURL) == 0) BASEURL <- "https://storage.ecmwf.europeanweather.cloud/eumetnet-postprocessing-benchmark-training-dataset"
+    list("BASEURL"  = BASEURL,
          "analysis" = "data/{{product_abbr}}/{{level}}/EU_{{product}}_{{level}}_params_{{yyyy-mm}}.grb",
          "hr"       = "data/{{product_abbr}}/{{level}}/EU_{{product}}_{{type}}_{{level}}_params_{{yyyy-mm}}_{{version}}.grb",
          "efi"      = "data/{{product_abbr}}/{{level}}/EU_{{product}}_{{level}}_params_{{yyyy-mm}}_{{version}}.grb",
