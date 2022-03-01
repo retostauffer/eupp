@@ -150,13 +150,12 @@ Reading,-0.97305,51.45416"</span>
 <h3 id="downloading-eupp-data-surface-analysis">Downloading EUPP data (surface analysis)<a class="anchor" aria-label="anchor" href="#downloading-eupp-data-surface-analysis"></a>
 </h3>
 <p>For demonstration we will download surface analysis data from the EUPP data set for one specific date. Parameters <code>"2t"</code> (2m above ground dry air temperature) and <code>"cp"</code> (convectie precipitation) for every hour of the day (<code>step = NULL</code>).</p>
-<p><code><a href="../reference/gridded.html">eupp_get_gridded()</a></code> will return an object of class <code>c("eupp_stars", "stars")</code> (see <code>?eupp_stars</code>) which provides some convenience methods to process the data while, internally, being a barebone <code>stars</code> object.</p>
+<p><code><a href="../reference/gridded.html">eupp_get_gridded()</a></code> will return an object of class <code>c("eupp_stars", "stars")</code> (see <code><a href="../reference/eupp_stars.html">?eupp_stars</a></code>) which provides some convenience methods to process the data while, internally, being a barebone <code>stars</code> object.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">config</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eupp_config.html">eupp_config</a></span><span class="op">(</span><span class="st">"analysis"</span>, <span class="st">"surface"</span>,
                       date <span class="op">=</span> <span class="st">"2017-03-01"</span>,
                       parameter <span class="op">=</span> <span class="st">"2t"</span>, cache <span class="op">=</span> <span class="st">"_cache"</span><span class="op">)</span>
 <span class="va">ana</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gridded.html">eupp_get_gridded</a></span><span class="op">(</span><span class="va">config</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">##   Converting grib file to netcdf</span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="interpolating-data">Interpolating data<a class="anchor" aria-label="anchor" href="#interpolating-data"></a>
@@ -164,23 +163,23 @@ Reading,-0.97305,51.45416"</span>
 <p>Given we have our <code>c("eupp_stars", "stars")</code> object and the <code>c("sf", "data.frame")</code> object (<code>locations</code>) we can perform interpolation using the <code>[sf_extract()][sf]</code> function.</p>
 <p>The function returns a <code>stars</code> object which can be coerced into a <code>data.frame</code>.</p>
 <p>For plotting, we will append the <code>name</code> of the location again.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_extract.html" class="external-link">st_extract</a></span><span class="op">(</span><span class="va">ana</span>, <span class="va">locations</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> |&gt; <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="op">)</span>
 <span class="co"># Appending location name</span>
 <span class="va">res</span><span class="op">$</span><span class="va">name</span> <span class="op">&lt;-</span> <span class="va">locations</span><span class="op">$</span><span class="va">name</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="va">res</span><span class="op">$</span><span class="va">geometry</span>, <span class="va">locations</span><span class="op">$</span><span class="va">geometry</span><span class="op">)</span><span class="op">]</span>
 <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">##                    geometry                time      t2m      name</span>
-<span class="co">## 1 POINT (11.39333 47.26833) 2017-03-01 00:00:00 270.4468 Innsbruck</span>
-<span class="co">## 2 POINT (16.37255 48.20833) 2017-03-01 00:00:00 278.4339    Vienna</span>
-<span class="co">## 3  POINT (7.09981 50.73399) 2017-03-01 00:00:00 276.4398      Bonn</span>
-<span class="co">## 4 POINT (-0.97305 51.45416) 2017-03-01 00:00:00 279.5566   Reading</span>
-<span class="co">## 5 POINT (11.39333 47.26833) 2017-03-01 01:00:00 270.4977 Innsbruck</span>
-<span class="co">## 6 POINT (16.37255 48.20833) 2017-03-01 01:00:00 278.3573    Vienna</span></code></pre>
+<pre><code><span class="co">##                    geometry      t2m                time      name</span>
+<span class="co">## 1 POINT (11.39333 47.26833) 270.4468 2017-03-01 00:00:00 Innsbruck</span>
+<span class="co">## 2 POINT (16.37255 48.20833) 278.4339 2017-03-01 00:00:00    Vienna</span>
+<span class="co">## 3  POINT (7.09981 50.73399) 276.4398 2017-03-01 00:00:00      Bonn</span>
+<span class="co">## 4 POINT (-0.97305 51.45416) 279.5566 2017-03-01 00:00:00   Reading</span>
+<span class="co">## 5 POINT (11.39333 47.26833) 270.4977 2017-03-01 01:00:00 Innsbruck</span>
+<span class="co">## 6 POINT (16.37255 48.20833) 278.3573 2017-03-01 01:00:00    Vienna</span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="plotting">Plotting<a class="anchor" aria-label="anchor" href="#plotting"></a>
 </h3>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://ggplot2.tidyverse.org" class="external-link">"ggplot2"</a></span><span class="op">)</span>
 <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">time</span>, y <span class="op">=</span> <span class="va">t2m</span> <span class="op">-</span> <span class="fl">273.15</span>, group <span class="op">=</span> <span class="va">name</span>, colour <span class="op">=</span> <span class="va">name</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <p><img src="interpolate_files/figure-html/unnamed-chunk-6-1.png" width="100%"></p>
