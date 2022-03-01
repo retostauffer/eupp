@@ -2,14 +2,26 @@
 title: "Gridded Forecasts"
 ---
 
-## High-resolution forecasts
+This manual shows how to download forecast data which includes both
+[**high-resolution forecasts**](#hr) (the deterministic run) as well as
+[**ensemble forecasts**](#ens) (there is a dedicated vignette for hindcasts/reforecasts).
+It works the very same as for all other EUPP gridded
+data sets, however, there are some more types available.
 
-The first part showas an example how to access/download high-resolution
-forecasts (`type = "hr"`), the second part how to access ensemble forecasts.
+## High-resolution forecasts {#hr}
 
-### Specify data to be downloaded
+`type = "hr"` specifies downloading data from the high-resolution ECMWF
+forecast run (deterministic run). Note that the data set is provided on the
+same spatial resolution as all other gridded EUPP data sets ($0.25$ degrees
+regular ll grid).
 
-TODO: Description
+High-resolution forecasts are available on multiple levels:
+
+* `"surface"`: surface fields (used as example in the following sections)
+* `"pressure"`: pressure level data (see [here](#hr-pressure))
+* `"efi"`": extreme forecast index data (see [here](#hr-efi))
+
+### Specify data to be downloaded {#hr-download}
 
 ```{r, include = FALSE}
 suppressPackageStartupMessages(library("sf"))
@@ -21,11 +33,21 @@ suppressPackageStartupMessages(library("stars"))
 dir.create("_cache", showWarnings = FALSE) # Not mandatory
 ```
 
+Step one is to set up before starting downloading data a configuration object
+must be created using `eupp_config()` which contains the specification of the
+data to be retrieved.
+
+In this case high-resolution forecasts initialized on three different days,
+only forecasts for `"2t"` (2m air temperature) and `"tcc"` (total cloud cover)
+including forecasts 12h ahead up to 96h ahead from initialization in a
+12-hourly interval.
+
 ```{r}
 # Loading the package
 library("eupp")
 
-# Create 'dates' vector; character vectors (ISO format) work fine
+# Creating a vector of dates (character string in ISO representation works fine)
+# specifying the date of model initialization (00 UTC).
 dates <- c("2018-01-01", "2018-01-08", "2018-01-15")
 
 # Create custom configuration
@@ -35,39 +57,46 @@ conf <- eupp_config(product   = "forecast",
                     date      = dates,          # dates
                     parameter = c("2t", "tcc"), # single parameter
                     steps     = seq(12, 96, by = 12), # 12-hrly +12 to +96
-                    cache     = "_cache")       # cache is not required
+                    cache     = "_cache")       # optional
 ```
 
-TODO: Adjust text
-The function `eupp_config()` returns an object of class `r class(conf)`
-which contains all required information to download the data set.
+The function returns an object of class `eupp_config` containing the
+data of interest used for downloading the data in a second step.
+
 
 ```{r}
 print(conf)
 ```
 
-### Downloading data
+### Downloading high-resolution forecast data
 
-TODO: Adjust text
-As for all gridded data sets, three options exist for downloading
-the data. `eupp_download_gridded()` allows to download and store
+For all gridded EUPP data sets three options for downloading the data
+exist. `eupp_download_gridded()` allows to download and store
 the data set on disc (GRIB version 1 or NetCDF).
-Alternatively the data can be retrieved as `stars` object.
+Alternatively the data can directly be retrieved as `stars` objects.
 
-Note that getting the data in the NetCDF format and retrieving
-the data as `stars` object require the [ecCodes tools](https://confluence.ecmwf.int/display/ECC)
-to be installed.
+Note that getting the data in the NetCDF format as well as retrieving
+the data as `stars` objects require the [ecCodes tools](htltps://confluence.ecmwf.int/display/ECC)
+to be installed (namely the console tools `grib_set` and `grib_to_netcdf`).
 
-```{r}
-# Retrieving the data set defined by 'config' as stars object
-devtools::load_all("../")
-library("stars")
+```{r, eval = FALSE}
+eupp_download_gridded(conf, "_test.grb", "grib", overwrite = TRUE) # GRIB
+eupp_download_gridded(conf, "_test.nc",  "nc",   overwrite = TRUE) # NetCDF
+data <- eupp_get_gridded(conf)                                     # stars
+```
+
+```{r, include = FALSE}
+# Same eupp_get_gridded call as above but this one is executed
+# as we need the object in the next section.
 data <- eupp_get_gridded(conf)
 ```
 
-### Interpolate data 
 
-Interpolating data (see [Gridded Analysis](gridded_analysis.html) for more information).
+### Processing high-resolution forecast gridded data {#hr-processing}
+
+For more details on point-wise interpolation and additional `stars` features please
+have a look at the vignette for [Gridded Analysis](gridded_analysis.html) data.
+Just a series of commands for testing:
 
 ```{r, out.width = "100%", fig.width = 10, fig.height = 6}
 library("sf")
@@ -78,39 +107,73 @@ locations <- data.frame(name = c("Innsbruck", "Brussels"),
                         lat  = c(47.27, 50.85))
 locations <- st_as_sf(locations, coords = c("lon", "lat"))
 
-# Perform interpolation based on stars::st_extract
-interpolated <- st_extract(data, locations, bilinear = TRUE)
+# Perform bilinear interpolation; coerce to data.frame
+interpolated <- st_extract(data, locations, bilinear = TRUE, atname = "name")
+head(interpolated, n = 4)
 
-# Interpolate data (bilinear); conver to data.frame
-# Note that some information is not carried over (initialization date/time)
-interpolated_df <- as.data.frame(interpolated)
-head(interpolated_df)
-```
-
-### `stars` functionality
-
-As `eupp_get_gridded()` returns an object of class `eupp_stars` which inherits
-from `stars`, complete stars functionality can be for plotting or subsetting.
-
-```{r, fig = TRUE, out.width = "100%", fig.width = 12, fig.height = 5}
-# 4 Dimensions, the first one is along variables
-names(data)
-dim(data)
-
-#          var  x y   time
 plot(data["t2m", , , 1:4])
 plot(data["tcc", , , 1:4])
 ```
 
-## Ensemble forecasts
 
-Works similar to accessing high-resolution forecasts except that the type
-is `"ens"`. The additional argument can be specified to download specific
-perturbations (or forecast members). If not set, all ensemble members
-plus the control forecast run (`member = 0`) will be downloaded.
+### High-resolution pressure level forecasts {#hr-pressure}
 
+Only minor differences to surface data. All needed to be done is to 
+set `level = "pressure"` and specify what parameter(s) to be downloaded.
+Note: There is no dedicated option to specify which levels An example:
+
+```{r, fig = TRUE, fig.width = 8, fig.height = 5, out.width = "80%"}
+data <- eupp_get_gridded(eupp_config("forecast", "pressure", "hr", date = "2017-01-01", steps = 12))
+print(data)
+plot(data["q"])
+```
+
+@TODO: `ggplot() + geom_stars(data["q"])` fails; rescale does not know how topick a scale
+for an object of class `c("eupp_stars", "eupp_stars")`. Bug in `rescale()`?
+
+
+### High-resolution efi forecasts {#hr-efi}
+
+The extreme forecast index is a second-level product derived from the entire
+atmosphere of all ensemble forecasts projected to a 2D plane. Thus, there are
+no members or dedicated levels and only available aggregated over 24 hour time
+periods available at 00 UTC (e.g., +0-24 hours ahead, +24-48 hours ahead, ...).
+
+To get the data simply ask for `level = "efi"` (here not declaring `steps` to get all available forecast steps).
+
+```{r, fig = TRUE, fig.width = 8, fig.height = 5, out.width = "80%"}
+data <- eupp_get_gridded(eupp_config("forecast", "efi", date = "2017-01-01"))
+print(data)
+plot(data["capei"])
+```
+
+
+
+
+
+## Ensemble forecasts {#ens}
+
+`type = "ens"` specifies downloading data from the operational ensemble.
+Works the same as for high-resolution forecasts (deterministic run) except
+an optional argument `members` is available. The argument allows to specify
+which ensemble forecast members/perturbations shall be processed.
+
+* `0`: identifies the control run (treated the same as the perturbations)
+* [`1`, ..., `50`]: individual perturbations
+* If nothing is specified (`members = NULL`), the control run plus all
+  available ensemble members will be downloaded/processed.
 
 ### Specify data to be downloaded
+
+As always, `eupp_config()` has to be called to specify what should be processed
+in the next step.
+
+In this case ensemble forecasts initialized on three separate days (00 UTC)
+for one single forecast parameter (`"cp"` = convective precipitation; `"surface"`
+variable) valid at a forecast horizon of +120 hours.
+
+In addition, `members = 0:3` defines to only download gridded data for the
+control run (`0`) and the first three perturbations.
 
 ```{r}
 # Loading the package
@@ -127,33 +190,79 @@ conf <- eupp_config(product   = "forecast",
                     parameter = "cp",           # one parameter
                     steps     = 120,            # only +10 days forecast
                     members   = 0:3,            # control run + members 1, 2, 3
-                    cache     = "_cache")       # cache is not required
+                    cache     = "_cache")       # optional
+
+print(conf)
 ```
 
 
-### Downloading data
+### Downloading ensemble forecast data {#ens-download}
 
-In case the data is required as GRIB 1 or NetCDF file please just
-use `eupp_download_gridded()` instead of `eupp_get_gridded()` which
-will return an `eupp_stars` object.
+Once the configuration object has been created we can download the data.
+For more details see section ["Downloading high-resolution forecast data"](#hr-download)
+and/or the corresponding section in "[Analysis Data](gridded_analysis.html#download)".
 
+Note that this, again, requires [ecCodes tools](htltps://confluence.ecmwf.int/display/ECC)
+to be installed (namely `grib_set` and `grib_to_netcdf`).
+
+```{r, eval = FALSE}
+eupp_download_gridded(conf, "_test.grb", "grib", overwrite = TRUE) # GRIB
+eupp_download_gridded(conf, "_test.nc",  "nc",   overwrite = TRUE) # NetCDF
+data <- eupp_get_gridded(conf)                                     # stars
+```
+
+```{r, include = FALSE}
+# Same eupp_get_gridded call as above but this one is executed
+# as we need the object in the next section.
+data <- eupp_get_gridded(conf)
+```
+
+### Processing ensemble-forecast gridded data {#ens-processing}
+
+For more details on point-wise interpolation and additional `stars` features please
+have a look at the vignette for "[Interpolating analysis data](gridded_analysis.html#interpolate)".
+One of the main differnces: The member number (or perturbation number) will be added
+to the variable name.
+
+```{r, out.width = "100%", fig.width = 10, fig.height = 6}
+library("sf")
+
+# Create simple features data.frame; define locations
+locations <- data.frame(name = c("Innsbruck", "Brussels"),
+                        lon  = c(11.39, 4.35),
+                        lat  = c(47.27, 50.85))
+locations <- st_as_sf(locations, coords = c("lon", "lat"))
+
+# Perform bilinear interpolation; coerce to data.frame
+interpolated <- st_extract(data, locations, bilinear = TRUE, atname = "name")
+head(interpolated, n = 10)
+
+plot(data["cp", , , 1:4])
+```
+
+## Available analysis data {#available}
+
+In case you are not sure which fields and/or steps are available simply download
+the full inventory for one specific day. The resulting `data.frame` contains
+all information required.
 
 ```{r}
-library("stars")
-data <- eupp_get_gridded(conf)
-dim(data)
-st_get_dimension_values(data, "number")
+# Surface fields available
+conf_surface <- eupp_config(product = "analysis",
+                            level   = "surface",
+                            date    = "2017-06-01",
+                            cache   = "_cache")
+inv_surface <- eupp_get_inventory(conf_surface)
+head(subset(inv_surface, select = c(param, init, step, valid)))
+unique(inv_surface$param)
+
+# Pressure level data available
+conf_pressure <- eupp_config(product = "analysis",
+                            level   = "pressure",
+                            date    = "2017-06-01",
+                            cache   = "_cache")
+inv_pressure <- eupp_get_inventory(conf_pressure)
+head(subset(inv_pressure, select = c(param, levelist, init, step, valid)))
+unique(inv_pressure$param)
 ```
-
-
-TODO: Adjust text
-
-```{r, fig = TRUE, out.width = "50%", fig.width = 6, fig.height = 6}
-plot(data) # First 'time' all members
-
-#         var  x y  m time
-plot(data["cp", , , 1, 1]) # First 'number' (member 0)
-```
-
-
 

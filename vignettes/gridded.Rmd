@@ -23,7 +23,7 @@ or if you want to store the data as _R_ objects yourself. Also requires NetCDF s
 
 ## Specify data to be downloaded
 
-Before starting downloading data a configuration object must be created using
+Before starting downloading data, a configuration object must be created using
 `eupp_config()` which contains the specification of the data to be retrieved.
 
 ```{r, include = FALSE}
@@ -47,13 +47,13 @@ conf <- eupp_config(product   = "forecast",
                     date      = "2017-07-01",
                     parameter = c("cp", "2t"),
                     steps     = c(24L, 240L), # +1 and +10 days ahead
-                    cache     = "_cache") # cache is not required
+                    cache     = "_cache")     # optional; caching grib index
 ```
 
-## Where is the data?
+## Get full file URL
 
 If you are interested where the data is stored, you can make use of the
-function `eupp_get_source_url()`. Typically not required to be used by an end-user.
+function `eupp_get_source_urls()`. Typically not required to be called by an end-user.
 
 ```{r}
 urls <- eupp_get_source_urls(conf)                           # GRIB file
@@ -62,27 +62,31 @@ urls <- eupp_get_source_urls(conf, fileext = "index")        # GRIB index/invent
 
 ## Getting GRIB inventory
 
-Given the same object `conf` we can retrieve the GRIB inventory which matches
-our requirements.
+Given the configuration object `conf` from above, we can now retrieve the GRIB
+inventory which matches our requirements.
 
 ```{r}
 inv <- eupp_get_inventory(conf)
-head(inv)
+dim(inv)
+head(inv, n = 3)
 ```
 
-As we have set `cache` when calling `eupp_config()` the GRIB index file is stored
-locally, if the same index file is required once again the loading times should
-be much faster. Not required but may save some time in certain situations.
+As we have set `cache` when calling `eupp_config()` the GRIB index file is
+stored locally. If the same index file is required once again the loading times
+should be much faster as the cached file is reused. Not required but may save
+some time in certain situations.
 
 
 ## Getting data: GRIB format
 
 From `eupp_get_inventory()` we know that there are `r nrow(inv)` fields matching
 our configuration. `eupp_download_gridded()` allows us to retrieve the data in
-either GRIB or NetCDF (next section). 
+the original GRIB version 1 file format by specifying `output_format = "grib"`.
 
-Will internally access the GRIB index and download the fields matching our
-configuration. The data is stored in `output_file` (GRIB version 1 format).
+The function will first download/parse the GRIB index file (uses `cache` if specified)
+to know which GRIB messages are required given the configuration (`conf`) before starting
+to download the requires messages. All messages matching the configuration will be stored
+in one single file specified by `output_file` (GRIB version 1 file format).
 
 ```{r}
 eupp_download_gridded(conf, output_file = "_test.grb", output_format = "grib", overwrite = TRUE)
@@ -90,17 +94,31 @@ eupp_download_gridded(conf, output_file = "_test.grb", output_format = "grib", o
 
 ## Getting data: NetCDF
 
-When the `output_file` can be identified as a NetCDF file or `output_format` is explicitly
-set to `"nc"` the resulting file will be a NetCDF file (classic 64 bit NetCDF) file.
-This requires [ecCodes](https://confluence.ecmwf.int/display/ECC/ecCodes+Home) to be installed
-as the R package will call `grib_to_netcdf` for format conversion.
+Alternatively, the function allows to specify `output_format = "nc"` to store
+the data in the NetCDF file format. The procedure is, in large parts, similar
+to retrieving the data in GRIB format (see above). The function first downloads
+and stores the data in a temporary GRIB file before calling
+[`grib_to_netcdf`](https://confluence.ecmwf.int/display/ECC/grib_to_netcdf); a console
+tool provided by ECMWFs [ecCodes](https://confluence.ecmwf.int/display/ECC/ecCodes+Home).
+
+There seem to be ways to use `ecCodes` under Windows, see
+[here](https://github.com/nawendt/gribr#windows-install-options) or
+[here](https://www.ecmwf.int/en/newsletter/159/news/eccodes-and-magics-available-under-windows).
+
+`grib_to_netcdf` is called with option `-k 3` resulting in a file with the
+'netCDF-4 file format'.  Can be changed by adjusting the argument `netcdf_kind`
+(default `3`, see `grib_to_netcdf` documentation).
+Note that the conversion from GRIB to NetCDF adjusts the
+variable names if needed (e.g., `2t` gets `t2m`).
 
 ```{r}
 eupp_download_gridded(conf, output_file = "_test.nc", output_format = "nc", overwrite = TRUE)
 ```
 
-Which can be processed using e.g., `[ncdf4](https://cran.r-project.org/package=ncdf4)`,
-`[stars](https://cran.r-project.org/package=stars)` or the package of your choice.
+These files can later be processed with the packages/software of your choice
+(e.g., via [`ncdf4`](https://cran.r-project.org/package=ncdf4),
+[`stars`](https://cran.r-project.org/package=stars), CDS, ...).
+Some examples how to proceed from here ...
 
 ##### Reading data using `ncdf4`
 
@@ -112,12 +130,21 @@ nc
 
 ##### Reading data using `stars`
 
-```{r demoplot_stars, fig = TRUE, fig.width = 10, fig.height = 5, out.width = "100%"}
+```{r demo_read_stars, eval = FALSE}
 library("stars")
 x <- read_stars("_test.nc")
+```
+
+```{r demo_read_stars_hidden, include = FALSE}
+library("stars")
+x <- read_stars("_test.nc")
+```
+
+```{r demoplot_stars, fig = TRUE, fig.width = 10, fig.height = 5, out.width = "100%"}
 print(x)
 dim(x)
 names(x)
+st_get_dimension_values(x, "time") # date/time when valid
 
 # Plotting 2m dry air temperature
 plot(x["t2m"],
@@ -126,16 +153,17 @@ plot(x["t2m"],
      breaks = seq(min(x$t2m, na.rm = TRUE), max(x$t2m, na.rm = TRUE), length = 22))
 
 # Plotting convective precipitation (mm)
+bk <- unique(quantile(x[["cp"]], p = seq(0, 1, by = 0.05)))
 plot(x["cp"] * 1e3,
      main   = "cp",
-     col    = hcl.colors(10, "Purple-Yellow", rev = TRUE),
-     breaks = 1e3 * seq(0, as.numeric(max(x$cp, na.rm = TRUE)), length = 11))
+     col    = hcl.colors(length(bk) - 1, "Purple-Yellow", rev = TRUE),
+     breaks = bk * 1e3)
 ```
 
-An alternative way to visualize the data using `[ggplot2](https://cran.r-project.org/package=ggplot2)`,
-`[colorspace](https://cran.r-project.org/package=colorspace)` and 
-`[sf](https://cran.r-project.org/package=sf)` as well as 
-`[rnaturalearth](https://cran.r-project.org/package=rnaturalearth)` for outlines:
+An alternative way to visualize the data using [`ggplot2`](https://cran.r-project.org/package=ggplot2),
+[`colorspace`](https://cran.r-project.org/package=colorspace) and 
+[`sf`](https://cran.r-project.org/package=sf) as well as 
+[`rnaturalearth`](https://cran.r-project.org/package=rnaturalearth) for outlines:
 ```
 
 
@@ -148,21 +176,25 @@ library("rnaturalearth")
 ne <- ne_countries(continent = "europe", returnclass = "sf")
 st_crs(x) <- st_crs(ne)
 
-ggplot() + geom_stars(data = x["cp"] * 1e3, sf = TRUE) +
+# Plotting convective precipitation; member number 10.
+# x["cp",,,number_idx,] is subsetting the stars object.
+number_idx <- which(st_get_dimension_values(x, "number") == 10)
+ggplot() + geom_stars(data = x["cp",,,number_idx,] * 1e3) +
            facet_wrap("time") +
            scale_fill_continuous_sequential("Purple-Yellow") +
            geom_sf(data = ne, fill = "transparent") +
            coord_sf(xlim = c(-6, 17), ylim = c(36, 67), expand = FALSE)
 ```
 
-```{r, eval = FALSE, include = FALSE}
-# Wanted to first crop 'ne' to the bbox of 'x'
-# beore using a different projection (as xlim/ylim change).
-# not working; issues with ne?
-crs = st_crs("ESRI:102014")
+```{r demoplot_ggplot_lambert, fig = TRUE, fig.width = 10, fig.height = 7, out.width = "80%", fig.align = "center"}
+# CRS ESRI:102014: Europe_Lambert_Conformal_Conic projection
+# Hardcoded x/y-limits added; limit to southern Europe.
+tmp <- st_transform(x, crs = st_crs("ESRI:102014"))
+ggplot() + geom_stars(data = tmp["t2m",,,1,2]) +
+           scale_fill_continuous_sequential("Red-Yellow") +
+           geom_sf(data = ne, fill = "transparent") +
+           coord_sf(xlim = c(-1.2e6, 6e5), ylim = c(7e5, 2e6), expand = TRUE)
 ```
-
-TODOD: WHAT? :)
 
 
 ```{r gridded_cleaning_up, include = FALSE}

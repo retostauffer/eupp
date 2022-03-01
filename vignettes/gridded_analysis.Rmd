@@ -2,14 +2,25 @@
 title: "Gridded Analysis"
 ---
 
+This example shows how to download gridded analysis data. The data set
+is based on ECMWFs latest ERA5 reanalysis.
 
-## Specify data to be downloaded
 
-This example shows how to download gridded analysis data (based on ERA5) over
-four months, 12 UTC only.
-Step one is to set up Before starting downloading data a configuration object
-must be created using `eupp_config()` which contains the specification of the
+## Surface data
+
+### Specify data to be downloaded
+
+The first step required is setting up a configuration object using the function
+`eupp_config()`. The object returned contains the user specification of the
 data to be retrieved.
+
+In this case analysis data for three consecutive months in 2017 are 
+processed but limited to only two surface variables `"2t"` (2m air temperature)
+and `"cp"` (convective precipitation) for `steps = 12` which, in case of analysis data,
+corresponds to the time of the day (12 UTC).
+
+If not sure which variables/steps are available please have a look at section
+"[Available analysis data](#available)" and the main [README](/) file.
 
 ```{r, include = FALSE}
 suppressPackageStartupMessages(library("sf"))
@@ -25,7 +36,7 @@ dir.create("_cache", showWarnings = FALSE) # Not mandatory
 # Loading the package
 library("eupp")
 
-# Create 'dates' vector
+# Create 'Dates' vector from April 1, 2017, to June 30, 2017.
 dates <- seq(as.Date("2017-04-01"), as.Date("2017-06-30"), by = 1L)
 
 # Create custom configuration
@@ -37,36 +48,50 @@ conf <- eupp_config(product   = "analysis",
                     cache     = "_cache")      # cache is not required
 ```
 
-The function `eupp_config()` returns an object of class `r class(conf)`
-which contains all required information to download the data set.
+The object `conf` allows to download (and process) the data in step two.
 
 ```{r}
 print(conf)
 ```
 
-## Downloading data
+@TODO: Add info/example about pressure level data and EFI.
 
-As for all gridded data sets, three options exist for downloading
-the data. `eupp_download_gridded()` allows to download and store
+### Downloading analysis data {#download}
+
+For all gridded EUPP data sets three options for downloading the data
+exist. `eupp_download_gridded()` allows to download and store
 the data set on disc (GRIB version 1 or NetCDF).
-Alternatively the data can be retrieved as `stars` object.
+Alternatively the data can directly be retrieved as `stars` objects.
 
-Note that getting the data in the NetCDF format and retrieving
-the data as `stars` object require the [ecCodes tools](https://confluence.ecmwf.int/display/ECC)
-to be installed.
+Note that getting the data in the NetCDF format as well as retrieving
+the data as `stars` objects require the [ecCodes tools](htltps://confluence.ecmwf.int/display/ECC)
+to be installed (namely the console tools `grib_set` and `grib_to_netcdf`).
 
-```{r}
-# Retrieving the data set defined by 'config' as stars object
-devtools::load_all("../")
-library("stars")
+```{r, eval = FALSE}
+eupp_download_gridded(conf, "_test.grb", "grib", overwrite = TRUE) # GRIB
+eupp_download_gridded(conf, "_test.nc",  "nc",   overwrite = TRUE) # NetCDF
+data <- eupp_get_gridded(conf)                                     # stars
+```
+
+```{r, include = FALSE}
+# Same eupp_get_gridded call as above but this one is executed
+# as we need the object in the next section.
 data <- eupp_get_gridded(conf)
 ```
 
-## Interpolate data 
 
-We are interested in bi-linearely interpolated data for two
-different locations (Innsbruck and Brussles). This can be done
-by setting up a simple feature data.frame (package `sf`) ...
+### Interpolated data {#interpolate}
+
+Depending on the task at hand [`sf`](https://cran.r-project.org/package=sf)
+in combination with [`stars`](https://cran.r-project.org/package=stars)
+offer a conveniente combination for getting the data from the EUPP gridded
+data sets.
+
+The example below shows the extraction of data from the `stars` object
+`data` (see above) containing several months of analysis fields.
+All needed is an object of class `sf` or `sfc` with geometries, or a
+two-column matrix with points (locations) in rows ...
+
 
 ```{r, out.width = "100%", fig.width = 10, fig.height = 6}
 library("sf")
@@ -79,54 +104,107 @@ locations <- st_as_sf(locations, coords = c("lon", "lat"))
 print(locations)
 ```
 
-... to be used in combination with `st_extract()` to extract the
-data. This uses `st_extract.eupp_stars()`, a function interfacting
+... to be used in combination with `st_extract()`.
+This uses `st_extract.eupp_stars()`, a function interfacting
 `stars::st_extract.stars()`.
 
 ```{r}
-# Perform interpolation based on stars::st_extract
 interpolated <- st_extract(data, locations, bilinear = TRUE)
+head(interpolated, n = 3)
 ```
 
-The function `st_extract()` returns an object of class `star` which can
-be converted into a simple `data.frame`.
+The function `st_extract()` returns an object of class `c("sf", "data.frame")` containing
+the interpolated data and the corresponding `sf` geometry. In case needed the method
+offers an additional feature: By providing `atname` an additional `$name` variable
+can be added. The argument `atname` stands for 'name of variable in object `at`'. In case
+set and found this will be added automatically.
 
 ```{r}
-interpolated_df <- as.data.frame(interpolated)
-head(interpolated_df)
+interpolated <- st_extract(data, locations, bilinear = TRUE, atname = "name")
+head(interpolated, n = 3)
 ```
 
 As we have multiple locations we will append the name of the location
 via `match()` to be able to plot both time series (here using `ggplot2`).
 
 ```{r}
-# Appending 'name'
-idx <- match(interpolated_df$geometry, locations$geometry)
-interpolated_df$name <- locations$name[idx]
-
 library("ggplot2")
 library("ggpubr")
-g1 <- ggplot(interpolated_df) + geom_line(aes(x = time, y = t2m, group = name, colour = name))
-g2 <- ggplot(interpolated_df) + geom_line(aes(x = time, y = cp,  group = name, colour = name))
+g1 <- ggplot(interpolated) + geom_line(aes(x = time, y = t2m, group = name, colour = name))
+g2 <- ggplot(interpolated) + geom_line(aes(x = time, y = cp,  group = name, colour = name))
 ggarrange(g1, g2, nrow = 2)
 ```
 
-
-## `stars` functionality
+### Further `stars` functionality
 
 As `eupp_get_gridded()` returns an object of class `eupp_stars` which inherits
-from `stars`, complete stars functionality can be for plotting or subsetting.
+from `stars`, complete stars functionality can be used for e.g., plotting
+or subsetting.
 
 ```{r, fig = TRUE, out.width = "100%", fig.width = 12, fig.height = 5}
 # 4 Dimensions, the first one is along variables
 names(data)
-dim(data)
+
+# Extracting convective precipitation only
+data_cp_only <- data["cp",,, drop = TRUE]
 
 #          var  x y   time
 plot(data["t2m", , , 10:13])
 ```
 
+For further details please visit the [`stars` documentation](https://r-spatial.github.io/stars/).
 
+
+
+## Pressure level data
+
+Works in a similar way. Note that there is (currently) no option to specify which
+pressure level should be downloaded. E.g., the request below will download both
+geopotential height `"z"` and relative humidity `"r"` on all available levels.
+
+As the levels do not overlap some fields seem to be empty when processed via `stars`
+as a `stars` object must be structured (gridded).
+
+
+```{r}
+config <- eupp_config(product   = "analysis",
+                      level     = "pressure",    # pressure level data
+                      date      = "2018-05-01",  # one single day
+                      parameter = c("z", "r"),   # z and r
+                      cache     = "_cache")      # optional
+
+data <- eupp_get_gridded(config)
+data
+plot(data["z"])
+plot(data["r"])
+```
+
+
+## Available analysis data {#available}
+
+In case you are not sure which fields and/or steps are available simply download
+the full inventory for one specific day. The resulting `data.frame` contains
+all information required.
+
+```{r}
+# Surface fields available
+conf_surface <- eupp_config(product = "analysis",
+                            level   = "surface",
+                            date    = "2017-06-01",
+                            cache   = "_cache")
+inv_surface <- eupp_get_inventory(conf_surface)
+head(subset(inv_surface, select = c(param, init, step, valid)))
+unique(inv_surface$param)
+
+# Pressure level data available
+conf_pressure <- eupp_config(product = "analysis",
+                            level   = "pressure",
+                            date    = "2017-06-01",
+                            cache   = "_cache")
+inv_pressure <- eupp_get_inventory(conf_pressure)
+head(subset(inv_pressure, select = c(param, levelist, init, step, valid)))
+unique(inv_pressure$param)
+```
 
 
 
