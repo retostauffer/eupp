@@ -10,6 +10,7 @@ eupp_download_gridded(
   x,
   output_file,
   output_format = c("grib", "nc"),
+  netcdf_kind = 3L,
   verbose = FALSE,
   overwrite = FALSE
 )
@@ -25,6 +26,10 @@ eupp_get_inventory(x, verbose = FALSE)
 
 \item{output_format}{character length 1 (\code{"grib"} or \code{"nc"}),
 defaults to \code{"grib"} (see details).}
+
+\item{netcdf_kind}{numeric length 1, defaults to \code{3}. Controls the
+\code{-k} (kind) flag when calling \code{grib_to_netcdf}. Only used
+when \code{output_format = "nc"}.}
 
 \item{verbose}{logical, sets verbosity level. Defaults to \code{FALSE}.}
 

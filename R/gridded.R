@@ -7,6 +7,9 @@
 #' @param output_file character length 1, name of the output file.
 #' @param output_format character length 1 (\code{"grib"} or \code{"nc"}),
 #'        defaults to \code{"grib"} (see details).
+#' @param netcdf_kind numeric length 1, defaults to \code{3}. Controls the
+#'        \code{-k} (kind) flag when calling \code{grib_to_netcdf}. Only used
+#'        when \code{output_format = "nc"}.
 #' @param verbose logical length 1, verbosity, defaults to \code{FALSE}.
 #' @param overwrite logical length 1, defaults to \code{FALSE}. If set to \code{TRUE}
 #'        the \code{output_file} will be overwritten if needed. If \code{FALSE} and
@@ -27,6 +30,7 @@
 eupp_download_gridded <- function(x,
                              output_file,
                              output_format = c("grib", "nc"),
+                             netcdf_kind = 3L,
                              verbose = FALSE, overwrite = FALSE) {
 
     # Checking main input object
@@ -52,7 +56,14 @@ eupp_download_gridded <- function(x,
             # Stop
             stop("To be able to use 'output_format = \"nc\" the eccodes binaries must be installed. Requires both 'grib_set' and 'grib_to_netcdf' for the conversion.n")
         }
+
+        # Checking argument netcdf_kind. This is controlling the -k (kind)
+        # option when calling grib_to_netcdf to convert the GRIB file to NetCDF.
+        stopifnot(is.numeric(netcdf_kind), length(netcdf_kind) == 1)
+        netcdf_kind <- as.integer(netcdf_kind)
+        stopifnot(netcdf_kind >= 1L, netcdf_kind <= 4L)
     }
+
 
     # We will make use of stars for spatial subsets which
     # is only possible if we store the data as NetCDF.
@@ -66,9 +77,9 @@ eupp_download_gridded <- function(x,
     # ----------------------------------------------
     # Main content of the function
     # ----------------------------------------------
-    inv      <- eupp_get_inventory(x, verbose = verbose) # Loading inventory information
-    BASEURL  <- eupp_get_url_config()$BASEURL
-    tmp_file <- tempfile(fileext = ".grb")  # Temporary location for download
+    inv       <- eupp_get_inventory(x, verbose = verbose) # Loading inventory information
+    BASEURL   <- eupp_get_url_config()$BASEURL
+    tmp_file  <- tempfile(fileext = ".grb")  # Temporary location for download
 
     # Open binary file connection; temporary file.
     # Download everything and then create final ouptut file.
@@ -96,17 +107,17 @@ eupp_download_gridded <- function(x,
     if (output_format == "grib") {
         file.rename(tmp_file, output_file)
     } else {
-        cat("  Converting grib file to netcdf\n")
+        if (verbose) cat("  Converting grib file to netcdf\n")
+        tmp_file2 <- tempfile(fileext = ".grb")  # Second temporary file; required for grib_set
         # Setting 'number' (perturbation number) for control forecasts to 0 and
         # change type from 'cf' (control forecast) to 'pf' (perturbed forecast)
         # not to lose the control run during conversion from grib1 to netcdf.
         if (!is.null(x$type) && x$type == "ens") {
-            system(sprintf("grib_set -s number=0 -w type=cf %1$s %1$s", tmp_file), intern = !verbose)
-            system(sprintf("grib_set -s type=pf -w type=cf %1$s %1$s", tmp_file), intern = !verbose)
-            # TODO: rm this
-            system(sprintf("grib_ls -p dataDate,dataTime,step,shortName,type,number %s", tmp_file))
+            system(sprintf("grib_set -s number=0 -w type=cf %s %s", tmp_file, tmp_file2), intern = !verbose)
+            system(sprintf("grib_set -s type=pf -w type=cf %s %s", tmp_file2, tmp_file), intern = !verbose)
+            file.remove(tmp_file2)
         }
-        system(sprintf("grib_to_netcdf %s -o %s", tmp_file, output_file), intern = !verbose)
+        system(sprintf("%s %s -k %d -o %s", g2nc_bin, tmp_file, netcdf_kind, output_file), intern = !verbose)
     }
 
     unlink(tmp_file)         # Delete temporary file
