@@ -1,0 +1,217 @@
+---
+title: "Gridded data: Advanced"
+---
+
+```{r, include = FALSE}
+suppressPackageStartupMessages(library("eupp"))
+suppressPackageStartupMessages(library("sf"))
+suppressPackageStartupMessages(library("stars"))
+dir.create("_cache", showWarnings = FALSE)
+```
+
+## Underlying concept in more details
+
+The article "[_Getting started with gridded data_](gridded.html#underlying-concept)"
+shows the basic use of the _eupp_ gridded data interface. For those interested, this
+article shows some more insights how the package works under the hood.
+
+Some functions might be useful for (i) debugging or (ii) adding additional functionality
+around the _eupp_ package. In some more detail, the gridded dataset functionality
+works as follows:
+
+1. The user specifies the data set to be downloaded/retrieved using
+   the `eupp_config()` function which returns an object of class `eupp_config`.
+2. The user calls `eupp_download_gridded()` or `eupp_get_gridded()` to retrieve
+   the data in different formats (the first allows for GRIB version 1 and different
+   NetCDF file formats; the latter for `stars` objects). Below the surface _eupp_
+   performs the following steps:
+    a.  Defining the GRIB index files required to identify the necessary GRIB messages
+    b.  Downloading and parsing the GRIB index files to identify files and byte ranges
+    c.  Partially downloading the GRIB files (required messages via `curl`) and stores
+        the requested messages in a new GRIB version 1 file.
+    d.  If a NetCDF file has been requested: making required manipulations on the GRIB
+        file and converting it to NetCDF, wherefore [ecCodes][ecCodes] needs to be installed.
+    e.  If a [`stars`](https://cran.r-project.org/package=stars) object has been requested:
+        read the NetCDF file. This goes trough the intermediate step of creating a NetCDF
+        file; thus [ecCodes][ecCodes] is necessary.
+
+When calling `eupp_download_gridded()` a file will be created on success (GRIB version 1 or
+NetCDF), while `eupp_get_gridded()` returns a `stars` object in the active _R_ session.
+Temporary files are deleted as soon as no longer needed (stored in `tempdir()`).
+
+## Specify dataset to be downloaded
+
+To demonstrate the intermediate steps listed above, a data set specification
+(configuration) is required. For this purpose a small subset of gridded
+surface ensemble forecast data is used.
+
+* `cache = "_cache"`: Enables GRIB index caching which can be useful
+  if the same GRIB indes file has to be accessed multiple times (as in this article).
+* Imagine not knowing which parameters, forecast steps, or perturbation numbers (members)
+  are available.
+
+```{r gridded_advanced_config}
+library("eupp")
+(conf <- eupp_config(product   = "forecast",                    # forecasts
+                     type      = "ens",                         # ensemble forecasts
+                     level     = "surface",                     # surface fields
+                     date      = c("2017-05-05", "2017-06-05"), # 'random' dates; ISO YYYY-mm-dd
+                     cache     = "_cache"))                     # enable caching
+```
+
+Until now an _R_ object of class `eupp_config` has been created which is used
+further down in the pipeline to process the request.
+
+
+## Define required files
+
+The next step is to define the URL(s) of the file(s) to be accessed to
+process the request. This is done by the function `eupp_get_source_urls()`.
+
+```{r}
+# Required GRIB index files:
+eupp_get_source_urls(conf, fileext = "index")
+```
+
+As shown above, four different files have to be accessed as we (i) are asking
+for forecasts issued on two different dates (`date`) and have not explicitly defined
+`members` wherefore we need both, control run forecasts (handled as `member = 0`) and
+perturbed forecasts (`members` 1, 2, ...).
+
+When `fileext` is not defined (`fileext = NULL`; default) one gets the URLs for the
+corresponding GRIB files for direct access.
+
+
+## Getting (full) inventory
+
+In this scenario we imagined not having more information on what is available.
+To get more insights we can use the configuration `conf` from above to get a complete
+list of all messages in the GRIB index inventories listed above by calling
+`eupp_get_inventory()`.
+
+`eupp_get_inventory()` internally calls `eupp_get_source_urls(..., fileext = "index")`,
+downloads the index files (line-wise JSON strings), parses them, and puts them into
+an object of class `c("eupp_inventory", "data.frame")` (basic `data.frame`; no dedicated S3 methods so far).
+
+```{r}
+# Getting inventory (based on `conf` from above)
+inv <- eupp_get_inventory(conf)
+class(inv)
+dim(inv)
+head(inv)
+```
+
+As `cache` is enabled, the resulting `data.frame` is stored in _R_s RDS file format
+into the `cache` folder; using an md5 checksum of the original URL to keep track of the
+origin. When downloading another set of data stored in the same GRIB file (thus, same GRIB index file)
+the cached file will be used which can significantly increase the performance.
+
+The object returned contains information about the `path` of the grib file (not full URL) alongside
+with a series of additional information which differ between different products. This inventory tells
+us that the following parameters (`param`), steps (`step`), and ensemble members (`number`; perturbation number)
+are available.
+
+```{r}
+unique(inv$param)
+unique(inv$step)
+unique(inv$number)
+```
+
+The full URL to the grib files can be constructed based on `inv$path` and `$BASEURL` from
+`eupp:::eupp_get_url_config()` (can be redefined using system environment variable `EUPP_BASEURL`).
+`eupp:::eupp_get_url_config()` not only returns the `BASEURL` but a series of template strings for the
+different files on the bucket.
+
+
+
+## Refine data set specification
+
+A more practical use is to more explicitly define the data set configuration (as we now know what's needed).
+Given `cache` was used above, the GRIB index file should be loaded from disc in a few secs.
+
+```{r}
+library("eupp")
+(conf <- eupp_config(product   = "forecast",
+                     type      = "ens",
+                     level     = "surface",
+                     date      = c("2017-05-05", "2017-06-05"),
+                     parameter = c("tp", "sd"),                 # total precip + sunshine duration
+                     steps     = seq(13, 15, by = 2L),          # +13 and +15 hour ahead forecast
+                     members   = c(10, 14),                     # perturbation 10 and 14 (why not)
+                     cache     = "_cache"))                     # use caching
+```
+
+Getting the required part of the inventory given the configuration above:
+
+```{r}
+(inv <- eupp_get_inventory(conf))
+dim(inv)
+```
+
+The number of observations (rows) in `conf` matches our exception as asking for
+(i) two different initialization dates, (ii) two parameters, (iii) two forecast
+steps (lead times), and (iv) two different members ($2^4 = 16$).
+
+
+## Downloading data
+
+The data sets can be retrieved in three different formats which, however, are connected
+(top down).
+
+1. GRIB version 1 (minimal requirements; `curl`/`rcurl`)
+2. NetCDF (requires [ecCodes][ecCodes] to be installed)
+3. `stars` (requires the _stars_ package plus [ecCodes][ecCodes])
+
+Given the inventory above the _eupp_ package first downloads segments of the original GRIB file
+via curl byterange. The result is stored in one GRIB file. If this what has been requested by the
+user, that's it (1). If the user requests a NetCDF file the GRIB file is stored temporarily and then
+converted to NetCDF (the console tool `grib_set` is used to perform some ensemble-required manipulations;
+then converted to NetCDF via `grib_to_netcdf`). When asking for `stars` objects we go trough the two steps
+above before reading the data sets via `read_stars()` (_stars_ package). The conversion GRIB > NetCDF > stars
+is required to do some naming manipulation.
+
+
+**Download data as GRIB Version 1:**
+
+* `eupp_download_gridded(conf, "my_new_file.grib", "grib")`
+* See also: [Getting started: Getting data: GRIB format](gridded.html#gridded-download-grib)
+
+**Download data and store as NetCDF:**
+
+* `eupp_download_gridded(conf, "my_new_file.grib", "grib")`.
+* _Note_: `netcdf_kind` can be used to control
+  the `-k` flag when calling `grib_to_netcdf` (defaults to `3`);
+  see `eupp_download_gridded()` and `grib_to_netcdf` manual.
+* See also: [Getting started: Getting data: NetCDF format](gridded.html#gridded-download-netcdf)
+
+**Getting data as [`stars`][stars] object:**
+
+* `x <- eupp_get_gridded(conf)`
+* See also: [Getting started: `stars`](gridded.html#gridded-get-stars)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[ecCodes]: https://confluence.ecmwf.int/display/ECC/ecCodes+Home
