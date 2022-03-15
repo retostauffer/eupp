@@ -20,6 +20,11 @@
 #' conversion to NetCDF is done locally usning ECMWFs ecCodes tools which must
 #' be installed when using NetCDF.
 #'
+#' If \code{output_format = "nc"} a request must contain only one date in \code{x}.
+#' The reason is that NetCDF does not allow for overlapping 'time'+'step' specifications.
+#' Somewhat inconvenient but there is no general solution for that in ecCodes (or, to 
+#' be precise, the NetCDF standard definition).
+#'
 #' @importFrom httr GET add_headers
 #' @importFrom tools file_ext
 #' @importFrom utils txtProgressBar setTxtProgressBar
@@ -50,8 +55,9 @@ eupp_download_gridded <- function(x,
     # If the user requests netCDF: check grib_to_netcdf is available.
     output_format <- match.arg(output_format)
     if (output_format == "nc") {
-        # Not allowed
-        if (length(x$date) > 1) stop("Multiple dates are not allowed when downloading NetCDF/stars. Yields non-unique fields.")
+        if (length(x$date) > 1) {
+            stop("Downloading multiple dates in NetCDF format/stars not allowed (see Details).")
+        }
         gset     <- Sys.which("grib_set")
         g2nc_bin <- Sys.which("grib_to_netcdf")
         if (nchar(gset) == 0 || nchar(g2nc_bin) == 0) {
@@ -125,7 +131,6 @@ eupp_download_gridded <- function(x,
     }
 
     invisible(output_file)   # Return final file name
-
 }
 
 
@@ -140,8 +145,10 @@ eupp_download_gridded <- function(x,
 #'
 #' @details This function interfaces \code{\link{eupp_download_gridded}}
 #' to download the data and converts the original data set (GRIB version 1)
-#' to NetCDF. Thus NetCDF support and ecCodes tools are required.
-#' 
+#' to NetCDF. Thus NetCDF support and ecCodes tools are required and it only
+#' allows data for one specific date in \code{x}. See 'Details' section
+#' in \code{link{eupp_download_gridded}}.
+#'
 #' The function \code{\link[stars]{read_stars}} is used to read the NetCDF
 #' file; note that the NetCDF file will be deleted after reading. The additional
 #' class \code{eupp_stars} is used to provide additional support for processing

@@ -62,6 +62,7 @@ print.eupp_stars <- function(x, ...) {
 #'
 #' @author Reto Stauffer
 #' @importFrom stars st_extract st_get_dimension_values
+#' @importFrom units drop_units
 #' @rdname eupp_stars
 #' @method st_extract eupp_stars
 #' @export
@@ -129,8 +130,11 @@ st_extract.eupp_stars <- function(x, at, bilinear, atname = NULL, ..., subsequen
 
         # Append naming column if needed ...
         if (!is.null(atname) && atname %in% leading_cols) res <- sf_append_atname_if_possible(res, at, atname)
+
+        # Need to convert the date?
+        if (is.numeric(res$date)) res$date <- as.POSIXct(as.Date(res$date, "1970-01-01"))
         # Sort the object
-        res <- res[, c(leading_cols, sort(names(res)[!names(res) %in% leading_cols]))]
+        res <- drop_units(res[, c(leading_cols, sort(names(res)[!names(res) %in% leading_cols]))])
     }
 
     # And there we go ...

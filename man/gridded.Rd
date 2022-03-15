@@ -54,9 +54,16 @@ NetCDF (classic 64bit; v3). The original data set is provided as GRIB, the
 conversion to NetCDF is done locally usning ECMWFs ecCodes tools which must
 be installed when using NetCDF.
 
+If \code{output_format = "nc"} a request must contain only one date in \code{x}.
+The reason is that NetCDF does not allow for overlapping 'time'+'step' specifications.
+Somewhat inconvenient but there is no general solution for that in ecCodes (or, to 
+be precise, the NetCDF standard definition).
+
 This function interfaces \code{\link{eupp_download_gridded}}
 to download the data and converts the original data set (GRIB version 1)
-to NetCDF. Thus NetCDF support and ecCodes tools are required.
+to NetCDF. Thus NetCDF support and ecCodes tools are required and it only
+allows data for one specific date in \code{x}. See 'Details' section
+in \code{link{eupp_download_gridded}}.
 
 The function \code{\link[stars]{read_stars}} is used to read the NetCDF
 file; note that the NetCDF file will be deleted after reading. The additional
