@@ -11,12 +11,12 @@
 
 \method{[[}{eupp_stars}(x, ...)
 
-\method{st_extract}{eupp_stars}(x, at, bilinear = FALSE, atname = NULL, ...)
+\method{st_extract}{eupp_stars}(x, at, bilinear, atname = NULL, ..., subsequent = NULL)
 }
 \arguments{
 \item{x}{stars object}
 
-\item{...}{unused}
+\item{...}{forwarded to \code{\link[stars]{st_interpolate}}}
 
 \item{at}{object of class \code{sf} or \code{sfc} forwarded to
 \code{\link[stars]{st_extract}}}
@@ -28,6 +28,8 @@ results in the use of nearest-neighbour interpolation.}
 \item{atname}{character length \code{1} or \code{NULL} (default).
 Can be used to specify a variable in the object \code{at} which should
 be appended to the final object.}
+
+\item{subsequent}{Defaults to \code{NULL}, please leave as it is.}
 }
 \value{
 Returns an object of class \code{c("sf", "data.frame")}.
@@ -40,6 +42,11 @@ methods to conveniently process the data.
 \details{
 Internally, an \code{eupp_stars} object is only a \code{stars}
 object with one additional attribute (the extra class).
+
+Depending on the stars object this function is calling itself multiple times.
+This is controlled using the 'subsequent' argument which becomes a named
+vector (internally). As an end-user, please leave this argument \code{NULL}.
+Have not found a better solution yet.
 }
 \author{
 Reto Stauffer

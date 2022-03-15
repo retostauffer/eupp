@@ -41,7 +41,6 @@ print.eupp_stars <- function(x, ...) {
     return(print(x))
 }
 
-#'
 #' @param at object of class \code{sf} or \code{sfc} forwarded to
 #'        \code{\link[stars]{st_extract}}
 #' @param bilinear logical, forwarded to \code{\link[stars]{st_extract}}.
@@ -50,6 +49,14 @@ print.eupp_stars <- function(x, ...) {
 #' @param atname character length \code{1} or \code{NULL} (default).
 #'        Can be used to specify a variable in the object \code{at} which should
 #'        be appended to the final object.
+#' @param ... forwarded to \code{\link[stars]{st_interpolate}}
+#' @param subsequent Defaults to \code{NULL}, please leave as it is.
+#'
+#' @details
+#' Depending on the stars object this function is calling itself multiple times.
+#' This is controlled using the 'subsequent' argument which becomes a named
+#' vector (internally). As an end-user, please leave this argument \code{NULL}.
+#' Have not found a better solution yet.
 #'
 #' @return Returns an object of class \code{c("sf", "data.frame")}.
 #'
@@ -58,52 +65,78 @@ print.eupp_stars <- function(x, ...) {
 #' @rdname eupp_stars
 #' @method st_extract eupp_stars
 #' @export
-st_extract.eupp_stars <- function(x, at, bilinear = FALSE, atname = NULL, ...) {
-    stopifnot(isTRUE(bilinear) | isFALSE(bilinear))
-    stopifnot(is.character(atname) | is.null(atname), length(atname) <= 1L)
+st_extract.eupp_stars <- function(x, at, bilinear, atname = NULL, ..., subsequent = NULL) {
 
-    #x <- NextMethod(x, bilinear = bilinear, ...)
-    if (!bilinear) {
-        res <- NextMethod(x, at = at, bilinear = bilinear, ...)
+
+    # The interpolation of stars objects with levels or numbers (non-common
+    # dimensions) requires a special approach. We first check if we have 
+    # a dimension 'level' or 'number', or both.
+    idx <- which(dimnames(x) %in% c("level", "number"))
+
+    # No level or number dimension? In this case we can interpolate
+    # the stars object using st_extract.
+    if (length(idx) == 0) {
+        res <- stars:::st_extract.stars(x, at = at, bilinear = bilinear, long = TRUE)
+        res <- as.data.frame(res)
+        if (!is.null(subsequent)) {
+            for (i in seq_along(subsequent)) res[[names(subsequent)[i]]] <- subsequent[i]
+        }
+
+    # Else we have a level or number dimension (or both)
     } else {
-        # Check if we have a 'number' (perturbation number/ensemble member) dimension.
-        # If so, we have to split the data set into member-by-member stars objects
-        # to be able to perform bilinar interpolation (mainly for bilinear).
-        idx_number <- which(attr(attr(x, "dimensions"), "names") == "number")
+        # In this iteration we take the first index (either level or number)
+        idx    <- idx[1]
+        # Checking values of the dimension
+        dimval <- as.vector(st_get_dimension_values(x, dimnames(x)[idx]))
+        # .. and create the command used for subsetting the data set.
+        cmds   <- sprintf("x[%s, drop = TRUE]",
+                          sprintf(paste(ifelse(0:length(dim(x)) == idx, "%d", ""), collapse = ","), seq_along(dimval)))
 
-        # If we don't have a member dimension: simply call NextMethod (st_extract.stars)
-        if (length(idx_number) == 0) {
-            res <- st_as_sf(NextMethod(x, at = at, bilinear = bilinear, ...), long = TRUE)
-        # Else (number dimension existing): loop over each number (member),
-        # Interpolate member-by-member and combine the resulting stars object.
-        # Variables (attributes) are renamed; adding '_<number>' to distinguish
-        # the different members.
-        } else {
-            res <- NULL
-            val_number <- st_get_dimension_values(x, "number")
-            ndim <- length(dim(x))
-            pat  <- paste(ifelse(seq(0, ndim) == idx_number, "%d", ""), collapse = ",")
-            for (i in seq_along(val_number)) {
-                tmp <- sprintf("x[%s, drop = TRUE]", sprintf(pat, i))
-                tmp <- eval(parse(text = tmp))
-                k <- st_extract(tmp, at = at, bilinear = bilinear, ...)
-                # Renaming non-geometry columns
-                names(k) <- ifelse(names(k) == attr(k, "sf_column"),
-                                   names(k), paste(names(k), val_number[i], sep = "_"))
-                res <- if (is.null(res)) k else cbind(res, st_drop_geometry(k))
-            }
+        # Loop over the dimension of the current dimension (e.g., if we have 3 levels
+        # c(500, 700, 850) we will loop i = 1:3.
+        res <- list()
+        for (i in seq_along(dimval)) {
+            # Subset the stars object, pick the i'th entry of the dimension we are looping
+            # over at the moment. The function we are in calls itself recursively as long as needed
+            # (typically only once if we have both, a 'level' and a 'number' dimension).
+            tmp_sub <- if (is.null(subsequent)) setNames(dimval[i], dimnames(x)[idx]) else c(subsequent, setNames(dimval[i], dimnames(x)[idx]))
+            tmp <- st_extract(eval(parse(text = cmds[i])), at = at, bilinear = bilinear, subsequent = tmp_sub)
+            sep <- if (dimnames(x)[idx] == "level") "" else "_"
+            # Append current data.frame (interpolated values)
+            res[[paste(sep, as.character(dimval[i]))]] <- tmp
         }
     }
-    if (!is.null(atname) && atname %in% names(at)) {
-        res <- sf_append_atname_if_possible(res, at, atname)
-        res <- res[,c(attr(res, "sf_column"), atname,
-                   sort(names(res)[!names(res) %in% c(atname, attr(res, "sf_column"))]))]
-    } else {
-        res <- res[,c(attr(res, "sf_column"),
-                   sort(names(res)[!names(res) == attr(res, "sf_column")]))]
+
+    # Thanks to https://stackoverflow.com/users/1174421/michael
+    # https://stackoverflow.com/questions/16300344/how-to-flatten-a-list-of-lists
+    flatten_list <- function(x){
+        morelists <- sapply(x, function(xprime) class(xprime)[1] == "list")
+        out <- c(x[!morelists], unlist(x[morelists], recursive = FALSE))
+        if (sum(morelists)) Recall(out) else return(out)
     }
+
+    # Flatten list and row-bind the results and prepare final result
+    if (is.null(subsequent)) {
+        if (inherits(res, "list")) res <- do.call(rbind, flatten_list(res)) # Combine list -> data.frame if needed
+        res <- st_sf(res, sf_column_name  = "geometry")
+        rownames(res) <- NULL
+
+        # Create a vector with the leading colums (those whill end up most left in the data.frame)
+        leading_cols <- c(attr(res, "sf_column"),
+                          if (!is.null(atname) && atname %in% names(at)) atname else NULL,
+                          if ("time" %in% names(res)) "time" else NULL)
+        print(leading_cols)
+
+        # Append naming column if needed ...
+        if (!is.null(atname) && atname %in% leading_cols) res <- sf_append_atname_if_possible(res, at, atname)
+        # Sort the object
+        res <- res[, c(leading_cols, sort(names(res)[!names(res) %in% leading_cols]))]
+    }
+
+    # And there we go ...
     return(res)
 }
+
 
 
 # Append Additional Variable to object x if possible

@@ -50,6 +50,8 @@ eupp_download_gridded <- function(x,
     # If the user requests netCDF: check grib_to_netcdf is available.
     output_format <- match.arg(output_format)
     if (output_format == "nc") {
+        # Not allowed
+        if (length(x$date) > 1) stop("Multiple dates are not allowed when downloading NetCDF/stars. Yields non-unique fields.")
         gset     <- Sys.which("grib_set")
         g2nc_bin <- Sys.which("grib_to_netcdf")
         if (nchar(gset) == 0 || nchar(g2nc_bin) == 0) {
@@ -117,7 +119,8 @@ eupp_download_gridded <- function(x,
             system(sprintf("%s -s type=pf -w type=cf %s %s",  gset, tmp_file2, tmp_file), intern = !verbose)
             file.remove(tmp_file2) # Delete one of the intermediate temporary files
         }
-        system(sprintf("%s %s -k %d -o %s", g2nc_bin, tmp_file, netcdf_kind, output_file), intern = !verbose)
+        CMD <- sprintf("%s %s -k %d -o %s", g2nc_bin, tmp_file, netcdf_kind, output_file)
+        system(CMD, intern = !verbose)
         file.remove(tmp_file) # Delete temporary file
     }
 
@@ -160,7 +163,7 @@ eupp_get_gridded <- function(x, verbose = FALSE) {
     stopifnot(requireNamespace("stars", quietly = TRUE))
 
     tmp_file <- tempfile(fileext = ".nc")
-    on.exit(file.remove(tmp_file))
+    on.exit(if (file.exists(tmp_file)) file.remove(tmp_file))
     tmp_file <- eupp_download_gridded(x, tmp_file, "nc", verbose = verbose)
 
     # Reading the NetCDF file as stars
@@ -182,22 +185,26 @@ eupp_get_gridded <- function(x, verbose = FALSE) {
 }
 
 
+#' @param times positive numeric, defaults to \code{3L}. Number of
+#'        retries in case the GET request fails.
+#'
 #' @rdname gridded
 #' @importFrom dplyr bind_rows
 #' @importFrom rjson fromJSON
 #' @importFrom digest digest
-#' @importFrom httr GET status_code content
+#' @importFrom httr GET RETRY status_code content
 #' @export
-eupp_get_inventory <- function(x, verbose = FALSE) {
+eupp_get_inventory <- function(x, times = 3L, verbose = FALSE) {
 
     stopifnot(inherits(x, "eupp_config"))
+    stopifnot(is.numeric(times), length(times) == 1L)
 
     # Getting the URL where the grib file index is stored
     index_url <- do.call(eupp_get_source_urls, list(x = x, fileext = "index"))
 
     # Helper function to download and parse requests
     fn_GET <- function(x) {
-        request <- GET(x)
+        request <- RETRY("GET", x, times = times)
         if (!status_code(request) == 200L)
             stop(sprintf("Problems accessing \"%s\"; return code %d.", x, status_code(request)))
         tmp <- readLines(con = textConnection(content(request, "text", encoding = "UTF-8")))

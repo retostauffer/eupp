@@ -17,7 +17,7 @@ eupp_download_gridded(
 
 eupp_get_gridded(x, verbose = FALSE)
 
-eupp_get_inventory(x, verbose = FALSE)
+eupp_get_inventory(x, times = 3L, verbose = FALSE)
 }
 \arguments{
 \item{x}{object of class \code{\link{eupp_config}}.}
@@ -36,6 +36,9 @@ when \code{output_format = "nc"}.}
 \item{overwrite}{logical length 1, defaults to \code{FALSE}. If set to \code{TRUE}
 the \code{output_file} will be overwritten if needed. If \code{FALSE} and
 \code{output_file} exists an error will be raised.}
+
+\item{times}{positive numeric, defaults to \code{3L}. Number of
+retries in case the GET request fails.}
 }
 \value{
 Object of class \code{c("eupp_stars", "stars")}; see Details.
