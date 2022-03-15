@@ -124,12 +124,18 @@ Note: There is no dedicated option to specify which levels An example:
 
 ```{r, fig = TRUE, fig.width = 8, fig.height = 5, out.width = "80%"}
 data <- eupp_get_gridded(eupp_config("forecast", "pressure", "hr", date = "2017-01-01", steps = 12))
-print(data)
-plot(data["q"])
+(interpolated <- st_extract(data, locations, bilinear = FALSE, atname = "name"))
 ```
 
-@TODO: `ggplot() + geom_stars(data["q"])` fails; rescale does not know how topick a scale
-for an object of class `c("eupp_stars", "eupp_stars")`. Bug in `rescale()`?
+```{r}
+library("ggplot2")
+class(data) <- class(data)[-1] # Dropping eupp_stars class attribute
+ggplot() + geom_stars(data = data["q"])
+```
+
+@TODO: `ggplot() + geom_stars(data = data["q"])` fails when `data` is an object
+of class `c("eupp_stars", "stars")`. Unfortunately `geom_stars` is not an S3 method;
+currently there is no other way than dropping the `eupp_stars` class attribute.
 
 
 ### High-resolution efi forecasts {#hr-efi}
@@ -145,6 +151,8 @@ To get the data simply ask for `level = "efi"` (here not declaring `steps` to ge
 data <- eupp_get_gridded(eupp_config("forecast", "efi", date = "2017-01-01"))
 print(data)
 plot(data["capei"])
+
+(interpolated <- st_extract(data, locations, bilinear = TRUE, atname = "name"))
 ```
 
 

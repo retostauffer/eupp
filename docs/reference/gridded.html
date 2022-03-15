@@ -33,10 +33,7 @@ Requires ncdf4 and the NetCDF Library to be installed."><!-- mathjax --><script 
       <a href="../articles/gridded.html">Getting started</a>
     </li>
     <li>
-      <a href="../articles/gridded_analysis.html">Analysis</a>
-    </li>
-    <li>
-      <a href="../articles/gridded_forecast.html">Forecasts</a>
+      <a href="../articles/gridded_advanced.html">Gridded advanced</a>
     </li>
   </ul></li>
 <li class="dropdown">
@@ -95,7 +92,7 @@ Requires ncdf4 and the NetCDF Library to be installed."><!-- mathjax --><script 
 
 <span class="fu">eupp_get_gridded</span><span class="op">(</span><span class="va">x</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
 
-<span class="fu">eupp_get_inventory</span><span class="op">(</span><span class="va">x</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
+<span class="fu">eupp_get_inventory</span><span class="op">(</span><span class="va">x</span>, times <span class="op">=</span> <span class="fl">3L</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -117,6 +114,9 @@ when <code>output_format = "nc"</code>.</p></dd>
 <dd><p>logical length 1, defaults to <code>FALSE</code>. If set to <code>TRUE</code>
 the <code>output_file</code> will be overwritten if needed. If <code>FALSE</code> and
 <code>output_file</code> exists an error will be raised.</p></dd>
+<dt>times</dt>
+<dd><p>positive numeric, defaults to <code>3L</code>. Number of
+retries in case the GET request fails.</p></dd>
 </dl></div>
     <div id="value">
     <h2>Value</h2>

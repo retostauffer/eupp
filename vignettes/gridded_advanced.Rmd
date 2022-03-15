@@ -82,7 +82,7 @@ When `fileext` is not defined (`fileext = NULL`; default) one gets the URLs for 
 corresponding GRIB files for direct access.
 
 
-## Getting (full) inventory
+## Getting (full) inventory {#gridded-advanced-inventory}
 
 In this scenario we imagined not having more information on what is available.
 To get more insights we can use the configuration `conf` from above to get a complete
@@ -129,7 +129,7 @@ different files on the bucket.
 A more practical use is to more explicitly define the data set configuration (as we now know what's needed).
 Given `cache` was used above, the GRIB index file should be loaded from disc in a few secs.
 
-```{r}
+```{r gridded_advanced_config2}
 library("eupp")
 (conf <- eupp_config(product   = "forecast",
                      type      = "ens",
