@@ -5,10 +5,10 @@ articles:
   gridded: gridded.html
   gridded_advanced: gridded_advanced.html
   gridded_analysis: gridded_analysis.html
-  gridded_forecast: gridded_forecast.html
+  gridded_forecasts: gridded_forecasts.html
   interpolate: interpolate.html
   station: station.html
-last_built: 2022-03-01T19:45Z
+last_built: 2022-03-15T12:31Z
 urls:
   reference: http://localhost/reference
   article: http://localhost/articles

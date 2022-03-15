@@ -50,6 +50,12 @@
       <a href="../articles/gridded.html">Getting started</a>
     </li>
     <li>
+      <a href="../articles/gridded_analysis.html">Gridded analysis</a>
+    </li>
+    <li>
+      <a href="../articles/gridded_forecasts.html">Gridded forecasts</a>
+    </li>
+    <li>
       <a href="../articles/gridded_advanced.html">Gridded advanced</a>
     </li>
   </ul>
@@ -99,8 +105,8 @@
       <h1 data-toc-skip>Gridded Forecasts</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/retostauffer/eupp/blob/HEAD/vignettes/gridded_forecast.Rmd" class="external-link"><code>vignettes/gridded_forecast.Rmd</code></a></small>
-      <div class="hidden name"><code>gridded_forecast.Rmd</code></div>
+      <small class="dont-index">Source: <a href="https://github.com/retostauffer/eupp/blob/HEAD/vignettes/gridded_forecasts.Rmd" class="external-link"><code>vignettes/gridded_forecasts.Rmd</code></a></small>
+      <div class="hidden name"><code>gridded_forecasts.Rmd</code></div>
 
     </div>
 
@@ -178,7 +184,7 @@
 <span class="va">locations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="va">locations</span>, coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lon"</span>, <span class="st">"lat"</span><span class="op">)</span><span class="op">)</span>
 
 <span class="co"># Perform bilinear interpolation; coerce to data.frame</span>
-<span class="va">interpolated</span> <span class="op">&lt;-</span> <span class="fu">st_extract</span><span class="op">(</span><span class="va">data</span>, <span class="va">locations</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span>, atname <span class="op">=</span> <span class="st">"name"</span><span class="op">)</span></code></pre></div>
+<span class="va">interpolated</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_extract.html" class="external-link">st_extract</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">locations</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span>, atname <span class="op">=</span> <span class="st">"name"</span><span class="op">)</span></code></pre></div>
 <pre><code><span class="co">## [1] "geometry" "name"     "time"</span></code></pre>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">interpolated</span>, n <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></code></pre></div>
@@ -194,15 +200,15 @@
 <span class="co">## 4  POINT (4.35 50.85)  Brussels 2018-01-02 00:00:00 278.4104 0.9119369</span></code></pre>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://r-spatial.github.io/sf/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span><span class="st">"t2m"</span>, , , <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span></code></pre></div>
-<p><img src="gridded_forecast_files/figure-html/gridded_forecast_hr_processing-1.png" width="100%"></p>
+<p><img src="gridded_forecasts_files/figure-html/gridded_forecast_hr_processing-1.png" width="100%"></p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://r-spatial.github.io/sf/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span><span class="st">"tcc"</span>, , , <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span></code></pre></div>
-<p><img src="gridded_forecast_files/figure-html/gridded_forecast_hr_processing-2.png" width="100%"></p>
+<p><img src="gridded_forecasts_files/figure-html/gridded_forecast_hr_processing-2.png" width="100%"></p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://ggplot2.tidyverse.org" class="external-link">"ggplot2"</a></span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span> <span class="co"># Dropping eupp_stars class attribute</span>
-<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu">geom_stars</span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span><span class="op">[</span><span class="st">"t2m"</span><span class="op">]</span><span class="op">)</span></code></pre></div>
-<p><img src="gridded_forecast_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/geom_stars.html" class="external-link">geom_stars</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span><span class="op">[</span><span class="st">"t2m"</span><span class="op">]</span><span class="op">)</span></code></pre></div>
+<p><img src="gridded_forecasts_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
 <p><span class="citation">@TODO</span>: <code>ggplot() + geom_stars(data = data["q"])</code> fails when <code>data</code> is an object of class <code>c("eupp_stars", "stars")</code>. Unfortunately <code>geom_stars</code> is not an S3 method; currently there is no other way than dropping the <code>eupp_stars</code> class attribute.</p>
 </div>
 <div class="section level3">
@@ -211,7 +217,7 @@
 <p>Only minor differences to surface data. All needed to be done is to set <code>level = "pressure"</code> and specify what parameter(s) to be downloaded. Note: There is no dedicated option to specify which levels An example:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gridded.html">eupp_get_gridded</a></span><span class="op">(</span><span class="fu"><a href="../reference/eupp_config.html">eupp_config</a></span><span class="op">(</span><span class="st">"forecast"</span>, <span class="st">"pressure"</span>, <span class="st">"hr"</span>, date <span class="op">=</span> <span class="st">"2017-01-01"</span>, steps <span class="op">=</span> <span class="fl">12</span><span class="op">)</span><span class="op">)</span>
-<span class="op">(</span><span class="va">interpolated</span> <span class="op">&lt;-</span> <span class="fu">st_extract</span><span class="op">(</span><span class="va">data</span>, <span class="va">locations</span>, bilinear <span class="op">=</span> <span class="cn">FALSE</span>, atname <span class="op">=</span> <span class="st">"name"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<span class="op">(</span><span class="va">interpolated</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_extract.html" class="external-link">st_extract</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">locations</span>, bilinear <span class="op">=</span> <span class="cn">FALSE</span>, atname <span class="op">=</span> <span class="st">"name"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <pre><code><span class="co">## [1] "geometry" "name"</span></code></pre>
 <pre><code><span class="co">## Simple feature collection with 6 features and 8 fields</span>
 <span class="co">## Geometry type: POINT</span>
@@ -235,8 +241,8 @@
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://ggplot2.tidyverse.org" class="external-link">"ggplot2"</a></span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>
-<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu">geom_stars</span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span><span class="op">[</span><span class="st">"q"</span><span class="op">]</span><span class="op">)</span></code></pre></div>
-<p><img src="gridded_forecast_files/figure-html/gridded_forecast_hr_pressure-1.png" width="80%"></p>
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/geom_stars.html" class="external-link">geom_stars</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span><span class="op">[</span><span class="st">"q"</span><span class="op">]</span><span class="op">)</span></code></pre></div>
+<p><img src="gridded_forecasts_files/figure-html/gridded_forecast_hr_pressure-1.png" width="80%"></p>
 </div>
 <div class="section level3">
 <h3 id="hr-efi">High-resolution efi forecasts<a class="anchor" aria-label="anchor" href="#hr-efi"></a>
@@ -281,7 +287,7 @@
 
 <span class="co">## Warning: ignoring unrecognized unit: (-1 to 1)</span></code></pre>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="op">(</span><span class="va">interpolated</span> <span class="op">&lt;-</span> <span class="fu">st_extract</span><span class="op">(</span><span class="va">data</span>, <span class="va">locations</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span>, atname <span class="op">=</span> <span class="st">"name"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="op">(</span><span class="va">interpolated</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_extract.html" class="external-link">st_extract</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">locations</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span>, atname <span class="op">=</span> <span class="st">"name"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <pre><code><span class="co">## [1] "geometry" "name"     "time"</span></code></pre>
 <pre><code><span class="co">## Simple feature collection with 16 features and 11 fields</span>
 <span class="co">## Geometry type: POINT</span>
@@ -314,8 +320,8 @@
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://ggplot2.tidyverse.org" class="external-link">"ggplot2"</a></span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>
-<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu">geom_stars</span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span><span class="op">[</span><span class="st">"t2i"</span><span class="op">]</span><span class="op">)</span></code></pre></div>
-<p><img src="gridded_forecast_files/figure-html/gridded_forecast_efi-1.png" width="80%"></p>
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/geom_stars.html" class="external-link">geom_stars</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span><span class="op">[</span><span class="st">"t2i"</span><span class="op">]</span><span class="op">)</span></code></pre></div>
+<p><img src="gridded_forecasts_files/figure-html/gridded_forecast_efi-1.png" width="80%"></p>
 </div>
 </div>
 <div class="section level2">
@@ -371,7 +377,7 @@
 <span class="fu"><a href="../reference/gridded.html">eupp_download_gridded</a></span><span class="op">(</span><span class="va">conf</span>, <span class="st">"_test.nc"</span>,  <span class="st">"nc"</span>,   overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co"># NetCDF</span>
 <span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gridded.html">eupp_get_gridded</a></span><span class="op">(</span><span class="va">conf</span><span class="op">)</span>                                     <span class="co"># stars</span>
 
-<span class="op">(</span><span class="va">test</span> <span class="op">&lt;-</span> <span class="fu">st_extract</span><span class="op">(</span><span class="va">data</span>, <span class="va">locations</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<span class="op">(</span><span class="va">test</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_extract.html" class="external-link">st_extract</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">locations</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="ens-processing">Processing ensemble-forecast gridded data<a class="anchor" aria-label="anchor" href="#ens-processing"></a>
@@ -387,7 +393,7 @@
 <span class="va">locations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="va">locations</span>, coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lon"</span>, <span class="st">"lat"</span><span class="op">)</span><span class="op">)</span>
 
 <span class="co"># Perform bilinear interpolation; coerce to data.frame</span>
-<span class="op">(</span><span class="va">interpolated</span> <span class="op">&lt;-</span> <span class="fu">st_extract</span><span class="op">(</span><span class="va">data</span>, <span class="va">locations</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span>, atname <span class="op">=</span> <span class="st">"name"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<span class="op">(</span><span class="va">interpolated</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_extract.html" class="external-link">st_extract</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">locations</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span>, atname <span class="op">=</span> <span class="st">"name"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <pre><code><span class="co">## [1] "geometry" "name"</span></code></pre>
 <pre><code><span class="co">## Simple feature collection with 8 features and 3 fields</span>
 <span class="co">## Geometry type: POINT</span>
@@ -406,8 +412,8 @@
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://ggplot2.tidyverse.org" class="external-link">"ggplot2"</a></span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>
-<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu">geom_stars</span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span><span class="op">[</span><span class="st">"cp"</span>, , , <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span></code></pre></div>
-<p><img src="gridded_forecast_files/figure-html/gridded_forecast_ens_processing-1.png" width="100%"></p>
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/geom_stars.html" class="external-link">geom_stars</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span><span class="op">[</span><span class="st">"cp"</span>, , , <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span></code></pre></div>
+<p><img src="gridded_forecasts_files/figure-html/gridded_forecast_ens_processing-1.png" width="100%"></p>
 </div>
 </div>
   </div>

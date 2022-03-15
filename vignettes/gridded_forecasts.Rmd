@@ -42,7 +42,7 @@ only forecasts for `"2t"` (2m air temperature) and `"tcc"` (total cloud cover)
 including forecasts 12h ahead up to 96h ahead from initialization in a
 12-hourly interval.
 
-```{r}
+```{r gridded_forecast_hr_config}
 # Loading the package
 library("eupp")
 
@@ -79,15 +79,16 @@ Note that getting the data in the NetCDF format as well as retrieving
 the data as `stars` objects require the [ecCodes tools](htltps://confluence.ecmwf.int/display/ECC)
 to be installed (namely the console tools `grib_set` and `grib_to_netcdf`).
 
-```{r, eval = FALSE}
+```{r gridded_forecast_hr_download, eval = FALSE}
 eupp_download_gridded(conf, "_test.grb", "grib", overwrite = TRUE) # GRIB
 eupp_download_gridded(conf, "_test.nc",  "nc",   overwrite = TRUE) # NetCDF
-data <- eupp_get_gridded(conf)                                     # stars
 ```
 
-```{r, include = FALSE}
+```{r gridded_forecast_hr_get_gridded, include = FALSE}
 # Same eupp_get_gridded call as above but this one is executed
 # as we need the object in the next section.
+# Note: Allows for one single date only!
+conf$date <- conf$date[1]
 data <- eupp_get_gridded(conf)
 ```
 
@@ -98,7 +99,7 @@ For more details on point-wise interpolation and additional `stars` features ple
 have a look at the vignette for [Gridded Analysis](gridded_analysis.html) data.
 Just a series of commands for testing:
 
-```{r, out.width = "100%", fig.width = 10, fig.height = 6}
+```{r gridded_forecast_hr_processing, out.width = "100%", fig.width = 10, fig.height = 6}
 library("sf")
 
 # Create simple features data.frame; define locations
@@ -115,6 +116,16 @@ plot(data["t2m", , , 1:4])
 plot(data["tcc", , , 1:4])
 ```
 
+```{r}
+library("ggplot2")
+class(data) <- class(data)[-1] # Dropping eupp_stars class attribute
+ggplot() + geom_stars(data = data["t2m"])
+```
+
+@TODO: `ggplot() + geom_stars(data = data["q"])` fails when `data` is an object
+of class `c("eupp_stars", "stars")`. Unfortunately `geom_stars` is not an S3 method;
+currently there is no other way than dropping the `eupp_stars` class attribute.
+
 
 ### High-resolution pressure level forecasts {#hr-pressure}
 
@@ -122,20 +133,14 @@ Only minor differences to surface data. All needed to be done is to
 set `level = "pressure"` and specify what parameter(s) to be downloaded.
 Note: There is no dedicated option to specify which levels An example:
 
-```{r, fig = TRUE, fig.width = 8, fig.height = 5, out.width = "80%"}
+```{r gridded_forecast_hr_pressure, fig = TRUE, fig.width = 8, fig.height = 5, out.width = "80%"}
 data <- eupp_get_gridded(eupp_config("forecast", "pressure", "hr", date = "2017-01-01", steps = 12))
 (interpolated <- st_extract(data, locations, bilinear = FALSE, atname = "name"))
-```
 
-```{r}
 library("ggplot2")
-class(data) <- class(data)[-1] # Dropping eupp_stars class attribute
+class(data) <- class(data)[-1]
 ggplot() + geom_stars(data = data["q"])
 ```
-
-@TODO: `ggplot() + geom_stars(data = data["q"])` fails when `data` is an object
-of class `c("eupp_stars", "stars")`. Unfortunately `geom_stars` is not an S3 method;
-currently there is no other way than dropping the `eupp_stars` class attribute.
 
 
 ### High-resolution efi forecasts {#hr-efi}
@@ -147,12 +152,13 @@ periods available at 00 UTC (e.g., +0-24 hours ahead, +24-48 hours ahead, ...).
 
 To get the data simply ask for `level = "efi"` (here not declaring `steps` to get all available forecast steps).
 
-```{r, fig = TRUE, fig.width = 8, fig.height = 5, out.width = "80%"}
+```{r gridded_forecast_efi, fig = TRUE, fig.width = 8, fig.height = 5, out.width = "80%"}
 data <- eupp_get_gridded(eupp_config("forecast", "efi", date = "2017-01-01"))
-print(data)
-plot(data["capei"])
-
 (interpolated <- st_extract(data, locations, bilinear = TRUE, atname = "name"))
+
+library("ggplot2")
+class(data) <- class(data)[-1]
+ggplot() + geom_stars(data = data["t2i"])
 ```
 
 
@@ -183,12 +189,9 @@ variable) valid at a forecast horizon of +120 hours.
 In addition, `members = 0:3` defines to only download gridded data for the
 control run (`0`) and the first three perturbations.
 
-```{r}
+```{r gridded_forecast_ens_config}
 # Loading the package
 library("eupp")
-
-# Create 'dates' vector; character vectors (ISO format) work fine
-dates <- c("2018-01-01", "2018-01-08", "2018-01-15")
 
 # Create custom configuration
 conf <- eupp_config(product   = "forecast",
@@ -213,10 +216,12 @@ and/or the corresponding section in "[Analysis Data](gridded_analysis.html#downl
 Note that this, again, requires [ecCodes tools](htltps://confluence.ecmwf.int/display/ECC)
 to be installed (namely `grib_set` and `grib_to_netcdf`).
 
-```{r, eval = FALSE}
+```{r gridded_forecast_ens_download, eval = FALSE}
 eupp_download_gridded(conf, "_test.grb", "grib", overwrite = TRUE) # GRIB
 eupp_download_gridded(conf, "_test.nc",  "nc",   overwrite = TRUE) # NetCDF
 data <- eupp_get_gridded(conf)                                     # stars
+
+(test <- st_extract(data, locations, bilinear = TRUE))
 ```
 
 ```{r, include = FALSE}
@@ -232,7 +237,7 @@ have a look at the vignette for "[Interpolating analysis data](gridded_analysis.
 One of the main differnces: The member number (or perturbation number) will be added
 to the variable name.
 
-```{r, out.width = "100%", fig.width = 10, fig.height = 6}
+```{r gridded_forecast_ens_processing, out.width = "100%", fig.width = 10, fig.height = 6}
 library("sf")
 
 # Create simple features data.frame; define locations
@@ -242,35 +247,11 @@ locations <- data.frame(name = c("Innsbruck", "Brussels"),
 locations <- st_as_sf(locations, coords = c("lon", "lat"))
 
 # Perform bilinear interpolation; coerce to data.frame
-interpolated <- st_extract(data, locations, bilinear = TRUE, atname = "name")
-head(interpolated, n = 10)
+(interpolated <- st_extract(data, locations, bilinear = TRUE, atname = "name"))
 
-plot(data["cp", , , 1:4])
+library("ggplot2")
+class(data) <- class(data)[-1]
+ggplot() + geom_stars(data = data["cp", , , 1:4])
 ```
 
-## Available analysis data {#available}
-
-In case you are not sure which fields and/or steps are available simply download
-the full inventory for one specific day. The resulting `data.frame` contains
-all information required.
-
-```{r}
-# Surface fields available
-conf_surface <- eupp_config(product = "analysis",
-                            level   = "surface",
-                            date    = "2017-06-01",
-                            cache   = "_cache")
-inv_surface <- eupp_get_inventory(conf_surface)
-head(subset(inv_surface, select = c(param, init, step, valid)))
-unique(inv_surface$param)
-
-# Pressure level data available
-conf_pressure <- eupp_config(product = "analysis",
-                            level   = "pressure",
-                            date    = "2017-06-01",
-                            cache   = "_cache")
-inv_pressure <- eupp_get_inventory(conf_pressure)
-head(subset(inv_pressure, select = c(param, levelist, init, step, valid)))
-unique(inv_pressure$param)
-```
 

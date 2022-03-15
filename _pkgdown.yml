@@ -8,6 +8,10 @@ navbar:
           menu:
           - text: "Getting started"
             href: articles/gridded.html
+          - text: "Gridded analysis"
+            href: articles/gridded_analysis.html
+          - text: "Gridded forecasts"
+            href: articles/gridded_forecasts.html
           - text: "Gridded advanced"
             href: articles/gridded_advanced.html
         - text: "Station data"

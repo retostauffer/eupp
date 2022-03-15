@@ -34,6 +34,12 @@ methods to conveniently process the data."><!-- mathjax --><script src="https://
       <a href="../articles/gridded.html">Getting started</a>
     </li>
     <li>
+      <a href="../articles/gridded_analysis.html">Gridded analysis</a>
+    </li>
+    <li>
+      <a href="../articles/gridded_forecasts.html">Gridded forecasts</a>
+    </li>
+    <li>
       <a href="../articles/gridded_advanced.html">Gridded advanced</a>
     </li>
   </ul></li>
@@ -90,7 +96,7 @@ methods to conveniently process the data.</p>
 [[(x, ...)
 
 # S3 method for eupp_stars
-st_extract(x, at, bilinear = FALSE, atname = NULL, ...)</code></pre></div>
+st_extract(x, at, bilinear, atname = NULL, ..., subsequent = NULL)</code></pre></div>
     </div>
 
     <div id="arguments">
@@ -98,7 +104,7 @@ st_extract(x, at, bilinear = FALSE, atname = NULL, ...)</code></pre></div>
     <dl><dt>x</dt>
 <dd><p>stars object</p></dd>
 <dt>...</dt>
-<dd><p>unused</p></dd>
+<dd><p>forwarded to <code>st_interpolate</code></p></dd>
 <dt>at</dt>
 <dd><p>object of class <code>sf</code> or <code>sfc</code> forwarded to
 <code><a href="https://r-spatial.github.io/stars/reference/st_extract.html" class="external-link">st_extract</a></code></p></dd>
@@ -110,6 +116,8 @@ results in the use of nearest-neighbour interpolation.</p></dd>
 <dd><p>character length <code>1</code> or <code>NULL</code> (default).
 Can be used to specify a variable in the object <code>at</code> which should
 be appended to the final object.</p></dd>
+<dt>subsequent</dt>
+<dd><p>Defaults to <code>NULL</code>, please leave as it is.</p></dd>
 </dl></div>
     <div id="value">
     <h2>Value</h2>
@@ -119,6 +127,10 @@ be appended to the final object.</p></dd>
     <h2>Details</h2>
     <p>Internally, an <code>eupp_stars</code> object is only a <code>stars</code>
 object with one additional attribute (the extra class).</p>
+<p>Depending on the stars object this function is calling itself multiple times.
+This is controlled using the 'subsequent' argument which becomes a named
+vector (internally). As an end-user, please leave this argument <code>NULL</code>.
+Have not found a better solution yet.</p>
     </div>
     <div id="author">
     <h2>Author</h2>

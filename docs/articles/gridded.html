@@ -50,6 +50,12 @@
       <a href="../articles/gridded.html">Getting started</a>
     </li>
     <li>
+      <a href="../articles/gridded_analysis.html">Gridded analysis</a>
+    </li>
+    <li>
+      <a href="../articles/gridded_forecasts.html">Gridded forecasts</a>
+    </li>
+    <li>
       <a href="../articles/gridded_advanced.html">Gridded advanced</a>
     </li>
   </ul>
@@ -253,7 +259,7 @@
 <span class="co">## </span>
 <span class="co">##     2 global attributes:</span>
 <span class="co">##         Conventions: CF-1.6</span>
-<span class="co">##         history: 2022-03-04 09:35:17 GMT by grib_to_netcdf-2.16.0: /usr/bin/grib_to_netcdf /tmp/Rtmp21WElw/fileb994671938b7.grb -k 3 -o _test.nc</span></code></pre>
+<span class="co">##         history: 2022-03-15 12:32:12 GMT by grib_to_netcdf-2.16.0: /usr/bin/grib_to_netcdf /tmp/Rtmp8lYIYp/file3183678b01bf.grb -k 3 -o _test.nc</span></code></pre>
 </div>
 <div class="section level5">
 <h5 id="reading-data-using-stars">Reading data using <code>stars</code><a class="anchor" aria-label="anchor" href="#reading-data-using-stars"></a>
@@ -293,7 +299,7 @@
      main   <span class="op">=</span> <span class="st">"t2m"</span>,
      col    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html" class="external-link">hcl.colors</a></span><span class="op">(</span><span class="fl">21</span>, <span class="st">"Blue-Red 2"</span>, rev <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
      breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">t2m</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">t2m</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, length <span class="op">=</span> <span class="fl">22</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<p><img src="gridded_files/figure-html/demoplot_stars-1.png" width="100%"></p>
+<p><img src="gridded_files/figure-html/gridded_demoplot_stars-1.png" width="100%"></p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># Plotting convective precipitation (mm)</span>
 <span class="va">bk</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">x</span><span class="op">[[</span><span class="st">"cp"</span><span class="op">]</span><span class="op">]</span>, p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, by <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
@@ -301,7 +307,7 @@
      main   <span class="op">=</span> <span class="st">"cp"</span>,
      col    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html" class="external-link">hcl.colors</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">bk</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span>, <span class="st">"Purple-Yellow"</span>, rev <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
      breaks <span class="op">=</span> <span class="va">bk</span> <span class="op">*</span> <span class="fl">1e3</span><span class="op">)</span></code></pre></div>
-<p><img src="gridded_files/figure-html/demoplot_stars-2.png" width="100%"></p>
+<p><img src="gridded_files/figure-html/gridded_demoplot_stars-2.png" width="100%"></p>
 <p>An alternative way to visualize the data using <a href="https://cran.r-project.org/package=ggplot2" class="external-link"><code>ggplot2</code></a>, <a href="https://cran.r-project.org/package=colorspace" class="external-link"><code>colorspace</code></a> and <a href="https://cran.r-project.org/package=sf" class="external-link"><code>sf</code></a> as well as <a href="https://cran.r-project.org/package=rnaturalearth" class="external-link"><code>rnaturalearth</code></a> for outlines: ```</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://r-spatial.github.io/sf/" class="external-link">"sf"</a></span><span class="op">)</span>
@@ -320,7 +326,7 @@
            <span class="fu"><a href="https://colorspace.R-Forge.R-project.org//reference/scale_colour_continuous_sequential.html" class="external-link">scale_fill_continuous_sequential</a></span><span class="op">(</span><span class="st">"Purple-Yellow"</span><span class="op">)</span> <span class="op">+</span>
            <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">ne</span>, fill <span class="op">=</span> <span class="st">"transparent"</span><span class="op">)</span> <span class="op">+</span>
            <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">coord_sf</a></span><span class="op">(</span>xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">6</span>, <span class="fl">17</span><span class="op">)</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">36</span>, <span class="fl">67</span><span class="op">)</span>, expand <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
-<p><img src="gridded_files/figure-html/demoplot_ggplot-1.png" width="60%" style="display: block; margin: auto;"></p>
+<p><img src="gridded_files/figure-html/gridded_demoplot_ggplot-1.png" width="60%" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># CRS ESRI:102014: Europe_Lambert_Conformal_Conic projection</span>
 <span class="co"># Hardcoded x/y-limits added; limit to southern Europe.</span>

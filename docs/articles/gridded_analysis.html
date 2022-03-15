@@ -50,6 +50,12 @@
       <a href="../articles/gridded.html">Getting started</a>
     </li>
     <li>
+      <a href="../articles/gridded_analysis.html">Gridded analysis</a>
+    </li>
+    <li>
+      <a href="../articles/gridded_forecasts.html">Gridded forecasts</a>
+    </li>
+    <li>
       <a href="../articles/gridded_advanced.html">Gridded advanced</a>
     </li>
   </ul>
@@ -278,33 +284,35 @@
 <span class="co"># Location to be interpolated</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://r-spatial.github.io/sf/" class="external-link">"sf"</a></span><span class="op">)</span>
 <span class="va">ibk</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Innsbruck"</span>, lon  <span class="op">=</span> <span class="fl">11.39</span>, lat <span class="op">=</span> <span class="fl">47.27</span><span class="op">)</span>
-<span class="va">res</span> <span class="op">&lt;-</span> <span class="fu">st_extract</span><span class="op">(</span><span class="va">ana</span>, at <span class="op">=</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="va">ibk</span>, coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lon"</span>, <span class="st">"lat"</span><span class="op">)</span><span class="op">)</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">##               geometry           cp      t2m                time</span>
-<span class="co">## 1  POINT (11.39 47.27) 0.000000e+00 282.4056 2018-07-01 00:00:00</span>
-<span class="co">## 2  POINT (11.39 47.27) 0.000000e+00 281.6159 2018-07-01 01:00:00</span>
-<span class="co">## 3  POINT (11.39 47.27) 0.000000e+00 281.1281 2018-07-01 02:00:00</span>
-<span class="co">## 4  POINT (11.39 47.27) 0.000000e+00 280.8567 2018-07-01 03:00:00</span>
-<span class="co">## 5  POINT (11.39 47.27) 0.000000e+00 280.9945 2018-07-01 04:00:00</span>
-<span class="co">## 6  POINT (11.39 47.27) 0.000000e+00 282.7335 2018-07-01 05:00:00</span>
-<span class="co">## 7  POINT (11.39 47.27) 0.000000e+00 285.1490 2018-07-01 06:00:00</span>
-<span class="co">## 8  POINT (11.39 47.27) 0.000000e+00 287.2573 2018-07-01 07:00:00</span>
-<span class="co">## 9  POINT (11.39 47.27) 1.785180e-05 288.6115 2018-07-01 08:00:00</span>
-<span class="co">## 10 POINT (11.39 47.27) 6.201423e-05 289.6772 2018-07-01 09:00:00</span>
-<span class="co">## 11 POINT (11.39 47.27) 7.461004e-05 290.9807 2018-07-01 10:00:00</span>
-<span class="co">## 12 POINT (11.39 47.27) 1.557725e-04 291.3102 2018-07-01 11:00:00</span>
-<span class="co">## 13 POINT (11.39 47.27) 1.666299e-04 291.7434 2018-07-01 12:00:00</span>
-<span class="co">## 14 POINT (11.39 47.27) 1.197910e-04 292.1282 2018-07-01 13:00:00</span>
-<span class="co">## 15 POINT (11.39 47.27) 1.758613e-04 292.2013 2018-07-01 14:00:00</span>
-<span class="co">## 16 POINT (11.39 47.27) 4.609952e-05 291.9754 2018-07-01 15:00:00</span>
-<span class="co">## 17 POINT (11.39 47.27) 2.307916e-05 291.5128 2018-07-01 16:00:00</span>
-<span class="co">## 18 POINT (11.39 47.27) 6.397484e-06 290.4847 2018-07-01 17:00:00</span>
-<span class="co">## 19 POINT (11.39 47.27) 6.468044e-07 288.9452 2018-07-01 18:00:00</span>
-<span class="co">## 20 POINT (11.39 47.27) 0.000000e+00 287.1127 2018-07-01 19:00:00</span>
-<span class="co">## 21 POINT (11.39 47.27) 0.000000e+00 285.7444 2018-07-01 20:00:00</span>
-<span class="co">## 22 POINT (11.39 47.27) 0.000000e+00 284.8169 2018-07-01 21:00:00</span>
-<span class="co">## 23 POINT (11.39 47.27) 0.000000e+00 283.4581 2018-07-01 22:00:00</span>
-<span class="co">## 24 POINT (11.39 47.27) 0.000000e+00 282.1552 2018-07-01 23:00:00</span></code></pre>
+<span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_extract.html" class="external-link">st_extract</a></span><span class="op">(</span><span class="va">ana</span>, at <span class="op">=</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="va">ibk</span>, coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lon"</span>, <span class="st">"lat"</span><span class="op">)</span><span class="op">)</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">## [1] "geometry" "time"</span></code></pre>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">##               geometry                time           cp      t2m</span>
+<span class="co">## 1  POINT (11.39 47.27) 2018-07-01 00:00:00 0.000000e+00 282.4056</span>
+<span class="co">## 2  POINT (11.39 47.27) 2018-07-01 01:00:00 0.000000e+00 281.6159</span>
+<span class="co">## 3  POINT (11.39 47.27) 2018-07-01 02:00:00 0.000000e+00 281.1281</span>
+<span class="co">## 4  POINT (11.39 47.27) 2018-07-01 03:00:00 0.000000e+00 280.8567</span>
+<span class="co">## 5  POINT (11.39 47.27) 2018-07-01 04:00:00 0.000000e+00 280.9945</span>
+<span class="co">## 6  POINT (11.39 47.27) 2018-07-01 05:00:00 0.000000e+00 282.7335</span>
+<span class="co">## 7  POINT (11.39 47.27) 2018-07-01 06:00:00 0.000000e+00 285.1490</span>
+<span class="co">## 8  POINT (11.39 47.27) 2018-07-01 07:00:00 0.000000e+00 287.2573</span>
+<span class="co">## 9  POINT (11.39 47.27) 2018-07-01 08:00:00 1.785180e-05 288.6115</span>
+<span class="co">## 10 POINT (11.39 47.27) 2018-07-01 09:00:00 6.201423e-05 289.6772</span>
+<span class="co">## 11 POINT (11.39 47.27) 2018-07-01 10:00:00 7.461004e-05 290.9807</span>
+<span class="co">## 12 POINT (11.39 47.27) 2018-07-01 11:00:00 1.557725e-04 291.3102</span>
+<span class="co">## 13 POINT (11.39 47.27) 2018-07-01 12:00:00 1.666299e-04 291.7434</span>
+<span class="co">## 14 POINT (11.39 47.27) 2018-07-01 13:00:00 1.197910e-04 292.1282</span>
+<span class="co">## 15 POINT (11.39 47.27) 2018-07-01 14:00:00 1.758613e-04 292.2013</span>
+<span class="co">## 16 POINT (11.39 47.27) 2018-07-01 15:00:00 4.609952e-05 291.9754</span>
+<span class="co">## 17 POINT (11.39 47.27) 2018-07-01 16:00:00 2.307916e-05 291.5128</span>
+<span class="co">## 18 POINT (11.39 47.27) 2018-07-01 17:00:00 6.397484e-06 290.4847</span>
+<span class="co">## 19 POINT (11.39 47.27) 2018-07-01 18:00:00 6.468044e-07 288.9452</span>
+<span class="co">## 20 POINT (11.39 47.27) 2018-07-01 19:00:00 0.000000e+00 287.1127</span>
+<span class="co">## 21 POINT (11.39 47.27) 2018-07-01 20:00:00 0.000000e+00 285.7444</span>
+<span class="co">## 22 POINT (11.39 47.27) 2018-07-01 21:00:00 0.000000e+00 284.8169</span>
+<span class="co">## 23 POINT (11.39 47.27) 2018-07-01 22:00:00 0.000000e+00 283.4581</span>
+<span class="co">## 24 POINT (11.39 47.27) 2018-07-01 23:00:00 0.000000e+00 282.1552</span></code></pre>
 </div>
 <div class="section level4">
 <h4 id="downloading-and-processing">Downloading and processing<a class="anchor" aria-label="anchor" href="#downloading-and-processing"></a>
@@ -369,7 +377,7 @@
 <h4 id="available-steps-1">Available steps<a class="anchor" aria-label="anchor" href="#available-steps-1"></a>
 </h4>
 <p>When downloading analysis date, the argument <code>steps</code> (<code><a href="../reference/eupp_config.html">eupp_config()</a></code>) defines the time of the day of the data to be processed.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">conf</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eupp_config.html">eupp_config</a></span><span class="op">(</span><span class="st">"analysis"</span>, <span class="st">"pressure"</span>,
                     param <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"t"</span>, <span class="st">"r"</span><span class="op">)</span>,
                     date  <span class="op">=</span> <span class="st">"2018-07-01"</span>,
@@ -377,35 +385,107 @@
                     cache <span class="op">=</span> <span class="st">"_cache"</span><span class="op">)</span>
 <span class="va">ana</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gridded.html">eupp_get_gridded</a></span><span class="op">(</span><span class="va">conf</span><span class="op">)</span>
 
-<span class="co"># Location to be interpolated</span>
+<span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">inv</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gridded.html">eupp_get_inventory</a></span><span class="op">(</span><span class="va">conf</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">## [1] 48 17</span></code></pre>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">inv</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">##                                                           path domain levtype</span>
+<span class="co">## 2977 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
+<span class="co">## 2978 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
+<span class="co">## 2979 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
+<span class="co">## 2980 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
+<span class="co">## 2981 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
+<span class="co">## 2982 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
+<span class="co">##      levelist step_char param class type stream expver   offset length param_id</span>
+<span class="co">## 2977      850         0     t    ea   an   oper   0001 69513408  23358      130</span>
+<span class="co">## 2978      850         0     r    ea   an   oper   0001 69536766  23358      157</span>
+<span class="co">## 2979      850         0     t    ea   an   oper   0001 69560124  23358      130</span>
+<span class="co">## 2980      850         0     r    ea   an   oper   0001 69583482  23358      157</span>
+<span class="co">## 2981      850         0     t    ea   an   oper   0001 69606840  23358      130</span>
+<span class="co">## 2982      850         0     r    ea   an   oper   0001 69630198  23358      157</span>
+<span class="co">##                     init number step               valid</span>
+<span class="co">## 2977 2018-07-01 00:00:00     NA    0 2018-07-01 00:00:00</span>
+<span class="co">## 2978 2018-07-01 00:00:00     NA    0 2018-07-01 00:00:00</span>
+<span class="co">## 2979 2018-07-01 01:00:00     NA    0 2018-07-01 01:00:00</span>
+<span class="co">## 2980 2018-07-01 01:00:00     NA    0 2018-07-01 01:00:00</span>
+<span class="co">## 2981 2018-07-01 02:00:00     NA    0 2018-07-01 02:00:00</span>
+<span class="co">## 2982 2018-07-01 02:00:00     NA    0 2018-07-01 02:00:00</span></code></pre>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="va">inv</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">##                                                           path domain levtype</span>
+<span class="co">## 3019 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
+<span class="co">## 3020 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
+<span class="co">## 3021 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
+<span class="co">## 3022 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
+<span class="co">## 3023 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
+<span class="co">## 3024 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
+<span class="co">##      levelist step_char param class type stream expver   offset length param_id</span>
+<span class="co">## 3019      850         0     t    ea   an   oper   0001 70494444  23358      130</span>
+<span class="co">## 3020      850         0     r    ea   an   oper   0001 70517802  23358      157</span>
+<span class="co">## 3021      850         0     t    ea   an   oper   0001 70541160  23358      130</span>
+<span class="co">## 3022      850         0     r    ea   an   oper   0001 70564518  23358      157</span>
+<span class="co">## 3023      850         0     t    ea   an   oper   0001 70587876  23358      130</span>
+<span class="co">## 3024      850         0     r    ea   an   oper   0001 70611234  23358      157</span>
+<span class="co">##                     init number step               valid</span>
+<span class="co">## 3019 2018-07-01 21:00:00     NA    0 2018-07-01 21:00:00</span>
+<span class="co">## 3020 2018-07-01 21:00:00     NA    0 2018-07-01 21:00:00</span>
+<span class="co">## 3021 2018-07-01 22:00:00     NA    0 2018-07-01 22:00:00</span>
+<span class="co">## 3022 2018-07-01 22:00:00     NA    0 2018-07-01 22:00:00</span>
+<span class="co">## 3023 2018-07-01 23:00:00     NA    0 2018-07-01 23:00:00</span>
+<span class="co">## 3024 2018-07-01 23:00:00     NA    0 2018-07-01 23:00:00</span></code></pre>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">inv</span><span class="op">$</span><span class="va">step</span>, <span class="va">inv</span><span class="op">$</span><span class="va">param</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">##    </span>
+<span class="co">##      r  t</span>
+<span class="co">##   0 24 24</span></code></pre>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="../reference/gridded.html">eupp_download_gridded</a></span><span class="op">(</span><span class="va">conf</span>, <span class="st">"_test.grb"</span>, <span class="st">"grib"</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/system.html" class="external-link">system</a></span><span class="op">(</span><span class="st">"grib_ls _test.grb"</span><span class="op">)</span>
+
+<span class="va">k</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gridded.html">eupp_get_gridded</a></span><span class="op">(</span><span class="va">conf</span><span class="op">)</span>
+<span class="va">k</span></code></pre></div>
+<pre><code><span class="co">## stars object with 3 dimensions and 2 attributes</span>
+<span class="co">## attribute(s):</span>
+<span class="co">##             Min.   1st Qu.    Median      Mean   3rd Qu.     Max.</span>
+<span class="co">## t [K] 273.156250 281.43678 284.52546 285.88897 290.52932 306.2083</span>
+<span class="co">## r [%]   2.689826  32.51901  52.33961  49.66074  66.45186 113.2677</span>
+<span class="co">## dimension(s):</span>
+<span class="co">##      from  to         offset   delta  refsys point values x/y</span>
+<span class="co">## x       1  93         -6.125    0.25      NA    NA   NULL [x]</span>
+<span class="co">## y       1 125         67.125   -0.25      NA    NA   NULL [y]</span>
+<span class="co">## time    1  24 2018-07-01 UTC 1 hours POSIXct    NA   NULL</span></code></pre>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># Location to be interpolated</span>
 <span class="va">ibk</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Innsbruck"</span>, lon  <span class="op">=</span> <span class="fl">11.39</span>, lat <span class="op">=</span> <span class="fl">47.27</span><span class="op">)</span>
-<span class="va">res</span> <span class="op">&lt;-</span> <span class="fu">st_extract</span><span class="op">(</span><span class="va">ana</span>, at <span class="op">=</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="va">ibk</span>, coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lon"</span>, <span class="st">"lat"</span><span class="op">)</span><span class="op">)</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">##               geometry        r        t                time</span>
-<span class="co">## 1  POINT (11.39 47.27) 86.31006 287.3040 2018-07-01 00:00:00</span>
-<span class="co">## 2  POINT (11.39 47.27) 87.25571 287.0840 2018-07-01 01:00:00</span>
-<span class="co">## 3  POINT (11.39 47.27) 88.10566 286.8603 2018-07-01 02:00:00</span>
-<span class="co">## 4  POINT (11.39 47.27) 88.48853 286.7070 2018-07-01 03:00:00</span>
-<span class="co">## 5  POINT (11.39 47.27) 89.72609 286.5583 2018-07-01 04:00:00</span>
-<span class="co">## 6  POINT (11.39 47.27) 88.46733 286.4344 2018-07-01 05:00:00</span>
-<span class="co">## 7  POINT (11.39 47.27) 86.23529 286.2088 2018-07-01 06:00:00</span>
-<span class="co">## 8  POINT (11.39 47.27) 75.82018 287.0343 2018-07-01 07:00:00</span>
-<span class="co">## 9  POINT (11.39 47.27) 68.46182 288.2440 2018-07-01 08:00:00</span>
-<span class="co">## 10 POINT (11.39 47.27) 63.62587 289.0604 2018-07-01 09:00:00</span>
-<span class="co">## 11 POINT (11.39 47.27) 60.35576 289.9210 2018-07-01 10:00:00</span>
-<span class="co">## 12 POINT (11.39 47.27) 57.11023 290.2079 2018-07-01 11:00:00</span>
-<span class="co">## 13 POINT (11.39 47.27) 54.54428 290.3447 2018-07-01 12:00:00</span>
-<span class="co">## 14 POINT (11.39 47.27) 52.91102 290.5516 2018-07-01 13:00:00</span>
-<span class="co">## 15 POINT (11.39 47.27) 53.09143 290.4881 2018-07-01 14:00:00</span>
-<span class="co">## 16 POINT (11.39 47.27) 53.20926 290.4437 2018-07-01 15:00:00</span>
-<span class="co">## 17 POINT (11.39 47.27) 55.29175 290.1103 2018-07-01 16:00:00</span>
-<span class="co">## 18 POINT (11.39 47.27) 59.83583 289.3578 2018-07-01 17:00:00</span>
-<span class="co">## 19 POINT (11.39 47.27) 66.34773 288.1810 2018-07-01 18:00:00</span>
-<span class="co">## 20 POINT (11.39 47.27) 70.94309 287.2117 2018-07-01 19:00:00</span>
-<span class="co">## 21 POINT (11.39 47.27) 74.34683 286.6337 2018-07-01 20:00:00</span>
-<span class="co">## 22 POINT (11.39 47.27) 77.14049 286.5415 2018-07-01 21:00:00</span>
-<span class="co">## 23 POINT (11.39 47.27) 84.99293 286.7990 2018-07-01 22:00:00</span>
-<span class="co">## 24 POINT (11.39 47.27) 85.39623 287.0069 2018-07-01 23:00:00</span></code></pre>
+<span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_extract.html" class="external-link">st_extract</a></span><span class="op">(</span><span class="va">ana</span>, at <span class="op">=</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="va">ibk</span>, coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lon"</span>, <span class="st">"lat"</span><span class="op">)</span><span class="op">)</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">## [1] "geometry" "time"</span></code></pre>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">##               geometry                time        r        t</span>
+<span class="co">## 1  POINT (11.39 47.27) 2018-07-01 00:00:00 86.31006 287.3040</span>
+<span class="co">## 2  POINT (11.39 47.27) 2018-07-01 01:00:00 87.25571 287.0840</span>
+<span class="co">## 3  POINT (11.39 47.27) 2018-07-01 02:00:00 88.10566 286.8603</span>
+<span class="co">## 4  POINT (11.39 47.27) 2018-07-01 03:00:00 88.48853 286.7070</span>
+<span class="co">## 5  POINT (11.39 47.27) 2018-07-01 04:00:00 89.72609 286.5583</span>
+<span class="co">## 6  POINT (11.39 47.27) 2018-07-01 05:00:00 88.46733 286.4344</span>
+<span class="co">## 7  POINT (11.39 47.27) 2018-07-01 06:00:00 86.23529 286.2088</span>
+<span class="co">## 8  POINT (11.39 47.27) 2018-07-01 07:00:00 75.82018 287.0343</span>
+<span class="co">## 9  POINT (11.39 47.27) 2018-07-01 08:00:00 68.46182 288.2440</span>
+<span class="co">## 10 POINT (11.39 47.27) 2018-07-01 09:00:00 63.62587 289.0604</span>
+<span class="co">## 11 POINT (11.39 47.27) 2018-07-01 10:00:00 60.35576 289.9210</span>
+<span class="co">## 12 POINT (11.39 47.27) 2018-07-01 11:00:00 57.11023 290.2079</span>
+<span class="co">## 13 POINT (11.39 47.27) 2018-07-01 12:00:00 54.54428 290.3447</span>
+<span class="co">## 14 POINT (11.39 47.27) 2018-07-01 13:00:00 52.91102 290.5516</span>
+<span class="co">## 15 POINT (11.39 47.27) 2018-07-01 14:00:00 53.09143 290.4881</span>
+<span class="co">## 16 POINT (11.39 47.27) 2018-07-01 15:00:00 53.20926 290.4437</span>
+<span class="co">## 17 POINT (11.39 47.27) 2018-07-01 16:00:00 55.29175 290.1103</span>
+<span class="co">## 18 POINT (11.39 47.27) 2018-07-01 17:00:00 59.83583 289.3578</span>
+<span class="co">## 19 POINT (11.39 47.27) 2018-07-01 18:00:00 66.34773 288.1810</span>
+<span class="co">## 20 POINT (11.39 47.27) 2018-07-01 19:00:00 70.94309 287.2117</span>
+<span class="co">## 21 POINT (11.39 47.27) 2018-07-01 20:00:00 74.34683 286.6337</span>
+<span class="co">## 22 POINT (11.39 47.27) 2018-07-01 21:00:00 77.14049 286.5415</span>
+<span class="co">## 23 POINT (11.39 47.27) 2018-07-01 22:00:00 84.99293 286.7990</span>
+<span class="co">## 24 POINT (11.39 47.27) 2018-07-01 23:00:00 85.39623 287.0069</span></code></pre>
 </div>
 <div class="section level4">
 <h4 id="downloading-and-processing-1">Downloading and processing<a class="anchor" aria-label="anchor" href="#downloading-and-processing-1"></a>
