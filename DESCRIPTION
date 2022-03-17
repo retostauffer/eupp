@@ -12,6 +12,6 @@ Description: Provides access to the European PostProcessing Benchmark Project
 URL: https://retostauffer.github.io/eupp/
 BugReports: https://github.com/retostauffer/eupp/issues
 Depends: R (>= 4.1.0)
-Imports: digest, rjson, dplyr, httr, stars, tinytest, ncdf4, sf
+Imports: digest, rjson, dplyr, tidyr, httr, stars, tinytest, ncdf4, sf, units
 License: GPL-2
 RoxygenNote: 7.1.1

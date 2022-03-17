@@ -16,7 +16,7 @@
 \arguments{
 \item{x}{stars object}
 
-\item{...}{forwarded to \code{\link[stars]{st_interpolate}}}
+\item{...}{currently unused.}
 
 \item{at}{object of class \code{sf} or \code{sfc} forwarded to
 \code{\link[stars]{st_extract}}}

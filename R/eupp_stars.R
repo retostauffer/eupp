@@ -49,7 +49,7 @@ print.eupp_stars <- function(x, ...) {
 #' @param atname character length \code{1} or \code{NULL} (default).
 #'        Can be used to specify a variable in the object \code{at} which should
 #'        be appended to the final object.
-#' @param ... forwarded to \code{\link[stars]{st_interpolate}}
+#' @param ... currently unused.
 #' @param subsequent Defaults to \code{NULL}, please leave as it is.
 #'
 #' @details
@@ -61,8 +61,10 @@ print.eupp_stars <- function(x, ...) {
 #' @return Returns an object of class \code{c("sf", "data.frame")}.
 #'
 #' @author Reto Stauffer
+#' @importFrom sf st_sf
 #' @importFrom stars st_extract st_get_dimension_values
 #' @importFrom units drop_units
+#' @importFrom stats setNames
 #' @rdname eupp_stars
 #' @method st_extract eupp_stars
 #' @export
@@ -77,7 +79,8 @@ st_extract.eupp_stars <- function(x, at, bilinear, atname = NULL, ..., subsequen
     # No level or number dimension? In this case we can interpolate
     # the stars object using st_extract.
     if (length(idx) == 0) {
-        res <- stars:::st_extract.stars(x, at = at, bilinear = bilinear, long = TRUE)
+        class(x) <- class(x)[-1] # Remving 'eupp_stars' class (-> 'stars')
+        res <- st_extract(x, at = at, bilinear = bilinear, long = TRUE)
         res <- as.data.frame(res)
         if (!is.null(subsequent)) {
             for (i in seq_along(subsequent)) res[[names(subsequent)[i]]] <- subsequent[i]
@@ -143,13 +146,18 @@ st_extract.eupp_stars <- function(x, at, bilinear, atname = NULL, ..., subsequen
 
 
 
-# Append Additional Variable to object x if possible
-#
-# Small hidden helper function used in \code{\link{st_extract.eupp_stars}}.
-# If the locations \code{at} contain a dedicated column called \code{name},
-# these names will be added to the stars object.
-#
-# @author Reto Stauffer
+#' Append Additional Variable to object x if possible
+#'
+#' Small hidden helper function used in \code{\link{st_extract.eupp_stars}}.
+#' If the locations \code{at} contain a dedicated column called \code{name},
+#' these names will be added to the stars object.
+#'
+#' @param x sf object (interpolated data).
+#' @param at sf object with \code{POINTS} and, possibly, a variable named \code{atname}.
+#' @param atname character length \code{1} or \code{NULL}.
+#'
+#' @importFrom sf st_geometry
+#' @author Reto Stauffer
 sf_append_atname_if_possible <- function(x, at, atname) {
     if (atname %in% names(at) && !atname %in% names(x)) {
         idx    <- match(st_geometry(x), st_geometry(at))

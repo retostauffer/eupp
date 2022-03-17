@@ -174,7 +174,7 @@ eupp_get_gridded <- function(x, verbose = FALSE) {
     tmp_file <- eupp_download_gridded(x, tmp_file, "nc", verbose = verbose)
 
     # Reading the NetCDF file as stars
-    data <- stars::read_stars(tmp_file, quiet = !verbose)
+    data <- read_stars(tmp_file, quiet = !verbose)
 
     # When having only one variable/parameter 'stars' names the
     # variable like the file. We are checking that. In case this is the case,
@@ -281,6 +281,136 @@ eupp_get_inventory <- function(x, times = 3L, verbose = FALSE) {
     if (nrow(inv) == 0) warning("No field match found; check your 'eupp_config()' settings.")
     return(inv)
 }
+
+
+#' Interpolate GRIB File
+#'
+#' Allows to extract and interpolate specific locations
+#' from grib files (see \code{\link{eupp_get_gridded}}).
+#' Requires ecCodes to be installed.
+#'
+#' @param file character, name of the grib file from which
+#'        the data should be extracted.
+#' @param at object of class \code{sf} or \code{sfc} containing
+#'        point locations to be extracted/interpolated.
+#' @param atname \code{NULL} (default) or character length \code{1}.
+#'        Is set (and the variable exists in \code{at}) it will be
+#'        appended to the returned object.
+#' @param bilinear logical, defaults to \code{TRUE}. If set to
+#'        \code{FALSE} nearest neighbour interpolation is used.
+#' @param wide logical, defaults to \code{TRUE}. If \code{TRUE} the
+#'        result is in a wide format, else long format.
+#' @param ... currently unused.
+#'
+#' @details The function will call \code{grib_ls -j} on the grib
+#' file to extract the grib inventory, thus requiring ecCodes
+#' to be installed.
+#'
+#' It then reads the grib file using \code{\link[stars]{read_stars}}
+#' to read the data (in bands) and performs the interpolation using
+#' \code{\link[stars]{st_extract}}.
+#'
+#' Please note that \code{at} needs a valid coordinate reference
+#' system (CRS) and must only contain \code{POINT} geometries for now.
+#'
+#' @importFrom sf st_geometry_type  st_transform st_crs
+#' @importFrom stars read_stars st_extract
+#' @importFrom rjson fromJSON
+#' @importFrom dplyr bind_rows
+#' @importFrom tidyr pivot_wider
+#'
+#' @author Reto Stauffer
+#' @export
+eupp_interpolate_grib <- function(file, at, atname = NULL, bilinear = TRUE, wide = TRUE, ...) {
+
+    stopifnot(is.character(file), length(file) == 1L, file.exists(file))
+    stopifnot(inherits(at, c("sf", "sfc")))
+    stopifnot(is.null(atname) || is.character(atname))
+    if (is.character(atname)) stopifnot(length(atname) == 1L)
+    stopifnot(isTRUE(bilinear) || isFALSE(bilinear))
+    stopifnot(isTRUE(wide) || isFALSE(wide))
+
+    # Checking at
+    stopifnot(all(st_geometry_type(at) == "POINT"))
+    if (is.na(st_crs(at))) stop("Object 'at' does not contain a valid coordinate reference system (CRS).")
+
+    # Find grib_ls
+    gls <- Sys.which("grib_ls")
+    if (nchar(gls) == 0) stop("Cannot find 'grib_ls' executable. Is ecCodes installed?")
+
+    # Step 1: Let us read the inventory
+    params <- c("shortName", "dataDate", "dataTime", "endStep", "typeOfLevel", "level",
+                "perturbationNumber", "numberOfForecastsInEnsemble")
+    cmd <- sprintf("%s -j -p %s %s", gls, paste(params, collapse = ","), file)
+    tmp <- tryCatch(paste(system(cmd, intern = TRUE), collapse = ""),
+                    warning = function(w) warning(w),
+                    error   = function(e) stop("Problems getting GRIB inventory calling '",
+                                               cmd, "'", sep = ""))
+    tmp <- fromJSON(tmp)[[1]]
+    tmp <- bind_rows(lapply(tmp, function(x) data.frame(x)))
+
+    # Renaming variables
+    tmp <- eupp_interpolate_grib_rename_variables(tmp)
+
+    # Convert some of the variables we got
+    tmp <- within(tmp, {
+              init     = as.POSIXct(sprintf("%08d %04d", dataDate, dataTime),
+                                    format = "%Y%m%d %H%M", utc = TRUE);
+              valid    = init + 3600 * endStep;
+              dataDate = typeOfLevel = level = dataTime = NULL;
+              perturbationNumber = numberOfForecastsInEnsemble = NULL;
+            })
+
+    # Reading GRIB file; interpolate data
+    data <- read_stars(file)
+    attransformed <- st_transform(at, crs = st_crs(data))
+
+    res <- list()
+    for (i in seq_len(nrow(at))) {
+        # Interpolate data, modify return, combine with meta information from GRIB
+        ip <- as.data.frame(st_extract(data, at = attransformed[i, ], bilinear = bilinear))
+        names(ip)[length(ip)] <- "value"
+        if (!is.null(atname) && atname %in% names(at)) ip[[atname]] <- at[[i, atname]]
+        res[[1]] <- cbind(tmp, ip[, c("geometry", "value",
+                          if (!is.null(atname) && atname %in% ip) atname else NULL)])
+    }
+    res <- bind_rows(res)
+
+    # Sort columns
+    if (wide == TRUE) {
+        res_wide  <- as.data.frame(pivot_wider(res, names_from = "shortName", values_from = "value"))
+        main_cols <- which(names(res_wide) %in% names(res))
+        res       <- res_wide[, c(names(res_wide)[main_cols], sort(names(res_wide)[-main_cols]))]
+    }
+
+    return(res)
+
+}
+
+
+eupp_interpolate_grib_rename_variables <- function(x) {
+    stopifnot(is.data.frame(x), "shortName" %in% names(x))
+
+    # Vector used for renaming
+    renaming <- c("2t" = "t2m",
+                  "10u" = "u10m",
+                  "10v" = "v10m",
+                  "10fg" = "fg10m")
+    idx <- match(x$shortName, names(renaming))
+    x$shortName[!is.na(idx)] <- renaming[idx[!is.na(idx)]]
+
+    # Renaming pressure level variables
+    idx <- grep("^isobaricInhPa$", x$typeOfLevel)
+    if (length(idx) > 0) x$shortName[idx] <- sprintf("%s%d", x$shortName[idx], x$level[idx])
+
+    # Adding member number in case this is an ensemble data set
+    if (max(x$numberOfForecastsInEnsemble > 0))
+        x$shortName <- paste(x$shortName, x$perturbationNumber, sep = "_")
+
+    return(x)
+}
+
+
 
 
 

@@ -7,4 +7,5 @@
 #' @importFrom utils globalVariables
 #' @author Reto Stauffer
 #' @noRd
-globalVariables(c("init", "steps", "step", "param", "valid", "number"))
+globalVariables(c("init", "steps", "step", "param", "valid", "number",
+                  "endStep"))
