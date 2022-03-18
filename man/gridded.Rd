@@ -9,10 +9,10 @@
 eupp_download_gridded(
   x,
   output_file,
-  output_format = c("grib", "nc"),
+  output_format = "grib",
+  overwrite = FALSE,
   netcdf_kind = 3L,
-  verbose = FALSE,
-  overwrite = FALSE
+  verbose = FALSE
 )
 
 eupp_get_gridded(x, verbose = FALSE)
@@ -24,8 +24,12 @@ eupp_get_inventory(x, times = 3L, verbose = FALSE)
 
 \item{output_file}{character length 1, name of the output file.}
 
-\item{output_format}{character length 1 (\code{"grib"} or \code{"nc"}),
-defaults to \code{"grib"} (see details).}
+\item{output_format}{character length 1, defaults to \code{"grib"}.
+Alternatively (somewhat experimental) \code{"nc"}.}
+
+\item{overwrite}{logical length 1, defaults to \code{FALSE}. If set to \code{TRUE}
+the \code{output_file} will be overwritten if needed. If \code{FALSE} and
+\code{output_file} exists an error will be raised.}
 
 \item{netcdf_kind}{numeric length 1, defaults to \code{3}. Controls the
 \code{-k} (kind) flag when calling \code{grib_to_netcdf}. Only used
@@ -33,14 +37,13 @@ when \code{output_format = "nc"}.}
 
 \item{verbose}{logical, sets verbosity level. Defaults to \code{FALSE}.}
 
-\item{overwrite}{logical length 1, defaults to \code{FALSE}. If set to \code{TRUE}
-the \code{output_file} will be overwritten if needed. If \code{FALSE} and
-\code{output_file} exists an error will be raised.}
-
 \item{times}{positive numeric, defaults to \code{3L}. Number of
 retries in case the GET request fails.}
 }
 \value{
+No explicit return, invisibly returns the inventory of the file as a
+\code{data.frame}.
+
 Object of class \code{c("eupp_stars", "stars")}; see Details.
 }
 \description{
@@ -54,10 +57,20 @@ NetCDF (classic 64bit; v3). The original data set is provided as GRIB, the
 conversion to NetCDF is done locally usning ECMWFs ecCodes tools which must
 be installed when using NetCDF.
 
+The default mode is to download the data in the GRIB version 1 format. The data
+set will be stored as \code{output_file} alongside with an \code{.rds} file containing
+the information about the fields (the GRIB index information used for downloading).
+Whilst this information can be read from the GRIB file (e.g,. via ecCodes \code{grib_ls}),
+however, this allows us to interpolate GRIB files without the need of ecCodes to
+be installed (using the \code{.rds} and \code{\link[stars]{read_stars}} via gdal).
+
 If \code{output_format = "nc"} a request must contain only one date in \code{x}.
 The reason is that NetCDF does not allow for overlapping 'time'+'step' specifications.
 Somewhat inconvenient but there is no general solution for that in ecCodes (or, to 
-be precise, the NetCDF standard definition).
+be precise, the NetCDF standard definition). PLEASE NOTE that this is somewhat
+experimental and may not always be the best choice as \code{grib_to_netcdf} will
+drop unrequired dimensions, thus losing information (e.g., if only one level or only
+one perturbationNumber is present).
 
 This function interfaces \code{\link{eupp_download_gridded}}
 to download the data and converts the original data set (GRIB version 1)

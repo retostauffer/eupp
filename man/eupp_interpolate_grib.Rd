@@ -10,6 +10,8 @@ eupp_interpolate_grib(
   atname = NULL,
   bilinear = TRUE,
   wide = TRUE,
+  verbose = FALSE,
+  ignore_init = FALSE,
   ...
 )
 }
@@ -30,6 +32,13 @@ appended to the returned object.}
 \item{wide}{logical, defaults to \code{TRUE}. If \code{TRUE} the
 result is in a wide format, else long format.}
 
+\item{verbose}{logical, defaults to \code{FALSE}.}
+
+\item{ignore_init}{logical, defaults to \code{FALSE}. Can be handy
+when processing analysis data as not all values valid for the
+same date/time have been initialized at the same time (short-term forecats).
+Drops initialization time and forecast step for nicer aggregation in wide format.}
+
 \item{...}{currently unused.}
 }
 \description{
@@ -38,9 +47,14 @@ from grib files (see \code{\link{eupp_get_gridded}}).
 Requires ecCodes to be installed.
 }
 \details{
-The function will call \code{grib_ls -j} on the grib
-file to extract the grib inventory, thus requiring ecCodes
-to be installed.
+When downloading the GRIB version 1 data sets using
+\code{\link{eupp_get_gridded()}} a \code{.rds} file with the grib
+inventory will be stored alongside with the GRIB file itself. If
+prsent, this \code{.rds} file will be used to retrieve the meta information
+(what the different fields of the GRIB file contain).
+
+If not present, ecCodes must be installed and the index will be created
+by calling \code{grib_ls -j}.
 
 It then reads the grib file using \code{\link[stars]{read_stars}}
 to read the data (in bands) and performs the interpolation using

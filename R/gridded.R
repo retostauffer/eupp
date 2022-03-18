@@ -5,25 +5,38 @@
 #'
 #' @param x an object of class \code{\link{eupp_config}}.
 #' @param output_file character length 1, name of the output file.
-#' @param output_format character length 1 (\code{"grib"} or \code{"nc"}),
-#'        defaults to \code{"grib"} (see details).
+#' @param output_format character length 1, defaults to \code{"grib"}.
+#'        Alternatively (somewhat experimental) \code{"nc"}.
+#' @param overwrite logical length 1, defaults to \code{FALSE}. If set to \code{TRUE}
+#'        the \code{output_file} will be overwritten if needed. If \code{FALSE} and
+#'        \code{output_file} exists an error will be raised.
 #' @param netcdf_kind numeric length 1, defaults to \code{3}. Controls the
 #'        \code{-k} (kind) flag when calling \code{grib_to_netcdf}. Only used
 #'        when \code{output_format = "nc"}.
 #' @param verbose logical length 1, verbosity, defaults to \code{FALSE}.
-#' @param overwrite logical length 1, defaults to \code{FALSE}. If set to \code{TRUE}
-#'        the \code{output_file} will be overwritten if needed. If \code{FALSE} and
-#'        \code{output_file} exists an error will be raised.
 #'
 #' @details The function allows to store data sets in either GRIB version 1 or
 #' NetCDF (classic 64bit; v3). The original data set is provided as GRIB, the 
 #' conversion to NetCDF is done locally usning ECMWFs ecCodes tools which must
 #' be installed when using NetCDF.
 #'
+#' The default mode is to download the data in the GRIB version 1 format. The data
+#' set will be stored as \code{output_file} alongside with an \code{.rds} file containing
+#' the information about the fields (the GRIB index information used for downloading).
+#' Whilst this information can be read from the GRIB file (e.g,. via ecCodes \code{grib_ls}),
+#' however, this allows us to interpolate GRIB files without the need of ecCodes to
+#' be installed (using the \code{.rds} and \code{\link[stars]{read_stars}} via gdal).
+#'
 #' If \code{output_format = "nc"} a request must contain only one date in \code{x}.
 #' The reason is that NetCDF does not allow for overlapping 'time'+'step' specifications.
 #' Somewhat inconvenient but there is no general solution for that in ecCodes (or, to 
-#' be precise, the NetCDF standard definition).
+#' be precise, the NetCDF standard definition). PLEASE NOTE that this is somewhat
+#' experimental and may not always be the best choice as \code{grib_to_netcdf} will
+#' drop unrequired dimensions, thus losing information (e.g., if only one level or only
+#' one perturbationNumber is present).
+#'
+#' @return No explicit return, invisibly returns the inventory of the file as a
+#' \code{data.frame}.
 #'
 #' @importFrom httr GET add_headers
 #' @importFrom tools file_ext
@@ -34,9 +47,10 @@
 #' @export
 eupp_download_gridded <- function(x,
                              output_file,
-                             output_format = c("grib", "nc"),
+                             output_format = "grib",
+                             overwrite = FALSE,
                              netcdf_kind = 3L,
-                             verbose = FALSE, overwrite = FALSE) {
+                             verbose = FALSE) {
 
     # Checking main input object
     stopifnot(inherits(x, c("eupp_config", "eupp_inventory")))
@@ -53,7 +67,7 @@ eupp_download_gridded <- function(x,
         stop("Cannot write 'output_file' to \"{:s}\", directory does not exist.", dirname(output_file))
 
     # If the user requests netCDF: check grib_to_netcdf is available.
-    output_format <- match.arg(output_format)
+    output_format <- match.arg(output_format, c("grib", "nc"))
     if (output_format == "nc") {
         if (length(x$date) > 1) {
             stop("Downloading multiple dates in NetCDF format/stars not allowed (see Details).")
@@ -114,6 +128,7 @@ eupp_download_gridded <- function(x,
     # Move file to final destination
     if (output_format == "grib") {
         file.rename(tmp_file, output_file)
+        saveRDS(inv, sprintf("%s.rds", output_file))
     } else {
         if (verbose) cat("  Converting grib file to netcdf\n")
         tmp_file2 <- tempfile(fileext = ".grb")  # Second temporary file; required for grib_set
@@ -130,7 +145,7 @@ eupp_download_gridded <- function(x,
         file.remove(tmp_file) # Delete temporary file
     }
 
-    invisible(output_file)   # Return final file name
+    invisible(inv)
 }
 
 
@@ -300,11 +315,21 @@ eupp_get_inventory <- function(x, times = 3L, verbose = FALSE) {
 #'        \code{FALSE} nearest neighbour interpolation is used.
 #' @param wide logical, defaults to \code{TRUE}. If \code{TRUE} the
 #'        result is in a wide format, else long format.
+#' @param verbose logical, defaults to \code{FALSE}.
+#' @param ignore_init logical, defaults to \code{FALSE}. Can be handy
+#'        when processing analysis data as not all values valid for the
+#'        same date/time have been initialized at the same time (short-term forecats).
+#'        Drops initialization time and forecast step for nicer aggregation in wide format.
 #' @param ... currently unused.
 #'
-#' @details The function will call \code{grib_ls -j} on the grib
-#' file to extract the grib inventory, thus requiring ecCodes
-#' to be installed.
+#' @details When downloading the GRIB version 1 data sets using
+#' \code{\link{eupp_get_gridded()}} a \code{.rds} file with the grib
+#' inventory will be stored alongside with the GRIB file itself. If
+#' prsent, this \code{.rds} file will be used to retrieve the meta information
+#' (what the different fields of the GRIB file contain).
+#'
+#' If not present, ecCodes must be installed and the index will be created
+#' by calling \code{grib_ls -j}.
 #'
 #' It then reads the grib file using \code{\link[stars]{read_stars}}
 #' to read the data (in bands) and performs the interpolation using
@@ -321,7 +346,7 @@ eupp_get_inventory <- function(x, times = 3L, verbose = FALSE) {
 #'
 #' @author Reto Stauffer
 #' @export
-eupp_interpolate_grib <- function(file, at, atname = NULL, bilinear = TRUE, wide = TRUE, ...) {
+eupp_interpolate_grib <- function(file, at, atname = NULL, bilinear = TRUE, wide = TRUE, verbose = FALSE, ignore_init = FALSE, ...) {
 
     stopifnot(is.character(file), length(file) == 1L, file.exists(file))
     stopifnot(inherits(at, c("sf", "sfc")))
@@ -329,41 +354,66 @@ eupp_interpolate_grib <- function(file, at, atname = NULL, bilinear = TRUE, wide
     if (is.character(atname)) stopifnot(length(atname) == 1L)
     stopifnot(isTRUE(bilinear) || isFALSE(bilinear))
     stopifnot(isTRUE(wide) || isFALSE(wide))
+    stopifnot(isTRUE(verbose) || isFALSE(verbose))
+    stopifnot(isTRUE(ignore_init) || isFALSE(ignore_init))
 
     # Checking at
+    if (verbose) cat("Interpolating GRIB file\n   - Checking location geometry\n")
     stopifnot(all(st_geometry_type(at) == "POINT"))
     if (is.na(st_crs(at))) stop("Object 'at' does not contain a valid coordinate reference system (CRS).")
 
     # Find grib_ls
-    gls <- Sys.which("grib_ls")
-    if (nchar(gls) == 0) stop("Cannot find 'grib_ls' executable. Is ecCodes installed?")
+    rdsfile <- sprintf("%s.rds", file)
+    if (file.exists(rdsfile)) {
+        if (verbose) cat("   -", rdsfile, "exists; using this for field meta info/index\n")
+        inv <- readRDS(rdsfile)
+    } else {
+        if (verbose) cat("   -", rdsfile, "does not exist, calling 'grib_ls'\n")
+        gls <- Sys.which("grib_ls")
+        if (nchar(gls) == 0) stop("Cannot find 'grib_ls' executable. Is ecCodes installed?")
 
-    # Step 1: Let us read the inventory
-    params <- c("shortName", "dataDate", "dataTime", "endStep", "typeOfLevel", "level",
-                "perturbationNumber", "numberOfForecastsInEnsemble")
-    cmd <- sprintf("%s -j -p %s %s", gls, paste(params, collapse = ","), file)
-    tmp <- tryCatch(paste(system(cmd, intern = TRUE), collapse = ""),
-                    warning = function(w) warning(w),
-                    error   = function(e) stop("Problems getting GRIB inventory calling '",
-                                               cmd, "'", sep = ""))
-    tmp <- fromJSON(tmp)[[1]]
-    tmp <- bind_rows(lapply(tmp, function(x) data.frame(x)))
+        # Step 1: Let us read the inventory
+        params <- c("shortName", "dataDate", "dataTime", "endStep", "typeOfLevel", "level",
+                    "perturbationNumber", "numberOfForecastsInEnsemble")
+        cmd <- sprintf("%s -j -p %s %s", gls, paste(params, collapse = ","), file)
+        inv <- tryCatch(paste(system(cmd, intern = TRUE), collapse = ""),
+                        warning = function(w) warning(w),
+                        error   = function(e) stop("Problems getting GRIB inventory calling '",
+                                                   cmd, "'", sep = ""))
+        inv <- fromJSON(inv)[[1]]
+        inv <- bind_rows(lapply(inv, function(x) data.frame(x)))
+
+        # Do we need the perturbationNumber?
+        if (all(inv$numberOfForecastsInEnsemble == 0))
+            inv <- transform(inv, perturbationNumber = NULL, numberOfForecastsInEnsemble = NULL)
+
+        # Renaming
+        renaming <- c("shortName" = "param",
+                      "typeOfLevel" = "levtype",
+                      "perturbationNumber" = "number",
+                      "endStep" = "step")
+        rename_idx <- match(names(inv), names(renaming))
+        names(inv)[which(!is.na(rename_idx))] <- renaming[na.omit(rename_idx)]
+
+        # Convert some of the variables we got
+        inv <- within(inv, {
+                  init     = as.POSIXct(sprintf("%08d %04d", dataDate, dataTime),
+                                        format = "%Y%m%d %H%M", tz = "UTC");
+                  valid    = init + 3600 * step;
+                  dataDate = dataTime = NULL;
+                })
+    }
 
     # Renaming variables
-    tmp <- eupp_interpolate_grib_rename_variables(tmp)
-
-    # Convert some of the variables we got
-    tmp <- within(tmp, {
-              init     = as.POSIXct(sprintf("%08d %04d", dataDate, dataTime),
-                                    format = "%Y%m%d %H%M", utc = TRUE);
-              valid    = init + 3600 * endStep;
-              dataDate = typeOfLevel = level = dataTime = NULL;
-              perturbationNumber = numberOfForecastsInEnsemble = NULL;
-            })
+    inv <- eupp_interpolate_grib_rename_variables(inv)
 
     # Reading GRIB file; interpolate data
     data <- read_stars(file)
     attransformed <- st_transform(at, crs = st_crs(data))
+
+    # Reducing 'inv'
+    inv <- subset(inv, select = c(if (ignore_init) NULL else "init", "valid",
+                                  if (ignore_init) NULL else "step", "param"))
 
     res <- list()
     for (i in seq_len(nrow(at))) {
@@ -371,14 +421,14 @@ eupp_interpolate_grib <- function(file, at, atname = NULL, bilinear = TRUE, wide
         ip <- as.data.frame(st_extract(data, at = attransformed[i, ], bilinear = bilinear))
         names(ip)[length(ip)] <- "value"
         if (!is.null(atname) && atname %in% names(at)) ip[[atname]] <- at[[i, atname]]
-        res[[1]] <- cbind(tmp, ip[, c("geometry", "value",
-                          if (!is.null(atname) && atname %in% ip) atname else NULL)])
+        res[[i]] <- cbind(inv, ip[, c("geometry", "value",
+                          if (!is.null(atname) && atname %in% names(ip)) atname else NULL)])
     }
     res <- bind_rows(res)
 
     # Sort columns
     if (wide == TRUE) {
-        res_wide  <- as.data.frame(pivot_wider(res, names_from = "shortName", values_from = "value"))
+        res_wide  <- as.data.frame(pivot_wider(res, names_from = "param", values_from = "value"))
         main_cols <- which(names(res_wide) %in% names(res))
         res       <- res_wide[, c(names(res_wide)[main_cols], sort(names(res_wide)[-main_cols]))]
     }
@@ -389,23 +439,22 @@ eupp_interpolate_grib <- function(file, at, atname = NULL, bilinear = TRUE, wide
 
 
 eupp_interpolate_grib_rename_variables <- function(x) {
-    stopifnot(is.data.frame(x), "shortName" %in% names(x))
+    stopifnot(is.data.frame(x), "param" %in% names(x))
 
     # Vector used for renaming
     renaming <- c("2t" = "t2m",
                   "10u" = "u10m",
                   "10v" = "v10m",
                   "10fg" = "fg10m")
-    idx <- match(x$shortName, names(renaming))
-    x$shortName[!is.na(idx)] <- renaming[idx[!is.na(idx)]]
+    idx <- match(x$param, names(renaming))
+    x$param[!is.na(idx)] <- renaming[idx[!is.na(idx)]]
 
     # Renaming pressure level variables
-    idx <- grep("^isobaricInhPa$", x$typeOfLevel)
-    if (length(idx) > 0) x$shortName[idx] <- sprintf("%s%d", x$shortName[idx], x$level[idx])
+    idx <- grep("^isobaricInhPa$", x$levtype)
+    if (length(idx) > 0) x$param[idx] <- sprintf("%s%d", x$param[idx], x$level[idx])
 
     # Adding member number in case this is an ensemble data set
-    if (max(x$numberOfForecastsInEnsemble > 0))
-        x$shortName <- paste(x$shortName, x$perturbationNumber, sep = "_")
+    if ("number" %in% names(x) && !all(is.na(x$number))) x$param <- paste(x$param, x$number, sep = "_")
 
     return(x)
 }
