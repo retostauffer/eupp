@@ -11,7 +11,8 @@
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Gridded Forecasts">
+<script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
+<meta property="og:title" content="Gridded Forecasts">
 <meta property="og:description" content="eupp">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -33,7 +34,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">eupp</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0-2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1-0</span>
       </span>
     </div>
 
@@ -57,6 +58,9 @@
     </li>
     <li>
       <a href="../articles/gridded_advanced.html">Gridded advanced</a>
+    </li>
+    <li>
+      <a href="../articles/gridded_additional_functionality.html">Additional/experimental</a>
     </li>
   </ul>
 </li>
@@ -127,7 +131,7 @@
 <code>"efi"</code>": extreme forecast index data (see <a href="#hr-efi">here</a>)</li>
 </ul>
 <div class="section level3">
-<h3 id="hr-download">Specify data to be downloaded<a class="anchor" aria-label="anchor" href="#hr-download"></a>
+<h3 id="high-resolution-surface-data-specify-data">High-resolution surface data: Specify data<a class="anchor" aria-label="anchor" href="#high-resolution-surface-data-specify-data"></a>
 </h3>
 <p>Step one is to set up before starting downloading data a configuration object must be created using <code><a href="../reference/eupp_config.html">eupp_config()</a></code> which contains the specification of the data to be retrieved.</p>
 <p>In this case high-resolution forecasts initialized on three different days, only forecasts for <code>"2t"</code> (2m air temperature) and <code>"tcc"</code> (total cloud cover) including forecasts 12h ahead up to 96h ahead from initialization in a 12-hourly interval.</p>
@@ -148,180 +152,100 @@
                     steps     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">96</span>, by <span class="op">=</span> <span class="fl">12</span><span class="op">)</span>, <span class="co"># 12-hrly +12 to +96</span>
                     cache     <span class="op">=</span> <span class="st">"_cache"</span><span class="op">)</span>       <span class="co"># optional</span></code></pre></div>
 <p>The function returns an object of class <code>eupp_config</code> containing the data of interest used for downloading the data in a second step.</p>
+</div>
+<div class="section level3">
+<h3 id="high-resolution-surface-data-download-grib">High-resolution surface data: Download GRIB<a class="anchor" aria-label="anchor" href="#high-resolution-surface-data-download-grib"></a>
+</h3>
+<p>For all gridded EUPP data sets three options for downloading the data exist. <code><a href="../reference/gridded.html">eupp_download_gridded()</a></code> allows to download and store the data set on disc.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">conf</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## EUPP Config</span>
-<span class="co">##    Product:             forecast (fcs)</span>
-<span class="co">##    Level:               surface</span>
-<span class="co">##    Type:                hr</span>
-<span class="co">##    Date(s):             2018-01-01,2018-01-08,2018-01-15</span>
-<span class="co">##    Parameter:           2t, tcc</span>
-<span class="co">##    Steps:               12, 24, 36, 48, 60, 72, 84, 96</span>
-<span class="co">##    Version:             0</span>
-<span class="co">##    Cache:               _cache</span>
-<span class="co">##    Area:                not defined</span></code></pre>
+<code class="sourceCode R"><span class="fu"><a href="../reference/gridded.html">eupp_download_gridded</a></span><span class="op">(</span><span class="va">conf</span>, <span class="st">"_hr_surface.grb"</span>, <span class="st">"grib"</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="downloading-high-resolution-forecast-data">Downloading high-resolution forecast data<a class="anchor" aria-label="anchor" href="#downloading-high-resolution-forecast-data"></a>
+<h3 id="high-resolution-surface-data-interpolation">High-resolution surface data: Interpolation<a class="anchor" aria-label="anchor" href="#high-resolution-surface-data-interpolation"></a>
 </h3>
-<p>For all gridded EUPP data sets three options for downloading the data exist. <code><a href="../reference/gridded.html">eupp_download_gridded()</a></code> allows to download and store the data set on disc (GRIB version 1 or NetCDF). Alternatively the data can directly be retrieved as <code>stars</code> objects.</p>
-<p>Note that getting the data in the NetCDF format as well as retrieving the data as <code>stars</code> objects require the <a href="htltps://confluence.ecmwf.int/display/ECC">ecCodes tools</a> to be installed (namely the console tools <code>grib_set</code> and <code>grib_to_netcdf</code>).</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/gridded.html">eupp_download_gridded</a></span><span class="op">(</span><span class="va">conf</span>, <span class="st">"_test.grb"</span>, <span class="st">"grib"</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co"># GRIB</span>
-<span class="fu"><a href="../reference/gridded.html">eupp_download_gridded</a></span><span class="op">(</span><span class="va">conf</span>, <span class="st">"_test.nc"</span>,  <span class="st">"nc"</span>,   overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co"># NetCDF</span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="hr-processing">Processing high-resolution forecast gridded data<a class="anchor" aria-label="anchor" href="#hr-processing"></a>
-</h3>
-<p>For more details on point-wise interpolation and additional <code>stars</code> features please have a look at the vignette for <a href="gridded_analysis.html">Gridded Analysis</a> data. Just a series of commands for testing:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://r-spatial.github.io/sf/" class="external-link">"sf"</a></span><span class="op">)</span>
-
-<span class="co"># Create simple features data.frame; define locations</span>
 <span class="va">locations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Innsbruck"</span>, <span class="st">"Brussels"</span><span class="op">)</span>,
                         lon  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">11.39</span>, <span class="fl">4.35</span><span class="op">)</span>,
                         lat  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">47.27</span>, <span class="fl">50.85</span><span class="op">)</span><span class="op">)</span>
-<span class="va">locations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="va">locations</span>, coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lon"</span>, <span class="st">"lat"</span><span class="op">)</span><span class="op">)</span>
-
-<span class="co"># Perform bilinear interpolation; coerce to data.frame</span>
-<span class="va">interpolated</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_extract.html" class="external-link">st_extract</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">locations</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span>, atname <span class="op">=</span> <span class="st">"name"</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## [1] "geometry" "name"     "time"</span></code></pre>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">interpolated</span>, n <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## Simple feature collection with 4 features and 4 fields</span>
+<span class="op">(</span><span class="va">locations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="va">locations</span>, coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lon"</span>, <span class="st">"lat"</span><span class="op">)</span>, crs <span class="op">=</span> <span class="fl">4326</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">## Simple feature collection with 2 features and 1 field</span>
 <span class="co">## Geometry type: POINT</span>
 <span class="co">## Dimension:     XY</span>
 <span class="co">## Bounding box:  xmin: 4.35 ymin: 47.27 xmax: 11.39 ymax: 50.85</span>
-<span class="co">## CRS:           NA</span>
-<span class="co">##              geometry      name                time      t2m       tcc</span>
-<span class="co">## 1 POINT (11.39 47.27) Innsbruck 2018-01-01 12:00:00 272.0788 0.9999246</span>
-<span class="co">## 2  POINT (4.35 50.85)  Brussels 2018-01-01 12:00:00 280.7003 1.0000000</span>
-<span class="co">## 3 POINT (11.39 47.27) Innsbruck 2018-01-02 00:00:00 268.0749 0.9993638</span>
-<span class="co">## 4  POINT (4.35 50.85)  Brussels 2018-01-02 00:00:00 278.4104 0.9119369</span></code></pre>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://r-spatial.github.io/sf/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span><span class="st">"t2m"</span>, , , <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span></code></pre></div>
-<p><img src="gridded_forecasts_files/figure-html/gridded_forecast_hr_processing-1.png" width="100%"></p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://r-spatial.github.io/sf/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span><span class="st">"tcc"</span>, , , <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span></code></pre></div>
-<p><img src="gridded_forecasts_files/figure-html/gridded_forecast_hr_processing-2.png" width="100%"></p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://ggplot2.tidyverse.org" class="external-link">"ggplot2"</a></span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span> <span class="co"># Dropping eupp_stars class attribute</span>
-<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/geom_stars.html" class="external-link">geom_stars</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span><span class="op">[</span><span class="st">"t2m"</span><span class="op">]</span><span class="op">)</span></code></pre></div>
-<p><img src="gridded_forecasts_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
-<p><span class="citation">@TODO</span>: <code>ggplot() + geom_stars(data = data["q"])</code> fails when <code>data</code> is an object of class <code>c("eupp_stars", "stars")</code>. Unfortunately <code>geom_stars</code> is not an S3 method; currently there is no other way than dropping the <code>eupp_stars</code> class attribute.</p>
+<span class="co">## Geodetic CRS:  WGS 84</span>
+<span class="co">##        name            geometry</span>
+<span class="co">## 1 Innsbruck POINT (11.39 47.27)</span>
+<span class="co">## 2  Brussels  POINT (4.35 50.85)</span></code></pre>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># Perform bilinear interpolation</span>
+<span class="va">ip</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eupp_interpolate_grib.html">eupp_interpolate_grib</a></span><span class="op">(</span><span class="st">"_hr_surface.grb"</span>, at <span class="op">=</span> <span class="va">locations</span>,
+                            atname <span class="op">=</span> <span class="st">"name"</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ip</span>, n <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">##         init               valid step            geometry      name      t2m</span>
+<span class="co">## 1 2018-01-01 2018-01-01 12:00:00   12 POINT (11.39 47.27) Innsbruck 272.0790</span>
+<span class="co">## 2 2018-01-01 2018-01-02 00:00:00   24 POINT (11.39 47.27) Innsbruck 268.0749</span>
+<span class="co">## 3 2018-01-01 2018-01-02 12:00:00   36 POINT (11.39 47.27) Innsbruck 271.1871</span>
+<span class="co">## 4 2018-01-01 2018-01-03 00:00:00   48 POINT (11.39 47.27) Innsbruck 268.8150</span>
+<span class="co">##         tcc</span>
+<span class="co">## 1 0.9999246</span>
+<span class="co">## 2 0.9993639</span>
+<span class="co">## 3 0.4850400</span>
+<span class="co">## 4 0.9920589</span></code></pre>
 </div>
 <div class="section level3">
-<h3 id="hr-pressure">High-resolution pressure level forecasts<a class="anchor" aria-label="anchor" href="#hr-pressure"></a>
+<h3 id="high-resolution-pressure-level-data">High-resolution pressure level data<a class="anchor" aria-label="anchor" href="#high-resolution-pressure-level-data"></a>
 </h3>
 <p>Only minor differences to surface data. All needed to be done is to set <code>level = "pressure"</code> and specify what parameter(s) to be downloaded. Note: There is no dedicated option to specify which levels An example:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gridded.html">eupp_get_gridded</a></span><span class="op">(</span><span class="fu"><a href="../reference/eupp_config.html">eupp_config</a></span><span class="op">(</span><span class="st">"forecast"</span>, <span class="st">"pressure"</span>, <span class="st">"hr"</span>, date <span class="op">=</span> <span class="st">"2017-01-01"</span>, steps <span class="op">=</span> <span class="fl">12</span><span class="op">)</span><span class="op">)</span>
-<span class="op">(</span><span class="va">interpolated</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_extract.html" class="external-link">st_extract</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">locations</span>, bilinear <span class="op">=</span> <span class="cn">FALSE</span>, atname <span class="op">=</span> <span class="st">"name"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## [1] "geometry" "name"</span></code></pre>
-<pre><code><span class="co">## Simple feature collection with 6 features and 8 fields</span>
-<span class="co">## Geometry type: POINT</span>
-<span class="co">## Dimension:     XY</span>
-<span class="co">## Bounding box:  xmin: 4.35 ymin: 47.27 xmax: 11.39 ymax: 50.85</span>
-<span class="co">## CRS:           NA</span>
-<span class="co">##              geometry      name level                    q            r</span>
-<span class="co">## 1 POINT (11.39 47.27) Innsbruck   500           NA [kg/kg]       NA [%]</span>
-<span class="co">## 2  POINT (4.35 50.85)  Brussels   500           NA [kg/kg]       NA [%]</span>
-<span class="co">## 3 POINT (11.39 47.27) Innsbruck   850           NA [kg/kg] 23.69588 [%]</span>
-<span class="co">## 4  POINT (4.35 50.85)  Brussels   850           NA [kg/kg] 61.88552 [%]</span>
-<span class="co">## 5 POINT (11.39 47.27) Innsbruck   700 0.0005400244 [kg/kg]       NA [%]</span>
-<span class="co">## 6  POINT (4.35 50.85)  Brussels   700 0.0008634388 [kg/kg]       NA [%]</span>
-<span class="co">##              t               u              v                  z</span>
-<span class="co">## 1       NA [K]        NA [m/s]       NA [m/s] 55094.68 [m^2/s^2]</span>
-<span class="co">## 2       NA [K]        NA [m/s]       NA [m/s] 54437.81 [m^2/s^2]</span>
-<span class="co">## 3 276.5584 [K]        NA [m/s]       NA [m/s]       NA [m^2/s^2]</span>
-<span class="co">## 4 272.9979 [K]        NA [m/s]       NA [m/s]       NA [m^2/s^2]</span>
-<span class="co">## 5       NA [K]  5.628381 [m/s] 1.218196 [m/s]       NA [m^2/s^2]</span>
-<span class="co">## 6       NA [K] 17.153917 [m/s] 8.494900 [m/s]       NA [m^2/s^2]</span></code></pre>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://ggplot2.tidyverse.org" class="external-link">"ggplot2"</a></span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>
-<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/geom_stars.html" class="external-link">geom_stars</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span><span class="op">[</span><span class="st">"q"</span><span class="op">]</span><span class="op">)</span></code></pre></div>
-<p><img src="gridded_forecasts_files/figure-html/gridded_forecast_hr_pressure-1.png" width="80%"></p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">conf</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eupp_config.html">eupp_config</a></span><span class="op">(</span><span class="st">"forecast"</span>, <span class="st">"pressure"</span>, <span class="st">"hr"</span>,
+                    date <span class="op">=</span> <span class="st">"2017-01-01"</span>,
+                    steps <span class="op">=</span> <span class="fl">12</span>,
+                    cache <span class="op">=</span> <span class="st">"_cache"</span><span class="op">)</span>
+
+<span class="fu"><a href="../reference/gridded.html">eupp_download_gridded</a></span><span class="op">(</span><span class="va">conf</span>, <span class="st">"_hr_pressure.grb"</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+
+<span class="va">ip</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eupp_interpolate_grib.html">eupp_interpolate_grib</a></span><span class="op">(</span><span class="st">"_hr_pressure.grb"</span>, at <span class="op">=</span> <span class="va">locations</span>,
+                            atname <span class="op">=</span> <span class="st">"name"</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ip</span>, n <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">##         init               valid step            geometry      name</span>
+<span class="co">## 1 2017-01-01 2017-01-01 12:00:00   12 POINT (11.39 47.27) Innsbruck</span>
+<span class="co">## 2 2017-01-01 2017-01-01 12:00:00   12  POINT (4.35 50.85)  Brussels</span>
+<span class="co">##              q        r          t         u        v        z</span>
+<span class="co">## 1 0.0005279290 23.08446  3.3570776  5.969585 1.172727 55090.82</span>
+<span class="co">## 2 0.0008119335 65.09030 -0.4883301 17.474424 8.399610 54418.85</span></code></pre>
 </div>
 <div class="section level3">
-<h3 id="hr-efi">High-resolution efi forecasts<a class="anchor" aria-label="anchor" href="#hr-efi"></a>
+<h3 id="high-resolution-extreme-forecast-index">High-resolution extreme forecast index<a class="anchor" aria-label="anchor" href="#high-resolution-extreme-forecast-index"></a>
 </h3>
 <p>The extreme forecast index is a second-level product derived from the entire atmosphere of all ensemble forecasts projected to a 2D plane. Thus, there are no members or dedicated levels and only available aggregated over 24 hour time periods available at 00 UTC (e.g., +0-24 hours ahead, +24-48 hours ahead, …).</p>
 <p>To get the data simply ask for <code>level = "efi"</code> (here not declaring <code>steps</code> to get all available forecast steps).</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gridded.html">eupp_get_gridded</a></span><span class="op">(</span><span class="fu"><a href="../reference/eupp_config.html">eupp_config</a></span><span class="op">(</span><span class="st">"forecast"</span>, <span class="st">"efi"</span>, date <span class="op">=</span> <span class="st">"2017-01-01"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## Warning: ignoring unrecognized unit: (-1 to 1)</span>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">conf</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eupp_config.html">eupp_config</a></span><span class="op">(</span><span class="st">"forecast"</span>, <span class="st">"efi"</span>,
+                    date <span class="op">=</span> <span class="st">"2017-01-01"</span>,
+                    cache <span class="op">=</span> <span class="st">"_cache"</span><span class="op">)</span>
 
-<span class="co">## Warning: ignoring unrecognized unit: (-1 to 1)</span>
+<span class="fu"><a href="../reference/gridded.html">eupp_download_gridded</a></span><span class="op">(</span><span class="va">conf</span>, <span class="st">"_hr_efi.grb"</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
 
-<span class="co">## Warning: ignoring unrecognized unit: (-1 to 1)</span>
-
-<span class="co">## Warning: ignoring unrecognized unit: (-1 to 1)</span>
-
-<span class="co">## Warning: ignoring unrecognized unit: (-1 to 1)</span>
-
-<span class="co">## Warning: ignoring unrecognized unit: (-1 to 1)</span>
-
-<span class="co">## Warning: ignoring unrecognized unit: (-1 to 1)</span>
-
-<span class="co">## Warning: ignoring unrecognized unit: (-1 to 1)</span>
-
-<span class="co">## Warning: ignoring unrecognized unit: (-1 to 1)</span>
-
-<span class="co">## Warning: ignoring unrecognized unit: (-1 to 1)</span>
-
-<span class="co">## Warning: ignoring unrecognized unit: (-1 to 1)</span>
-
-<span class="co">## Warning: ignoring unrecognized unit: (-1 to 1)</span>
-
-<span class="co">## Warning: ignoring unrecognized unit: (-1 to 1)</span>
-
-<span class="co">## Warning: ignoring unrecognized unit: (-1 to 1)</span>
-
-<span class="co">## Warning: ignoring unrecognized unit: (-1 to 1)</span>
-
-<span class="co">## Warning: ignoring unrecognized unit: (-1 to 1)</span>
-
-<span class="co">## Warning: ignoring unrecognized unit: (-1 to 1)</span>
-
-<span class="co">## Warning: ignoring unrecognized unit: (-1 to 1)</span></code></pre>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="op">(</span><span class="va">interpolated</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_extract.html" class="external-link">st_extract</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">locations</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span>, atname <span class="op">=</span> <span class="st">"name"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## [1] "geometry" "name"     "time"</span></code></pre>
-<pre><code><span class="co">## Simple feature collection with 16 features and 11 fields</span>
-<span class="co">## Geometry type: POINT</span>
-<span class="co">## Dimension:     XY</span>
-<span class="co">## Bounding box:  xmin: 4.35 ymin: 47.27 xmax: 11.39 ymax: 50.85</span>
-<span class="co">## CRS:           NA</span>
-<span class="co">## First 10 features:</span>
-<span class="co">##               geometry      name       time       capei      capesi       fg10i</span>
-<span class="co">## 1  POINT (11.39 47.27) Innsbruck 2017-01-01 -0.11625929 -0.11622128 -0.58084944</span>
-<span class="co">## 2   POINT (4.35 50.85)  Brussels 2017-01-01 -0.01218530  0.07525691 -0.05745425</span>
-<span class="co">## 3  POINT (11.39 47.27) Innsbruck 2017-01-02  0.16136725  0.06905720  0.04799235</span>
-<span class="co">## 4   POINT (4.35 50.85)  Brussels 2017-01-02 -0.08310471 -0.06680650 -0.35677441</span>
-<span class="co">## 5  POINT (11.39 47.27) Innsbruck 2017-01-03 -0.08273903 -0.07480952 -0.10857750</span>
-<span class="co">## 6   POINT (4.35 50.85)  Brussels 2017-01-03 -0.11140205 -0.10768640 -0.04009892</span>
-<span class="co">## 7  POINT (11.39 47.27) Innsbruck 2017-01-04  0.24115647  0.40137295  0.78658325</span>
-<span class="co">## 8   POINT (4.35 50.85)  Brussels 2017-01-04  0.11511038  0.33233242  0.01752704</span>
-<span class="co">## 9  POINT (11.39 47.27) Innsbruck 2017-01-05  0.24662551  0.49303108  0.75678789</span>
-<span class="co">## 10  POINT (4.35 50.85)  Brussels 2017-01-05 -0.01188326  0.05210840 -0.57510267</span>
-<span class="co">##          mn2ti         mx2ti         sfi          t2i         tpi        ws10i</span>
-<span class="co">## 1  -0.27372133  0.5849355428 -0.32021837 -0.195341251 -0.35007840  0.213867637</span>
-<span class="co">## 2  -0.52711511 -0.6221866918 -0.02462238 -0.474213182 -0.08674747  0.066255309</span>
-<span class="co">## 3  -0.27840093  0.2082350380  0.23275358 -0.065455943  0.22819519  0.163088005</span>
-<span class="co">## 4  -0.19676517 -0.1445881569  0.08629223 -0.239330711  0.04092637 -0.478448055</span>
-<span class="co">## 5  -0.34480275 -0.3676002937 -0.15927921 -0.372716732 -0.15963855 -0.002704836</span>
-<span class="co">## 6  -0.27112284 -0.2751224411 -0.05746337 -0.187196028 -0.38754746  0.041679025</span>
-<span class="co">## 7  -0.35587177 -0.2228219780  0.62575412 -0.049120400  0.61458122  0.418038869</span>
-<span class="co">## 8   0.03890685  0.0008136749 -0.05374296  0.001954555  0.03933500 -0.034601661</span>
-<span class="co">## 9  -0.31246389 -0.5759661138  0.58409549 -0.430267468  0.57384499  0.448763186</span>
-<span class="co">## 10 -0.30765197 -0.1413518608 -0.04779992 -0.290793923 -0.33371882 -0.566707666</span></code></pre>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://ggplot2.tidyverse.org" class="external-link">"ggplot2"</a></span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>
-<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/geom_stars.html" class="external-link">geom_stars</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span><span class="op">[</span><span class="st">"t2i"</span><span class="op">]</span><span class="op">)</span></code></pre></div>
-<p><img src="gridded_forecasts_files/figure-html/gridded_forecast_efi-1.png" width="80%"></p>
+<span class="va">ip</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eupp_interpolate_grib.html">eupp_interpolate_grib</a></span><span class="op">(</span><span class="st">"_hr_efi.grb"</span>, at <span class="op">=</span> <span class="va">locations</span>,
+                            atname <span class="op">=</span> <span class="st">"name"</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ip</span>, n <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">##         init      valid step            geometry      name       10fgi</span>
+<span class="co">## 1 2017-01-01 2017-01-02   24 POINT (11.39 47.27) Innsbruck -0.58085050</span>
+<span class="co">## 2 2017-01-01 2017-01-03   48 POINT (11.39 47.27) Innsbruck  0.04798761</span>
+<span class="co">## 3 2017-01-01 2017-01-04   72 POINT (11.39 47.27) Innsbruck -0.10858473</span>
+<span class="co">## 4 2017-01-01 2017-01-05   96 POINT (11.39 47.27) Innsbruck  0.78658304</span>
+<span class="co">##          10wsi         2ti      capei      capesi      mn2ti      mx2ti</span>
+<span class="co">## 1  0.213873457 -0.19533997 -0.1162598 -0.11621945 -0.2737228  0.5849332</span>
+<span class="co">## 2  0.163098398 -0.06546370  0.1613665  0.06906206 -0.2784112  0.2082384</span>
+<span class="co">## 3 -0.002705297 -0.37272246 -0.0827419 -0.07480878 -0.3448112 -0.3676042</span>
+<span class="co">## 4  0.418040832 -0.04911289  0.2411626  0.40136954 -0.3558778 -0.2228272</span>
+<span class="co">##          sfi        tpi</span>
+<span class="co">## 1 -0.3202264 -0.3500732</span>
+<span class="co">## 2  0.2327614  0.2281908</span>
+<span class="co">## 3 -0.1592759 -0.1596311</span>
+<span class="co">## 4  0.6257481  0.6145747</span></code></pre>
+<p>Note that not all parameters are available for all forecast steps (mainly for the very long range horizonts).</p>
 </div>
 </div>
 <div class="section level2">
@@ -335,12 +259,12 @@
 <li>If nothing is specified (<code>members = NULL</code>), the control run plus all available ensemble members will be downloaded/processed.</li>
 </ul>
 <div class="section level3">
-<h3 id="specify-data-to-be-downloaded">Specify data to be downloaded<a class="anchor" aria-label="anchor" href="#specify-data-to-be-downloaded"></a>
+<h3 id="ensemble-surface-data">Ensemble surface data<a class="anchor" aria-label="anchor" href="#ensemble-surface-data"></a>
 </h3>
 <p>As always, <code><a href="../reference/eupp_config.html">eupp_config()</a></code> has to be called to specify what should be processed in the next step.</p>
 <p>In this case ensemble forecasts initialized on three separate days (00 UTC) for one single forecast parameter (<code>"cp"</code> = convective precipitation; <code>"surface"</code> variable) valid at a forecast horizon of +120 hours.</p>
 <p>In addition, <code>members = 0:3</code> defines to only download gridded data for the control run (<code>0</code>) and the first three perturbations.</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># Loading the package</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://retostauffer.github.io/eupp/" class="external-link">"eupp"</a></span><span class="op">)</span>
 
@@ -350,70 +274,78 @@
                     type      <span class="op">=</span> <span class="st">"ens"</span>,          <span class="co"># high-resolution forecast run</span>
                     date      <span class="op">=</span> <span class="st">"2017-01-02"</span>,   <span class="co"># dates</span>
                     parameter <span class="op">=</span> <span class="st">"cp"</span>,           <span class="co"># one parameter</span>
-                    steps     <span class="op">=</span> <span class="fl">120</span>,            <span class="co"># only +10 days forecast</span>
+                    steps     <span class="op">=</span> <span class="fl">72</span><span class="op">:</span><span class="fl">120</span>,         <span class="co"># All available in this range</span>
                     members   <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">3</span>,            <span class="co"># control run + members 1, 2, 3</span>
+                    cache     <span class="op">=</span> <span class="st">"_cache"</span><span class="op">)</span>       <span class="co"># optional</span></code></pre></div>
+<p>Once the configuration object has been created we can download the data.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="../reference/gridded.html">eupp_download_gridded</a></span><span class="op">(</span><span class="va">conf</span>, <span class="st">"_ens_surface.grb"</span>, <span class="st">"grib"</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
+<p>Last but not least interpolate the data using <code><a href="../reference/eupp_interpolate_grib.html">eupp_interpolate_grib()</a></code>. Note that, as we have ensemble forecasts, there are multiple forecast members for the same date/time and parameter. This will be reflected by the adjusted parameter names. <code>_[0-9]+$</code> at the end indicates the different members.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ip</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eupp_interpolate_grib.html">eupp_interpolate_grib</a></span><span class="op">(</span><span class="st">"_ens_surface.grb"</span>, at <span class="op">=</span> <span class="va">locations</span>,
+                            atname <span class="op">=</span> <span class="st">"name"</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ip</span>, n <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">##         init               valid step            geometry      name        cp_0</span>
+<span class="co">## 1 2017-01-02 2017-01-05 00:00:00   72 POINT (11.39 47.27) Innsbruck 0.008316959</span>
+<span class="co">## 2 2017-01-02 2017-01-05 01:00:00   73 POINT (11.39 47.27) Innsbruck 0.008893568</span>
+<span class="co">##          cp_1        cp_2        cp_3</span>
+<span class="co">## 1 0.007015520 0.005409689 0.008623788</span>
+<span class="co">## 2 0.008198328 0.005471552 0.009501466</span></code></pre>
+<p>The same is true when using the long format except .. its the long format.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ip2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eupp_interpolate_grib.html">eupp_interpolate_grib</a></span><span class="op">(</span><span class="st">"_ens_surface.grb"</span>, at <span class="op">=</span> <span class="va">locations</span>,
+                             atname <span class="op">=</span> <span class="st">"name"</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span>,
+                             wide <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ip2</span>, n <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">##                                                      path domain levtype</span>
+<span class="co">## 1 data/fcs/surf/EU_forecast_ctr_surf_params_2017-01_0.grb      g     sfc</span>
+<span class="co">## 2 data/fcs/surf/EU_forecast_ctr_surf_params_2017-01_0.grb      g     sfc</span>
+<span class="co">## 3 data/fcs/surf/EU_forecast_ctr_surf_params_2017-01_0.grb      g     sfc</span>
+<span class="co">##   step_char param class type stream expver leg_number    offset length param_id</span>
+<span class="co">## 1        72  cp_0    od   cf   enfo   0001          1 100322160  23412      143</span>
+<span class="co">## 2        73  cp_0    od   cf   enfo   0001          1 100829280  23412      143</span>
+<span class="co">## 3        74  cp_0    od   cf   enfo   0001          1 101336520  23412      143</span>
+<span class="co">##   number       init step               valid            geometry       value</span>
+<span class="co">## 1      0 2017-01-02   72 2017-01-05 00:00:00 POINT (11.39 47.27) 0.008316959</span>
+<span class="co">## 2      0 2017-01-02   73 2017-01-05 01:00:00 POINT (11.39 47.27) 0.008893568</span>
+<span class="co">## 3      0 2017-01-02   74 2017-01-05 02:00:00 POINT (11.39 47.27) 0.009543260</span>
+<span class="co">##        name</span>
+<span class="co">## 1 Innsbruck</span>
+<span class="co">## 2 Innsbruck</span>
+<span class="co">## 3 Innsbruck</span></code></pre>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://ggplot2.tidyverse.org" class="external-link">"ggplot2"</a></span><span class="op">)</span>
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">ip2</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">valid</span>, y <span class="op">=</span> <span class="va">value</span>, color <span class="op">=</span> <span class="va">param</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="st">"name"</span><span class="op">)</span></code></pre></div>
+<p><img src="gridded_forecasts_files/figure-html/ens_surface_lineplot-1.png" width="100%"></p>
+<p><span class="citation">@TODO</span>: Still cumulated!</p>
+</div>
+<div class="section level3">
+<h3 id="ensemble-pressure-level-data">Ensemble pressure level data<a class="anchor" aria-label="anchor" href="#ensemble-pressure-level-data"></a>
+</h3>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># Create custom configuration</span>
+<span class="va">conf</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eupp_config.html">eupp_config</a></span><span class="op">(</span>product   <span class="op">=</span> <span class="st">"forecast"</span>,
+                    level     <span class="op">=</span> <span class="st">"pressure"</span>,
+                    type      <span class="op">=</span> <span class="st">"ens"</span>,          <span class="co"># high-resolution forecast run</span>
+                    date      <span class="op">=</span> <span class="st">"2017-01-02"</span>,   <span class="co"># dates</span>
+                    steps     <span class="op">=</span> <span class="fl">72</span>,             <span class="co"># Only forecast step 72</span>
+                    members   <span class="op">=</span> <span class="fl">10</span><span class="op">:</span><span class="fl">11</span>,          <span class="co"># control run + members 10 and 11</span>
                     cache     <span class="op">=</span> <span class="st">"_cache"</span><span class="op">)</span>       <span class="co"># optional</span>
 
-<span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">conf</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## EUPP Config</span>
-<span class="co">##    Product:             forecast (fcs)</span>
-<span class="co">##    Level:               surface</span>
-<span class="co">##    Type:                ens</span>
-<span class="co">##    Date(s):             2017-01-02</span>
-<span class="co">##    Parameter:           cp</span>
-<span class="co">##    Steps:               120</span>
-<span class="co">##    Members:             0, 1, 2, 3</span>
-<span class="co">##    Version:             0</span>
-<span class="co">##    Cache:               _cache</span>
-<span class="co">##    Area:                not defined</span></code></pre>
-</div>
-<div class="section level3">
-<h3 id="ens-download">Downloading ensemble forecast data<a class="anchor" aria-label="anchor" href="#ens-download"></a>
-</h3>
-<p>Once the configuration object has been created we can download the data. For more details see section <a href="#hr-download">“Downloading high-resolution forecast data”</a> and/or the corresponding section in “<a href="gridded_analysis.html#download">Analysis Data</a>”.</p>
-<p>Note that this, again, requires <a href="htltps://confluence.ecmwf.int/display/ECC">ecCodes tools</a> to be installed (namely <code>grib_set</code> and <code>grib_to_netcdf</code>).</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/gridded.html">eupp_download_gridded</a></span><span class="op">(</span><span class="va">conf</span>, <span class="st">"_test.grb"</span>, <span class="st">"grib"</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co"># GRIB</span>
-<span class="fu"><a href="../reference/gridded.html">eupp_download_gridded</a></span><span class="op">(</span><span class="va">conf</span>, <span class="st">"_test.nc"</span>,  <span class="st">"nc"</span>,   overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co"># NetCDF</span>
-<span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gridded.html">eupp_get_gridded</a></span><span class="op">(</span><span class="va">conf</span><span class="op">)</span>                                     <span class="co"># stars</span>
+<span class="va">k</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gridded.html">eupp_download_gridded</a></span><span class="op">(</span><span class="va">conf</span>, <span class="st">"_ens_pressure.grb"</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
 
-<span class="op">(</span><span class="va">test</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_extract.html" class="external-link">st_extract</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">locations</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="ens-processing">Processing ensemble-forecast gridded data<a class="anchor" aria-label="anchor" href="#ens-processing"></a>
-</h3>
-<p>For more details on point-wise interpolation and additional <code>stars</code> features please have a look at the vignette for “<a href="gridded_analysis.html#interpolate">Interpolating analysis data</a>”. One of the main differnces: The member number (or perturbation number) will be added to the variable name.</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://r-spatial.github.io/sf/" class="external-link">"sf"</a></span><span class="op">)</span>
-
-<span class="co"># Create simple features data.frame; define locations</span>
-<span class="va">locations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Innsbruck"</span>, <span class="st">"Brussels"</span><span class="op">)</span>,
-                        lon  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">11.39</span>, <span class="fl">4.35</span><span class="op">)</span>,
-                        lat  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">47.27</span>, <span class="fl">50.85</span><span class="op">)</span><span class="op">)</span>
-<span class="va">locations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="va">locations</span>, coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lon"</span>, <span class="st">"lat"</span><span class="op">)</span><span class="op">)</span>
-
-<span class="co"># Perform bilinear interpolation; coerce to data.frame</span>
-<span class="op">(</span><span class="va">interpolated</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_extract.html" class="external-link">st_extract</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">locations</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span>, atname <span class="op">=</span> <span class="st">"name"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## [1] "geometry" "name"</span></code></pre>
-<pre><code><span class="co">## Simple feature collection with 8 features and 3 fields</span>
-<span class="co">## Geometry type: POINT</span>
-<span class="co">## Dimension:     XY</span>
-<span class="co">## Bounding box:  xmin: 4.35 ymin: 47.27 xmax: 11.39 ymax: 50.85</span>
-<span class="co">## CRS:           NA</span>
-<span class="co">##              geometry      name           cp number</span>
-<span class="co">## 1 POINT (11.39 47.27) Innsbruck 0.0127980483      0</span>
-<span class="co">## 2  POINT (4.35 50.85)  Brussels 0.0006607978      0</span>
-<span class="co">## 3 POINT (11.39 47.27) Innsbruck 0.0144467867      1</span>
-<span class="co">## 4  POINT (4.35 50.85)  Brussels 0.0006633455      1</span>
-<span class="co">## 5 POINT (11.39 47.27) Innsbruck 0.0101020393      2</span>
-<span class="co">## 6  POINT (4.35 50.85)  Brussels 0.0012705595      2</span>
-<span class="co">## 7 POINT (11.39 47.27) Innsbruck 0.0124035042      3</span>
-<span class="co">## 8  POINT (4.35 50.85)  Brussels 0.0022567635      3</span></code></pre>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://ggplot2.tidyverse.org" class="external-link">"ggplot2"</a></span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>
-<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/geom_stars.html" class="external-link">geom_stars</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span><span class="op">[</span><span class="st">"cp"</span>, , , <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span></code></pre></div>
-<p><img src="gridded_forecasts_files/figure-html/gridded_forecast_ens_processing-1.png" width="100%"></p>
+<span class="op">(</span><span class="va">ip</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eupp_interpolate_grib.html">eupp_interpolate_grib</a></span><span class="op">(</span><span class="st">"_ens_pressure.grb"</span>, at <span class="op">=</span> <span class="va">locations</span>,
+                             atname <span class="op">=</span> <span class="st">"name"</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">##         init      valid step            geometry      name         q_10</span>
+<span class="co">## 1 2017-01-02 2017-01-05   72 POINT (11.39 47.27) Innsbruck 0.0009742035</span>
+<span class="co">## 2 2017-01-02 2017-01-05   72  POINT (4.35 50.85)  Brussels 0.0001702941</span>
+<span class="co">##           q_11     r_10     r_11      t_10      t_11     u_10     u_11</span>
+<span class="co">## 1 0.0009548127 76.86321 78.65487 -6.712624 -7.672577 12.63447 8.890619</span>
+<span class="co">## 2 0.0004525649 65.38835 80.57696 -5.680254 -7.426374  4.07327 2.303921</span>
+<span class="co">##        v_10      v_11    z_10     z_11</span>
+<span class="co">## 1 -18.64791 -15.21143 52329.6 52124.89</span>
+<span class="co">## 2 -23.63264 -24.68889 54332.4 54019.57</span></code></pre>
 </div>
 </div>
   </div>

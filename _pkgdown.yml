@@ -14,6 +14,8 @@ navbar:
             href: articles/gridded_forecasts.html
           - text: "Gridded advanced"
             href: articles/gridded_advanced.html
+          - text: "Additional/experimental"
+            href: articles/gridded_additional_functionality.html
         - text: "Station data"
           menu:
           - text: "Getting started"

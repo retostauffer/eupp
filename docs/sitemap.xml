@@ -13,6 +13,9 @@
     <loc>http://localhost/articles/gridded.html</loc>
   </url>
   <url>
+    <loc>http://localhost/articles/gridded_additional_functionality.html</loc>
+  </url>
+  <url>
     <loc>http://localhost/articles/gridded_advanced.html</loc>
   </url>
   <url>
@@ -64,6 +67,9 @@
     <loc>http://localhost/reference/eupp_get_url_config.html</loc>
   </url>
   <url>
+    <loc>http://localhost/reference/eupp_interpolate_grib.html</loc>
+  </url>
+  <url>
     <loc>http://localhost/reference/eupp_stars.html</loc>
   </url>
   <url>
@@ -71,5 +77,8 @@
   </url>
   <url>
     <loc>http://localhost/reference/index.html</loc>
+  </url>
+  <url>
+    <loc>http://localhost/reference/sf_append_atname_if_possible.html</loc>
   </url>
 </urlset>

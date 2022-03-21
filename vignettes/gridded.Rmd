@@ -39,7 +39,7 @@ data.
 ## Underlying concept {#gridded-concept}
 
 The data set has been designed and prepared by colleagues at the
-[RMI](https://climdyn.meteo.be/) in Brussles (part of part of the R&D Department
+[RMI](https://climdyn.meteo.be/) in Brussels (part of part of the R&D Department
 of the Royal Meteorological Institute of Belgium).  The gridded data set
 consists of different [ECMWF](https://www.ecmwf.int) products (see
 [LICENSE](https://github.com/retostauffer/eupp/blob/main/DATA_LICENSE)) with
@@ -104,31 +104,24 @@ conf <- eupp_config(product   = "forecast",
                     cache     = "_cache")     # optional; caching grib index
 ```
 
-## Get full file URL
+## Getting inventory {#gridded-inventory}
 
-If you are interested where the data is stored, you can make use of the
-function `eupp_get_source_urls()`. Typically not required to be called by an end-user.
-
-```{r}
-urls <- eupp_get_source_urls(conf)                           # GRIB file
-urls <- eupp_get_source_urls(conf, fileext = "index")        # GRIB index/inventory
-```
-
-## Getting GRIB inventory
-
-Given the configuration object `conf` from above, we can now retrieve the GRIB
-inventory which matches our requirements.
+Typically not done by the end-user but handy to see what messages will be downloaded
+or to have a look at available messages before downloading the data itself is to look
+at the GRIB inventory.
 
 ```{r}
 inv <- eupp_get_inventory(conf)
+head(inv)
 dim(inv)
-head(inv, n = 3)
 ```
 
-As we have set `cache` when calling `eupp_config()` the GRIB index file is
-stored locally. If the same index file is required once again the loading times
-should be much faster as the cached file is reused. Not required but may save
-some time in certain situations.
+In this case the configuration (`conf`) defines a set of `r nrow(inv)` messages to
+be processed/downloaded. To see what messages are available, one can simply set up
+a configuration for a specific `product`/`level`/`type`/`date` but not specifying
+`steps` or `parameters`. This will return the full inventory with all available
+parameters and steps.
+
 
 
 ## Getting data: GRIB format {#gridded-download-grib}
@@ -143,137 +136,79 @@ to download the requires messages. All messages matching the configuration will 
 in one single file specified by `output_file` (GRIB version 1 file format).
 
 ```{r}
-eupp_download_gridded(conf, output_file = "_test.grb", output_format = "grib", overwrite = TRUE)
+eupp_download_gridded(conf, output_file = "_test.grb", overwrite = TRUE)
 ```
 
-## Getting data: NetCDF format {#gridded-download-netcdf}
+Alongside with the GRIB vile (`"_test.grb"`) an `.rds` file `"_test.grb.rds"` will
+be stored containing the GRIB inventory (meta information about the fields). Whilst
+not really required this allows to interpolate the GRIB files without the need
+to have [ecCodes][ecCodes] to be installed (see next section).
 
-Alternatively, the function allows to specify `output_format = "nc"` to store
-the data in the NetCDF file format. The procedure is, in large parts, similar
-to retrieving the data in GRIB format (see above). The function first downloads
-and stores the data in a temporary GRIB file before calling
-[`grib_to_netcdf`](https://confluence.ecmwf.int/display/ECC/grib_to_netcdf); a console
-tool provided by ECMWFs [ecCodes](https://confluence.ecmwf.int/display/ECC/ecCodes+Home).
+## Interpolate GRIB files
 
-There seem to be ways to use `ecCodes` under Windows, see
-[here](https://github.com/nawendt/gribr#windows-install-options) or
-[here](https://www.ecmwf.int/en/newsletter/159/news/eccodes-and-magics-available-under-windows).
+The _eupp_ package allows to interpolate GRIB data directly. Commonly this is done
+using additional libraries which are able to read the GRIB meta information (index)
+such as the [ecCodes][ecCodes].
 
-`grib_to_netcdf` is called with option `-k 3` resulting in a file with the
-'netCDF-4 file format'.  Can be changed by adjusting the argument `netcdf_kind`
-(default `3`, see `grib_to_netcdf` documentation).
-Note that the conversion from GRIB to NetCDF adjusts the
-variable names if needed (e.g., `2t` gets `t2m`).
+[`stars`][stars] can also read GRIB files directly (via [`rgdal`][rgdal]), it does,
+however, not return this meta information. `eupp_interpolate_gridded()` thus does
+the following:
+
+* Checks if the `.rds` file exists alongside the GRIB file to be interpolated (see previous section).
+  Uses this information to perform interpolation (does not require [ecCodes][ecCodes]).
+* If the `.rds` does not exist, `grib_ls` ([ecCodes][ecCodes]) is called to create
+  the inventory/index from the GRIB file.
+
+Currently, `eupp_interpolate_gridded()` only allows to interpolate one or multiple
+points (`POINT` features). The interpolation is performed via [`stars`][stars] before
+being manipulated and brought to a 'more usable' form.
+
+##### Point locations
+
+First an `sf` object containing the target locations has to be created. Only point
+locations are allowed and the object must have a valid coordinate reference system (CRS).
 
 ```{r}
-eupp_download_gridded(conf, output_file = "_test.nc", output_format = "nc", overwrite = TRUE)
-```
-
-These files can later be processed with the packages/software of your choice
-(e.g., via [`ncdf4`][netcdf4],
-[`stars`][stars], CDS, ...).
-Some examples how to proceed from here ...
-
-##### Reading data using `ncdf4`
-
-```{r}
-library("ncdf4")
-nc <- nc_open("_test.nc")
-nc
-```
-
-##### Reading data using `stars`
-
-```{r demo_read_stars, eval = FALSE}
-library("stars")
-x <- read_stars("_test.nc")
-```
-
-```{r demo_read_stars_hidden, include = FALSE}
-library("stars")
-x <- read_stars("_test.nc")
-```
-
-```{r gridded_demoplot_stars, fig = TRUE, fig.width = 10, fig.height = 5, out.width = "100%"}
-print(x)
-dim(x)
-names(x)
-st_get_dimension_values(x, "time") # date/time when valid
-
-# Plotting 2m dry air temperature
-plot(x["t2m"],
-     main   = "t2m",
-     col    = hcl.colors(21, "Blue-Red 2", rev = TRUE),
-     breaks = seq(min(x$t2m, na.rm = TRUE), max(x$t2m, na.rm = TRUE), length = 22))
-
-# Plotting convective precipitation (mm)
-bk <- unique(quantile(x[["cp"]], p = seq(0, 1, by = 0.05)))
-plot(x["cp"] * 1e3,
-     main   = "cp",
-     col    = hcl.colors(length(bk) - 1, "Purple-Yellow", rev = TRUE),
-     breaks = bk * 1e3)
-```
-
-An alternative way to visualize the data using [`ggplot2`](https://cran.r-project.org/package=ggplot2),
-[`colorspace`](https://cran.r-project.org/package=colorspace) and 
-[`sf`](https://cran.r-project.org/package=sf) as well as 
-[`rnaturalearth`](https://cran.r-project.org/package=rnaturalearth) for outlines:
-```
-
-
-```{r gridded_demoplot_ggplot, fig = TRUE, fig.width = 10, fig.height = 7, out.width = "60%", fig.align = "center"}
 library("sf")
-library("ggplot2")
-library("colorspace")
-library("rnaturalearth")
-
-ne <- ne_countries(continent = "europe", returnclass = "sf")
-st_crs(x) <- st_crs(ne)
-
-# Plotting convective precipitation; member number 10.
-# x["cp",,,number_idx,] is subsetting the stars object.
-number_idx <- which(st_get_dimension_values(x, "number") == 10)
-ggplot() + geom_stars(data = x["cp",,,number_idx,] * 1e3) +
-           facet_wrap("time") +
-           scale_fill_continuous_sequential("Purple-Yellow") +
-           geom_sf(data = ne, fill = "transparent") +
-           coord_sf(xlim = c(-6, 17), ylim = c(36, 67), expand = FALSE)
+locations <- data.frame(name = c("Innsbruck", "Brussels"),
+                        lon  = c(11.39, 4.35),
+                        lat  = c(47.27, 50.85))
+(locations <- st_as_sf(locations, coords = c("lon", "lat"), crs = 4326))
 ```
 
-```{r demoplot_ggplot_lambert, fig = TRUE, fig.width = 10, fig.height = 7, out.width = "80%", fig.align = "center"}
-# CRS ESRI:102014: Europe_Lambert_Conformal_Conic projection
-# Hardcoded x/y-limits added; limit to southern Europe.
-tmp <- st_transform(x, crs = st_crs("ESRI:102014"))
-ggplot() + geom_stars(data = tmp["t2m",,,1,2]) +
-           scale_fill_continuous_sequential("Red-Yellow") +
-           geom_sf(data = ne, fill = "transparent") +
-           coord_sf(xlim = c(-1.2e6, 6e5), ylim = c(7e5, 2e6), expand = TRUE)
+Once available, the GRIB file can be interpolated.
+
+```{r}
+ip <- eupp_interpolate_grib("_test.grb", at = locations,
+                            atname = "name", bilinear = TRUE)
 ```
 
-## Getting data: `stars` {#gridded-get-stars}
+The warnings come from `readGDAL()` ([`rgdal`][rgdal]) and can be ignored
+at this point. By default, a wide-format is returned, but a long format
+can be retrieved if needed.
 
-As an alternative the package allows to directly retrieve the data as a [`stars`][stars]
-object. Under the hood _eupp_ will download the gridded data set, converts it into 
-a NetCDF file before calling `read_stars()`. Thus, [ecCodes][eccodes] will be required
-as well and the variable names may differ from the original GRIB short name.
+```{r}
+head(ip[, 1:11]) # First 11 columns only
 
-An example using the existing configuration `conf`:
-
-```{r, results = "hidden"}
-xst <- eupp_get_gridded(conf)
+# Long format; contains more extensive information
+# (differs between rds/grib_ls).
+head(eupp_interpolate_grib("_test.grb", at = locations,
+                           atname = "name", wide = FALSE), n = 3)
 ```
 
-```{r gridded_get_stars, fig = TRUE, fig.width = 10, fig.height = 5, out.width = "100%", results = "hidden"}
-class(xst)
-names(xst)
-print(xst)
+Please check out the additional arguments of `eupp_interpolate_grib()` for details
+on the arguments and additional arguments not demonstrated here.
 
-plot(xst["t2m"], col = hcl.colors(11, "Green-Orange"))
-```
 
-To be precise, the object returned is of class ``r deparse(class(xst))`` which is
-a pure `stars` object; the `eupp_stars` extension adds some additional functionality
-for data handling (see `methods(class = "eupp_stars")`).
+## Further functionality
+
+The _eupp_ contains some additional functionality to download/process gridded
+data sets. They, however, all go trough `grib_to_netcdf` ([ecCodes][ecCodes])
+which comes with a series of benefits and drawbacks. A separate article
+shows that, however, when using it keep in mind that this must be seen
+as 'experimental'.
+
+* See: [Additional functionality](gridded_additional_functionality.html)
 
 
 
@@ -281,11 +216,11 @@ for data handling (see `methods(class = "eupp_stars")`).
 if (dir.exists("_cache")) unlink("_cache")
 if (file.exists("_test.nc")) unlink("_test.nc")
 if (file.exists("_test.grb")) unlink("_test.grb")
+if (file.exists("_test.grb.rds")) unlink("_test.grb.rds")
 ```
-
-
 
 
 [ecCodes]: https://confluence.ecmwf.int/display/ECC/ecCodes+Home
 [stars]: https://cran.r-project.org/package=stars
 [netcdf4]: https://cran.r-project.org/package=ncdf4
+[rgdal]: https://cran.r-project.org/package=rgdal

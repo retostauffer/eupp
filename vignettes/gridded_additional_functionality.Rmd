@@ -1,0 +1,210 @@
+---
+title: "Additional/experimental functionality"
+---
+
+```{r, include = FALSE}
+suppressPackageStartupMessages(library("eupp"))
+suppressPackageStartupMessages(library("sf"))
+suppressPackageStartupMessages(library("stars"))
+```
+
+This article shows additional _eupp_ functionality for
+handling gridded data. This must seen as 'experimental'
+as it not always delivers the data as one might expect.
+
+This is mainly related to the fact that everything included
+in this article is based on files in the NetCDF format using
+`grib_to_netcdf` ([ecCodes][ecCodes]) to convert the GRIB version 1
+files to NetCDF and then processed the data using [`stars`][stars].
+
+The problem is that the NetCDF standard does not support all the
+required dimensions (e.g., initial time + step; levels; ensemble members).
+which can cause issues when:
+
+* Initialization dates and steps overlap (non-unique times)
+* Dimensions are no longer required (e.g., downloading ensemble member 10
+    only: the demension, and thus the information, will be lost).
+
+Thus, this should not be used in production. Functionality may change
+in the future if someone has a great idea about a general workaround
+for all these issues.
+
+Else it is suggested to only download grib data and then use custom
+software/the software of your choice to properly process everythign.
+
+
+## Setting up
+
+In this article functionality is shown which require an _eupp_
+configuration object and an `sf` object with points of interest.
+Thus, these are set up first:
+
+```{r, include = FALSE}
+dir.create("_cache", showWarnings = FALSE) # Not mandatory
+```
+
+```{r}
+library("eupp")
+
+# Create custom configuration
+conf <- eupp_config(product   = "forecast",
+                    level     = "surf",
+                    type      = "ens",
+                    date      = "2017-07-01",
+                    parameter = c("cp", "2t"),
+                    steps     = c(24L, 240L), # +1 and +10 days ahead
+                    cache     = "_cache")     # optional; caching grib index
+
+# Points of interest
+library("sf")
+locations <- data.frame(name = c("Innsbruck", "Brussels"),
+                        lon  = c(11.39, 4.35),
+                        lat  = c(47.27, 50.85))
+(locations <- st_as_sf(locations, coords = c("lon", "lat"), crs = 4326))
+```
+
+
+## Getting data: NetCDF format {#gridded-download-netcdf}
+
+The function `eupp_download_gridded()` allows to specify the `output_format =
+"nc"` to store the data in the NetCDF file format. The procedure is, in large
+parts, similar to retrieving the data in GRIB format (see [getting
+started](gridded.html)). The function first downloads and stores the data in a
+temporary GRIB file before calling
+[`grib_to_netcdf`](https://confluence.ecmwf.int/display/ECC/grib_to_netcdf); a console
+tool provided by ECMWFs [ecCodes](https://confluence.ecmwf.int/display/ECC/ecCodes+Home).
+
+There seem to be ways to use `ecCodes` under Windows, see
+[here](https://github.com/nawendt/gribr#windows-install-options) or
+[here](https://www.ecmwf.int/en/newsletter/159/news/eccodes-and-magics-available-under-windows).
+
+`grib_to_netcdf` is called with option `-k 3` resulting in a file with the
+'netCDF-4 file format'.  Can be changed by adjusting the argument `netcdf_kind`
+(default `3`, see `grib_to_netcdf` documentation).
+Note that the conversion from GRIB to NetCDF adjusts the
+variable names if needed (e.g., `2t` gets `t2m`).
+
+```{r}
+eupp_download_gridded(conf, output_file = "_test.nc", output_format = "nc", overwrite = TRUE)
+```
+
+These files can later be processed with the packages/software of your choice
+(e.g., via [`ncdf4`][netcdf4], [`stars`][stars], CDS, ...).  Some examples how
+to proceed from here ...
+
+##### Reading data using `ncdf4`
+
+```{r}
+library("ncdf4")
+nc <- nc_open("_test.nc", write = FALSE)
+nc
+```
+
+##### Reading data using `stars`
+
+```{r demo_read_stars, eval = FALSE}
+library("stars")
+x <- read_stars("_test.nc")
+```
+
+```{r demo_read_stars_hidden, include = FALSE}
+library("stars")
+x <- read_stars("_test.nc")
+```
+
+```{r gridded_demoplot_stars, fig = TRUE, fig.width = 10, fig.height = 5, out.width = "100%"}
+print(x)
+dim(x)
+names(x)
+st_get_dimension_values(x, "time") # date/time when valid
+
+# Plotting 2m dry air temperature
+plot(x["t2m"],
+     main   = "t2m",
+     col    = hcl.colors(21, "Blue-Red 2", rev = TRUE),
+     breaks = seq(min(x$t2m, na.rm = TRUE), max(x$t2m, na.rm = TRUE), length = 22))
+
+# Plotting convective precipitation (mm)
+bk <- unique(quantile(x[["cp"]], p = seq(0, 1, by = 0.05)))
+plot(x["cp"] * 1e3,
+     main   = "cp",
+     col    = hcl.colors(length(bk) - 1, "Purple-Yellow", rev = TRUE),
+     breaks = bk * 1e3)
+```
+
+An alternative way to visualize the data using [`ggplot2`](https://cran.r-project.org/package=ggplot2),
+[`colorspace`](https://cran.r-project.org/package=colorspace) and 
+[`sf`](https://cran.r-project.org/package=sf) as well as 
+[`rnaturalearth`](https://cran.r-project.org/package=rnaturalearth) for outlines:
+```
+
+
+```{r gridded_demoplot_ggplot, fig = TRUE, fig.width = 10, fig.height = 7, out.width = "60%", fig.align = "center"}
+library("sf")
+library("ggplot2")
+library("colorspace")
+library("rnaturalearth")
+
+ne <- ne_countries(continent = "europe", returnclass = "sf")
+st_crs(x) <- st_crs(ne)
+
+# Plotting convective precipitation; member number 10.
+# x["cp",,,number_idx,] is subsetting the stars object.
+number_idx <- which(st_get_dimension_values(x, "number") == 10)
+ggplot() + geom_stars(data = x["cp",,,number_idx,] * 1e3) +
+           facet_wrap("time") +
+           scale_fill_continuous_sequential("Purple-Yellow") +
+           geom_sf(data = ne, fill = "transparent") +
+           coord_sf(xlim = c(-6, 17), ylim = c(36, 67), expand = FALSE)
+```
+
+```{r demoplot_ggplot_lambert, fig = TRUE, fig.width = 10, fig.height = 7, out.width = "80%", fig.align = "center"}
+# CRS ESRI:102014: Europe_Lambert_Conformal_Conic projection
+# Hardcoded x/y-limits added; limit to southern Europe.
+tmp <- st_transform(x, crs = st_crs("ESRI:102014"))
+ggplot() + geom_stars(data = tmp["t2m",,,1,2]) +
+           scale_fill_continuous_sequential("Red-Yellow") +
+           geom_sf(data = ne, fill = "transparent") +
+           coord_sf(xlim = c(-1.2e6, 6e5), ylim = c(7e5, 2e6), expand = TRUE)
+```
+
+## Getting data: `stars` {#gridded-get-stars}
+
+As an alternative the package allows to directly retrieve the data as a [`stars`][stars]
+object. Under the hood _eupp_ will download the gridded data set, converts it into 
+a NetCDF file before calling `read_stars()`. Thus, [ecCodes][eccodes] will be required
+as well and the variable names may differ from the original GRIB short name.
+
+An example using the existing configuration `conf`:
+
+```{r, results = "hidden"}
+xst <- eupp_get_gridded(conf)
+```
+
+```{r gridded_get_stars, fig = TRUE, fig.width = 10, fig.height = 5, out.width = "100%", results = "hidden"}
+class(xst)
+names(xst)
+print(xst)
+
+plot(xst["t2m"], col = hcl.colors(11, "Green-Orange"))
+```
+
+To be precise, the object returned is of class ``r deparse(class(xst))`` which is
+a pure `stars` object; the `eupp_stars` extension adds some additional functionality
+for data handling (see `methods(class = "eupp_stars")`).
+
+
+
+```{r gridded_cleaning_up, include = FALSE}
+if (dir.exists("_cache")) unlink("_cache")
+if (file.exists("_test.nc")) unlink("_test.nc")
+if (file.exists("_test.grb")) unlink("_test.grb")
+if (file.exists("_test.grb.rds")) unlink("_test.grb.rds")
+```
+
+
+
+[ecCodes]: https://confluence.ecmwf.int/display/ECC/ecCodes+Home
+[stars]: https://cran.r-project.org/package=stars
+[netcdf4]: https://cran.r-project.org/package=ncdf4
+[rgdal]: https://cran.r-project.org/package=rgdal

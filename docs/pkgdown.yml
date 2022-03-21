@@ -3,12 +3,13 @@ pkgdown: 2.0.1
 pkgdown_sha: ~
 articles:
   gridded: gridded.html
+  gridded_additional_functionality: gridded_additional_functionality.html
   gridded_advanced: gridded_advanced.html
   gridded_analysis: gridded_analysis.html
   gridded_forecasts: gridded_forecasts.html
   interpolate: interpolate.html
   station: station.html
-last_built: 2022-03-15T12:31Z
+last_built: 2022-03-21T14:34Z
 urls:
   reference: http://localhost/reference
   article: http://localhost/articles

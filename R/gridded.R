@@ -185,8 +185,12 @@ eupp_get_gridded <- function(x, verbose = FALSE) {
     stopifnot(requireNamespace("stars", quietly = TRUE))
 
     tmp_file <- tempfile(fileext = ".nc")
-    on.exit(if (file.exists(tmp_file)) file.remove(tmp_file))
-    tmp_file <- eupp_download_gridded(x, tmp_file, "nc", verbose = verbose)
+    on.exit(print(tmp_file))
+    on.exit(print(tmp_file))
+    on.exit(print(tmp_file))
+    on.exit(print(tmp_file))
+    on.exit(file.remove(tmp_file, showWarnings = FALSE))
+    inv <- eupp_download_gridded(x, tmp_file, "nc", verbose = verbose)
 
     # Reading the NetCDF file as stars
     data <- read_stars(tmp_file, quiet = !verbose)
@@ -316,10 +320,8 @@ eupp_get_inventory <- function(x, times = 3L, verbose = FALSE) {
 #' @param wide logical, defaults to \code{TRUE}. If \code{TRUE} the
 #'        result is in a wide format, else long format.
 #' @param verbose logical, defaults to \code{FALSE}.
-#' @param ignore_init logical, defaults to \code{FALSE}. Can be handy
-#'        when processing analysis data as not all values valid for the
-#'        same date/time have been initialized at the same time (short-term forecats).
-#'        Drops initialization time and forecast step for nicer aggregation in wide format.
+#' @param ignore_init logical, defaults to \code{FALSE}; see 'Details' for more
+#'         information. Only has an effect when \code{wide = TRUE}.
 #' @param ... currently unused.
 #'
 #' @details When downloading the GRIB version 1 data sets using
@@ -337,6 +339,19 @@ eupp_get_inventory <- function(x, times = 3L, verbose = FALSE) {
 #'
 #' Please note that \code{at} needs a valid coordinate reference
 #' system (CRS) and must only contain \code{POINT} geometries for now.
+#'
+#' \code{wide}: Brings the interpolated data to a wide format. Reduces the
+#' amount of meta information. See also \code{ignore_init} below when working
+#' with analysis data.
+#'
+#' \code{ignore_init}: This option can be handy when processing analysis data.
+#' Analysis data (ERA5 reanalysis) consists of variables coming from the analysis
+#' directly (e.g., air temperature) and short-term predictions for certain parameters
+#' such as precipitation. Thus, initialization date/time and time valid differs
+#' between them resulting in a 'sparse' matrix if \code{wide = TRUE}. The argument
+#' \code{ignore_init} allows to ignore initialization date/time and forecast step
+#' to get a less (or non-)sparse data.frame. WARNING: When used with forecast data
+#' the data may no longer be unique leading to overlapping data (warnings/errors).
 #'
 #' @importFrom sf st_geometry_type  st_transform st_crs
 #' @importFrom stars read_stars st_extract
@@ -404,22 +419,26 @@ eupp_interpolate_grib <- function(file, at, atname = NULL, bilinear = TRUE, wide
                 })
     }
 
-    # Renaming variables
+    # Renaming variables and reduce information in 'inv'
     inv <- eupp_interpolate_grib_rename_variables(inv)
+    if (wide) {
+        inv <- subset(inv, select = c(if (ignore_init) NULL else "init", "valid",
+                                      if (ignore_init) NULL else "step", "param"))
+    }
 
     # Reading GRIB file; interpolate data
     data <- read_stars(file)
-    attransformed <- st_transform(at, crs = st_crs(data))
+    if (!(if ("band" %in% names(dim(data))) dim(data)["band"] else 1) == nrow(inv))
+        stop("Mismatch between grib inventory (field information) and number of messages read!")
 
-    # Reducing 'inv'
-    inv <- subset(inv, select = c(if (ignore_init) NULL else "init", "valid",
-                                  if (ignore_init) NULL else "step", "param"))
+    # Transform positions to the CRS of the stars object
+    attransformed <- st_transform(at, crs = st_crs(data))
 
     res <- list()
     for (i in seq_len(nrow(at))) {
         # Interpolate data, modify return, combine with meta information from GRIB
         ip <- as.data.frame(st_extract(data, at = attransformed[i, ], bilinear = bilinear))
-        names(ip)[length(ip)] <- "value"
+        names(ip)[grepl(file, names(ip))] <- "value" # Renaming
         if (!is.null(atname) && atname %in% names(at)) ip[[atname]] <- at[[i, atname]]
         res[[i]] <- cbind(inv, ip[, c("geometry", "value",
                           if (!is.null(atname) && atname %in% names(ip)) atname else NULL)])

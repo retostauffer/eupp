@@ -1,0 +1,14 @@
+
+
+
+.block-warning {
+    padding: 1em;
+    background-color: #cecece;
+    color: red;
+    border-radius: .5em;
+    border: 1px solid orange;
+}
+.block-warning span {
+    font-weight: bold;
+    color: orange;
+}

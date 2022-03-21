@@ -23,7 +23,7 @@ for a series of surface and pressure level fields introcuded below.
 ## Surface data
 
 
-#### Parameters
+### Parameters
 
 ```{r gridded_analysis_surface_table, echo = FALSE}
 conf <- eupp_config("analysis", "surface", date = "2017-01-01", step = 5, cache = "_cache")
@@ -36,7 +36,7 @@ tmp <- data.frame(product = conf$product, level = conf$level,
 knitr::kable(tmp)
 ```
 
-#### Available steps
+### Available steps
 
 When downloading analysis date, the argument `steps` (`eupp_config()`)
 defines the time of the day of the data to be processed.
@@ -45,28 +45,101 @@ defines the time of the day of the data to be processed.
 conf <- eupp_config("analysis", "surface",
                     param = c("2t", "cp"),
                     date  = "2018-07-01",
-                    steps = 0:23,
+                    steps = 0:23,          # 00 to 23 UTC
                     cache = "_cache")
-ana  <- eupp_get_gridded(conf)
 
-# Location to be interpolated
-library("sf")
-ibk <- data.frame(name = "Innsbruck", lon  = 11.39, lat = 47.27)
-res <- st_extract(ana, at = st_as_sf(ibk, coords = c("lon", "lat")), bilinear = TRUE)
-as.data.frame(res)
+# Loading inventory for a quick check
+inv <- eupp_get_inventory(conf)
+table(inv$valid)
 ```
 
-#### Downloading and processing
+### Downloading GRIB data
 
 For details how to download the data defined by the configuration above
-please visit the [Getting started](gridded.html) article.
+please visit the [Getting started](gridded.html) article. As there
+are some specialities when handling analysis data here is a short example.
+
+Therefore we are downloading analysis data for three consecutive days (could be
+done for e.g., a month). Again surface data, 2m temperature and total precipitation.
+
+```{r gridded_analysis_surface_request2}
+conf2 <- eupp_config("analysis", "surface",
+                     param = c("2t", "cp"),
+                     date  = as.Date("2018-07-01") + 0:1,
+                     steps = 0:23,          # 00 to 23 UTC
+                     cache = "_cache")
+
+# Downloading grib file
+eupp_download_gridded(conf2, "_analysis.grb", overwrite = TRUE)
+```
+
+The _eupp_ package downloads the required GRIB messages even if they are spread
+over multiple files on the data store - and puts them into one local file.
+
+### Interpolating data
+
+We are interested in bilinearely interpolated values for the following two
+locations:
+
+```{r}
+library("sf")
+locations <- data.frame(name = c("Innsbruck", "Brussels"),
+                        lon  = c(11.39, 4.35),
+                        lat  = c(47.27, 50.85))
+(locations <- st_as_sf(locations, coords = c("lon", "lat"), crs = 4326))
+```
+
+Default use:
+
+```{r analysis_interpolate_one}
+ip1 <- eupp_interpolate_grib("_analysis.grb", at = locations,
+                             atname = "name", bilinear = TRUE)
+head(ip1, n = 4)
+```
+
+**Note:** When looking at the first two lines one can see that the same
+`valid` time stamp (when the analysis is valid) occurs twice. The reason
+is that the 2m temperature is a 'direct' field from the analysis process,
+total precipitation (as an example) is a short-term forecast and thus
+initialized earlier and showing a forecast step.
+
+We can get around this by setting `ignore_init = TRUE`. _eupp_ now combines
+the data on the `valid` time stamp only. Spot the difference:
+
+```{r analysis_interpolate_two}
+ip2 <- eupp_interpolate_grib("_analysis.grb", at = locations,
+                             atname = "name", bilinear = TRUE,
+                             ignore_init = TRUE)
+head(ip2, n = 4)
+```
+
+We will, however, lose some meta information (compared to the version above).
+In case this is important `wide = FALSE` returns one line in the data.frame
+for each message in the GRIB file alongside with all the loaded meta information 
+(in this case `ignore_init` has no effect).
+
+```{r analysis_interpolate_three}
+ip3 <- eupp_interpolate_grib("_analysis.grb", at = locations,
+                             atname = "name", bilinear = TRUE,
+                             wide = FALSE)
+head(ip3, n = 4)
+```
+
+This can be handy in some situations.
+
+```{r gridded_analysis_lineplot, fig = TRUE, fig.width = 10, fig.height = 3.5, out.width = "100%"}
+library("ggplot2")
+ggplot(ip3) +
+       geom_line(aes(x = valid, y = value, color = name)) +
+       facet_wrap("param", scales = "free_y")
+```
 
 
 
 
 ## Pressure level data
 
-#### Parameters
+### Parameters
 
 ```{r gridded_analysis_pressure_table, echo = FALSE}
 conf <- eupp_config("analysis", "pressure", date = "2017-01-01", step = 5, cache = "_cache")
@@ -80,42 +153,66 @@ tmp <- data.frame(product = conf$product, level = conf$level,
 knitr::kable(tmp)
 ```
 
-#### Available steps
+### Available steps
 
 When downloading analysis date, the argument `steps` (`eupp_config()`)
 defines the time of the day of the data to be processed.
 
 ```{r gridded_analysis_pressure_request}
 conf <- eupp_config("analysis", "pressure",
-                    param = c("t", "r"),
                     date  = "2018-07-01",
                     steps = 0:23,
                     cache = "_cache")
-ana  <- eupp_get_gridded(conf)
-
-dim(inv <- eupp_get_inventory(conf))
-head(inv)
-tail(inv)
-table(inv$step, inv$param)
-
-eupp_download_gridded(conf, "_test.grb", "grib", overwrite = TRUE)
-system("grib_ls _test.grb")
-
-k <- eupp_get_gridded(conf)
-k
-
-# Location to be interpolated
-ibk <- data.frame(name = "Innsbruck", lon  = 11.39, lat = 47.27)
-res <- st_extract(ana, at = st_as_sf(ibk, coords = c("lon", "lat")), bilinear = TRUE)
-as.data.frame(res)
+inv <- eupp_get_inventory(conf)
+table(inv$valid)
+table(inv$levelist, inv$param)
 ```
 
-#### Downloading and processing
 
-For details how to download the data defined by the configuration above
-please visit the [Getting started](gridded.html) article.
+### Downloading GRIB data
+
+Same as for the 'surface analysis' variable shown in the previous sections.
+For demonstration the configuration is adjusted to download pressure analysis
+for two consecutive days (all parameters).
+
+```{r gridded_analysis_pressure_request2}
+conf2 <- eupp_config("analysis", "pressure",
+                     date  = as.Date("2018-07-01") + 0:1,
+                     steps = 0:23,          # 00 to 23 UTC
+                     cache = "_cache")
+
+# Downloading grib file
+eupp_download_gridded(conf2, "_pressure.grb", overwrite = TRUE)
+```
+
+### Interpolating data
+
+Interpolating the data for the the same two locations (see object `locations` above).
+Basic use:
 
 
+```{r analysis_interpolate_four}
+ip4 <- eupp_interpolate_grib("_pressure.grb", at = locations,
+                             atname = "name", bilinear = TRUE)
+head(ip4, n = 4)
+```
 
+As the current pressure level data set does not contain any short-term forecasts
+the wide format is not sparse. In case needed, the same functionality is available.
+E.g., getting the long format for easy plotting ...
+
+
+```{r analysis_interpolate_five}
+ip5 <- eupp_interpolate_grib("_pressure.grb", at = locations,
+                             atname = "name", bilinear = TRUE,
+                             wide = FALSE)
+head(ip5, n = 4)
+```
+
+```{r gridded_pressure_lineplot, fig = TRUE, fig.width = 10, fig.height = 6, out.width = "100%"}
+ggplot(ip5) +
+       geom_line(aes(x = valid, y = value, color = name)) +
+       facet_wrap("param", scales = "free_y")
+```
 
 

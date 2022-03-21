@@ -34,10 +34,8 @@ result is in a wide format, else long format.}
 
 \item{verbose}{logical, defaults to \code{FALSE}.}
 
-\item{ignore_init}{logical, defaults to \code{FALSE}. Can be handy
-when processing analysis data as not all values valid for the
-same date/time have been initialized at the same time (short-term forecats).
-Drops initialization time and forecast step for nicer aggregation in wide format.}
+\item{ignore_init}{logical, defaults to \code{FALSE}; see 'Details' for more
+information. Only has an effect when \code{wide = TRUE}.}
 
 \item{...}{currently unused.}
 }
@@ -62,6 +60,19 @@ to read the data (in bands) and performs the interpolation using
 
 Please note that \code{at} needs a valid coordinate reference
 system (CRS) and must only contain \code{POINT} geometries for now.
+
+\code{wide}: Brings the interpolated data to a wide format. Reduces the
+amount of meta information. See also \code{ignore_init} below when working
+with analysis data.
+
+\code{ignore_init}: This option can be handy when processing analysis data.
+Analysis data (ERA5 reanalysis) consists of variables coming from the analysis
+directly (e.g., air temperature) and short-term predictions for certain parameters
+such as precipitation. Thus, initialization date/time and time valid differs
+between them resulting in a 'sparse' matrix if \code{wide = TRUE}. The argument
+\code{ignore_init} allows to ignore initialization date/time and forecast step
+to get a less (or non-)sparse data.frame. WARNING: When used with forecast data
+the data may no longer be unique leading to overlapping data (warnings/errors).
 }
 \author{
 Reto Stauffer

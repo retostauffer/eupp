@@ -11,7 +11,8 @@
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Gridded Analysis">
+<script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
+<meta property="og:title" content="Gridded Analysis">
 <meta property="og:description" content="eupp">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -33,7 +34,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">eupp</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0-2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1-0</span>
       </span>
     </div>
 
@@ -57,6 +58,9 @@
     </li>
     <li>
       <a href="../articles/gridded_advanced.html">Gridded advanced</a>
+    </li>
+    <li>
+      <a href="../articles/gridded_additional_functionality.html">Additional/experimental</a>
     </li>
   </ul>
 </li>
@@ -117,9 +121,9 @@
 <div class="section level2">
 <h2 id="surface-data">Surface data<a class="anchor" aria-label="anchor" href="#surface-data"></a>
 </h2>
-<div class="section level4">
-<h4 id="parameters">Parameters<a class="anchor" aria-label="anchor" href="#parameters"></a>
-</h4>
+<div class="section level3">
+<h3 id="parameters">Parameters<a class="anchor" aria-label="anchor" href="#parameters"></a>
+</h3>
 <table class="table">
 <colgroup>
 <col width="10%">
@@ -269,63 +273,131 @@
 </tbody>
 </table>
 </div>
-<div class="section level4">
-<h4 id="available-steps">Available steps<a class="anchor" aria-label="anchor" href="#available-steps"></a>
-</h4>
+<div class="section level3">
+<h3 id="available-steps">Available steps<a class="anchor" aria-label="anchor" href="#available-steps"></a>
+</h3>
 <p>When downloading analysis date, the argument <code>steps</code> (<code><a href="../reference/eupp_config.html">eupp_config()</a></code>) defines the time of the day of the data to be processed.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">conf</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eupp_config.html">eupp_config</a></span><span class="op">(</span><span class="st">"analysis"</span>, <span class="st">"surface"</span>,
                     param <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"2t"</span>, <span class="st">"cp"</span><span class="op">)</span>,
                     date  <span class="op">=</span> <span class="st">"2018-07-01"</span>,
-                    steps <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">23</span>,
+                    steps <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">23</span>,          <span class="co"># 00 to 23 UTC</span>
                     cache <span class="op">=</span> <span class="st">"_cache"</span><span class="op">)</span>
-<span class="va">ana</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gridded.html">eupp_get_gridded</a></span><span class="op">(</span><span class="va">conf</span><span class="op">)</span>
 
-<span class="co"># Location to be interpolated</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://r-spatial.github.io/sf/" class="external-link">"sf"</a></span><span class="op">)</span>
-<span class="va">ibk</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Innsbruck"</span>, lon  <span class="op">=</span> <span class="fl">11.39</span>, lat <span class="op">=</span> <span class="fl">47.27</span><span class="op">)</span>
-<span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_extract.html" class="external-link">st_extract</a></span><span class="op">(</span><span class="va">ana</span>, at <span class="op">=</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="va">ibk</span>, coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lon"</span>, <span class="st">"lat"</span><span class="op">)</span><span class="op">)</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## [1] "geometry" "time"</span></code></pre>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">##               geometry                time           cp      t2m</span>
-<span class="co">## 1  POINT (11.39 47.27) 2018-07-01 00:00:00 0.000000e+00 282.4056</span>
-<span class="co">## 2  POINT (11.39 47.27) 2018-07-01 01:00:00 0.000000e+00 281.6159</span>
-<span class="co">## 3  POINT (11.39 47.27) 2018-07-01 02:00:00 0.000000e+00 281.1281</span>
-<span class="co">## 4  POINT (11.39 47.27) 2018-07-01 03:00:00 0.000000e+00 280.8567</span>
-<span class="co">## 5  POINT (11.39 47.27) 2018-07-01 04:00:00 0.000000e+00 280.9945</span>
-<span class="co">## 6  POINT (11.39 47.27) 2018-07-01 05:00:00 0.000000e+00 282.7335</span>
-<span class="co">## 7  POINT (11.39 47.27) 2018-07-01 06:00:00 0.000000e+00 285.1490</span>
-<span class="co">## 8  POINT (11.39 47.27) 2018-07-01 07:00:00 0.000000e+00 287.2573</span>
-<span class="co">## 9  POINT (11.39 47.27) 2018-07-01 08:00:00 1.785180e-05 288.6115</span>
-<span class="co">## 10 POINT (11.39 47.27) 2018-07-01 09:00:00 6.201423e-05 289.6772</span>
-<span class="co">## 11 POINT (11.39 47.27) 2018-07-01 10:00:00 7.461004e-05 290.9807</span>
-<span class="co">## 12 POINT (11.39 47.27) 2018-07-01 11:00:00 1.557725e-04 291.3102</span>
-<span class="co">## 13 POINT (11.39 47.27) 2018-07-01 12:00:00 1.666299e-04 291.7434</span>
-<span class="co">## 14 POINT (11.39 47.27) 2018-07-01 13:00:00 1.197910e-04 292.1282</span>
-<span class="co">## 15 POINT (11.39 47.27) 2018-07-01 14:00:00 1.758613e-04 292.2013</span>
-<span class="co">## 16 POINT (11.39 47.27) 2018-07-01 15:00:00 4.609952e-05 291.9754</span>
-<span class="co">## 17 POINT (11.39 47.27) 2018-07-01 16:00:00 2.307916e-05 291.5128</span>
-<span class="co">## 18 POINT (11.39 47.27) 2018-07-01 17:00:00 6.397484e-06 290.4847</span>
-<span class="co">## 19 POINT (11.39 47.27) 2018-07-01 18:00:00 6.468044e-07 288.9452</span>
-<span class="co">## 20 POINT (11.39 47.27) 2018-07-01 19:00:00 0.000000e+00 287.1127</span>
-<span class="co">## 21 POINT (11.39 47.27) 2018-07-01 20:00:00 0.000000e+00 285.7444</span>
-<span class="co">## 22 POINT (11.39 47.27) 2018-07-01 21:00:00 0.000000e+00 284.8169</span>
-<span class="co">## 23 POINT (11.39 47.27) 2018-07-01 22:00:00 0.000000e+00 283.4581</span>
-<span class="co">## 24 POINT (11.39 47.27) 2018-07-01 23:00:00 0.000000e+00 282.1552</span></code></pre>
+<span class="co"># Loading inventory for a quick check</span>
+<span class="va">inv</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gridded.html">eupp_get_inventory</a></span><span class="op">(</span><span class="va">conf</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">inv</span><span class="op">$</span><span class="va">valid</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">## </span>
+<span class="co">## 2018-07-01 00:00:00 2018-07-01 01:00:00 2018-07-01 02:00:00 2018-07-01 03:00:00 </span>
+<span class="co">##                   2                   2                   2                   2 </span>
+<span class="co">## 2018-07-01 04:00:00 2018-07-01 05:00:00 2018-07-01 06:00:00 2018-07-01 07:00:00 </span>
+<span class="co">##                   2                   2                   2                   2 </span>
+<span class="co">## 2018-07-01 08:00:00 2018-07-01 09:00:00 2018-07-01 10:00:00 2018-07-01 11:00:00 </span>
+<span class="co">##                   2                   2                   2                   2 </span>
+<span class="co">## 2018-07-01 12:00:00 2018-07-01 13:00:00 2018-07-01 14:00:00 2018-07-01 15:00:00 </span>
+<span class="co">##                   2                   2                   2                   2 </span>
+<span class="co">## 2018-07-01 16:00:00 2018-07-01 17:00:00 2018-07-01 18:00:00 2018-07-01 19:00:00 </span>
+<span class="co">##                   2                   2                   2                   2 </span>
+<span class="co">## 2018-07-01 20:00:00 2018-07-01 21:00:00 2018-07-01 22:00:00 2018-07-01 23:00:00 </span>
+<span class="co">##                   2                   2                   2                   2</span></code></pre>
 </div>
-<div class="section level4">
-<h4 id="downloading-and-processing">Downloading and processing<a class="anchor" aria-label="anchor" href="#downloading-and-processing"></a>
-</h4>
-<p>For details how to download the data defined by the configuration above please visit the <a href="gridded.html">Getting started</a> article.</p>
+<div class="section level3">
+<h3 id="downloading-grib-data">Downloading GRIB data<a class="anchor" aria-label="anchor" href="#downloading-grib-data"></a>
+</h3>
+<p>For details how to download the data defined by the configuration above please visit the <a href="gridded.html">Getting started</a> article. As there are some specialities when handling analysis data here is a short example.</p>
+<p>Therefore we are downloading analysis data for three consecutive days (could be done for e.g., a month). Again surface data, 2m temperature and total precipitation.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">conf2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eupp_config.html">eupp_config</a></span><span class="op">(</span><span class="st">"analysis"</span>, <span class="st">"surface"</span>,
+                     param <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"2t"</span>, <span class="st">"cp"</span><span class="op">)</span>,
+                     date  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2018-07-01"</span><span class="op">)</span> <span class="op">+</span> <span class="fl">0</span><span class="op">:</span><span class="fl">1</span>,
+                     steps <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">23</span>,          <span class="co"># 00 to 23 UTC</span>
+                     cache <span class="op">=</span> <span class="st">"_cache"</span><span class="op">)</span>
+
+<span class="co"># Downloading grib file</span>
+<span class="fu"><a href="../reference/gridded.html">eupp_download_gridded</a></span><span class="op">(</span><span class="va">conf2</span>, <span class="st">"_analysis.grb"</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
+<p>The <em>eupp</em> package downloads the required GRIB messages even if they are spread over multiple files on the data store - and puts them into one local file.</p>
+</div>
+<div class="section level3">
+<h3 id="interpolating-data">Interpolating data<a class="anchor" aria-label="anchor" href="#interpolating-data"></a>
+</h3>
+<p>We are interested in bilinearely interpolated values for the following two locations:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://r-spatial.github.io/sf/" class="external-link">"sf"</a></span><span class="op">)</span>
+<span class="va">locations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Innsbruck"</span>, <span class="st">"Brussels"</span><span class="op">)</span>,
+                        lon  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">11.39</span>, <span class="fl">4.35</span><span class="op">)</span>,
+                        lat  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">47.27</span>, <span class="fl">50.85</span><span class="op">)</span><span class="op">)</span>
+<span class="op">(</span><span class="va">locations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="va">locations</span>, coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lon"</span>, <span class="st">"lat"</span><span class="op">)</span>, crs <span class="op">=</span> <span class="fl">4326</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">## Simple feature collection with 2 features and 1 field</span>
+<span class="co">## Geometry type: POINT</span>
+<span class="co">## Dimension:     XY</span>
+<span class="co">## Bounding box:  xmin: 4.35 ymin: 47.27 xmax: 11.39 ymax: 50.85</span>
+<span class="co">## Geodetic CRS:  WGS 84</span>
+<span class="co">##        name            geometry</span>
+<span class="co">## 1 Innsbruck POINT (11.39 47.27)</span>
+<span class="co">## 2  Brussels  POINT (4.35 50.85)</span></code></pre>
+<p>Default use:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ip1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eupp_interpolate_grib.html">eupp_interpolate_grib</a></span><span class="op">(</span><span class="st">"_analysis.grb"</span>, at <span class="op">=</span> <span class="va">locations</span>,
+                             atname <span class="op">=</span> <span class="st">"name"</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ip1</span>, n <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">##                  init               valid step            geometry      name cp</span>
+<span class="co">## 1 2018-07-01 00:00:00 2018-07-01 00:00:00    0 POINT (11.39 47.27) Innsbruck NA</span>
+<span class="co">## 2 2018-06-30 18:00:00 2018-07-01 00:00:00    6 POINT (11.39 47.27) Innsbruck  0</span>
+<span class="co">## 3 2018-07-01 01:00:00 2018-07-01 01:00:00    0 POINT (11.39 47.27) Innsbruck NA</span>
+<span class="co">## 4 2018-06-30 18:00:00 2018-07-01 01:00:00    7 POINT (11.39 47.27) Innsbruck  0</span>
+<span class="co">##        t2m</span>
+<span class="co">## 1 282.4057</span>
+<span class="co">## 2       NA</span>
+<span class="co">## 3 281.6158</span>
+<span class="co">## 4       NA</span></code></pre>
+<p><strong>Note:</strong> When looking at the first two lines one can see that the same <code>valid</code> time stamp (when the analysis is valid) occurs twice. The reason is that the 2m temperature is a ‘direct’ field from the analysis process, total precipitation (as an example) is a short-term forecast and thus initialized earlier and showing a forecast step.</p>
+<p>We can get around this by setting <code>ignore_init = TRUE</code>. <em>eupp</em> now combines the data on the <code>valid</code> time stamp only. Spot the difference:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ip2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eupp_interpolate_grib.html">eupp_interpolate_grib</a></span><span class="op">(</span><span class="st">"_analysis.grb"</span>, at <span class="op">=</span> <span class="va">locations</span>,
+                             atname <span class="op">=</span> <span class="st">"name"</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span>,
+                             ignore_init <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ip2</span>, n <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">##                 valid            geometry      name cp      t2m</span>
+<span class="co">## 1 2018-07-01 00:00:00 POINT (11.39 47.27) Innsbruck  0 282.4057</span>
+<span class="co">## 2 2018-07-01 01:00:00 POINT (11.39 47.27) Innsbruck  0 281.6158</span>
+<span class="co">## 3 2018-07-01 02:00:00 POINT (11.39 47.27) Innsbruck  0 281.1281</span>
+<span class="co">## 4 2018-07-01 03:00:00 POINT (11.39 47.27) Innsbruck  0 280.8568</span></code></pre>
+<p>We will, however, lose some meta information (compared to the version above). In case this is important <code>wide = FALSE</code> returns one line in the data.frame for each message in the GRIB file alongside with all the loaded meta information (in this case <code>ignore_init</code> has no effect).</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ip3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eupp_interpolate_grib.html">eupp_interpolate_grib</a></span><span class="op">(</span><span class="st">"_analysis.grb"</span>, at <span class="op">=</span> <span class="va">locations</span>,
+                             atname <span class="op">=</span> <span class="st">"name"</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span>,
+                             wide <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ip3</span>, n <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">##                                                path domain levtype step_char</span>
+<span class="co">## 1 data/ana/surf/EU_analysis_surf_params_2018-07.grb      g     sfc         0</span>
+<span class="co">## 2 data/ana/surf/EU_analysis_surf_params_2018-07.grb      g     sfc         6</span>
+<span class="co">## 3 data/ana/surf/EU_analysis_surf_params_2018-07.grb      g     sfc         0</span>
+<span class="co">## 4 data/ana/surf/EU_analysis_surf_params_2018-07.grb      g     sfc         7</span>
+<span class="co">##   param class type stream expver offset length param_id                init</span>
+<span class="co">## 1   t2m    ea   an   oper   0001      0  23358      167 2018-07-01 00:00:00</span>
+<span class="co">## 2    cp    ea   fc   oper   0001 362640  23358      143 2018-06-30 18:00:00</span>
+<span class="co">## 3   t2m    ea   an   oper   0001 506040  23358      167 2018-07-01 01:00:00</span>
+<span class="co">## 4    cp    ea   fc   oper   0001 868680  23358      143 2018-06-30 18:00:00</span>
+<span class="co">##   number step               valid            geometry    value      name</span>
+<span class="co">## 1     NA    0 2018-07-01 00:00:00 POINT (11.39 47.27) 282.4057 Innsbruck</span>
+<span class="co">## 2     NA    6 2018-07-01 00:00:00 POINT (11.39 47.27)   0.0000 Innsbruck</span>
+<span class="co">## 3     NA    0 2018-07-01 01:00:00 POINT (11.39 47.27) 281.6158 Innsbruck</span>
+<span class="co">## 4     NA    7 2018-07-01 01:00:00 POINT (11.39 47.27)   0.0000 Innsbruck</span></code></pre>
+<p>This can be handy in some situations.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://ggplot2.tidyverse.org" class="external-link">"ggplot2"</a></span><span class="op">)</span>
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">ip3</span><span class="op">)</span> <span class="op">+</span>
+       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">valid</span>, y <span class="op">=</span> <span class="va">value</span>, color <span class="op">=</span> <span class="va">name</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="st">"param"</span>, scales <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span></code></pre></div>
+<p><img src="gridded_analysis_files/figure-html/gridded_analysis_lineplot-1.png" width="100%"></p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="pressure-level-data">Pressure level data<a class="anchor" aria-label="anchor" href="#pressure-level-data"></a>
 </h2>
-<div class="section level4">
-<h4 id="parameters-1">Parameters<a class="anchor" aria-label="anchor" href="#parameters-1"></a>
-</h4>
+<div class="section level3">
+<h3 id="parameters-1">Parameters<a class="anchor" aria-label="anchor" href="#parameters-1"></a>
+</h3>
 <table class="table">
 <thead><tr class="header">
 <th align="left">product</th>
@@ -373,124 +445,100 @@
 </tbody>
 </table>
 </div>
-<div class="section level4">
-<h4 id="available-steps-1">Available steps<a class="anchor" aria-label="anchor" href="#available-steps-1"></a>
-</h4>
+<div class="section level3">
+<h3 id="available-steps-1">Available steps<a class="anchor" aria-label="anchor" href="#available-steps-1"></a>
+</h3>
 <p>When downloading analysis date, the argument <code>steps</code> (<code><a href="../reference/eupp_config.html">eupp_config()</a></code>) defines the time of the day of the data to be processed.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">conf</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eupp_config.html">eupp_config</a></span><span class="op">(</span><span class="st">"analysis"</span>, <span class="st">"pressure"</span>,
-                    param <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"t"</span>, <span class="st">"r"</span><span class="op">)</span>,
                     date  <span class="op">=</span> <span class="st">"2018-07-01"</span>,
                     steps <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">23</span>,
                     cache <span class="op">=</span> <span class="st">"_cache"</span><span class="op">)</span>
-<span class="va">ana</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gridded.html">eupp_get_gridded</a></span><span class="op">(</span><span class="va">conf</span><span class="op">)</span>
-
-<span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">inv</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gridded.html">eupp_get_inventory</a></span><span class="op">(</span><span class="va">conf</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## [1] 48 17</span></code></pre>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">inv</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">##                                                           path domain levtype</span>
-<span class="co">## 2977 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
-<span class="co">## 2978 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
-<span class="co">## 2979 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
-<span class="co">## 2980 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
-<span class="co">## 2981 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
-<span class="co">## 2982 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
-<span class="co">##      levelist step_char param class type stream expver   offset length param_id</span>
-<span class="co">## 2977      850         0     t    ea   an   oper   0001 69513408  23358      130</span>
-<span class="co">## 2978      850         0     r    ea   an   oper   0001 69536766  23358      157</span>
-<span class="co">## 2979      850         0     t    ea   an   oper   0001 69560124  23358      130</span>
-<span class="co">## 2980      850         0     r    ea   an   oper   0001 69583482  23358      157</span>
-<span class="co">## 2981      850         0     t    ea   an   oper   0001 69606840  23358      130</span>
-<span class="co">## 2982      850         0     r    ea   an   oper   0001 69630198  23358      157</span>
-<span class="co">##                     init number step               valid</span>
-<span class="co">## 2977 2018-07-01 00:00:00     NA    0 2018-07-01 00:00:00</span>
-<span class="co">## 2978 2018-07-01 00:00:00     NA    0 2018-07-01 00:00:00</span>
-<span class="co">## 2979 2018-07-01 01:00:00     NA    0 2018-07-01 01:00:00</span>
-<span class="co">## 2980 2018-07-01 01:00:00     NA    0 2018-07-01 01:00:00</span>
-<span class="co">## 2981 2018-07-01 02:00:00     NA    0 2018-07-01 02:00:00</span>
-<span class="co">## 2982 2018-07-01 02:00:00     NA    0 2018-07-01 02:00:00</span></code></pre>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="va">inv</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">##                                                           path domain levtype</span>
-<span class="co">## 3019 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
-<span class="co">## 3020 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
-<span class="co">## 3021 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
-<span class="co">## 3022 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
-<span class="co">## 3023 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
-<span class="co">## 3024 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
-<span class="co">##      levelist step_char param class type stream expver   offset length param_id</span>
-<span class="co">## 3019      850         0     t    ea   an   oper   0001 70494444  23358      130</span>
-<span class="co">## 3020      850         0     r    ea   an   oper   0001 70517802  23358      157</span>
-<span class="co">## 3021      850         0     t    ea   an   oper   0001 70541160  23358      130</span>
-<span class="co">## 3022      850         0     r    ea   an   oper   0001 70564518  23358      157</span>
-<span class="co">## 3023      850         0     t    ea   an   oper   0001 70587876  23358      130</span>
-<span class="co">## 3024      850         0     r    ea   an   oper   0001 70611234  23358      157</span>
-<span class="co">##                     init number step               valid</span>
-<span class="co">## 3019 2018-07-01 21:00:00     NA    0 2018-07-01 21:00:00</span>
-<span class="co">## 3020 2018-07-01 21:00:00     NA    0 2018-07-01 21:00:00</span>
-<span class="co">## 3021 2018-07-01 22:00:00     NA    0 2018-07-01 22:00:00</span>
-<span class="co">## 3022 2018-07-01 22:00:00     NA    0 2018-07-01 22:00:00</span>
-<span class="co">## 3023 2018-07-01 23:00:00     NA    0 2018-07-01 23:00:00</span>
-<span class="co">## 3024 2018-07-01 23:00:00     NA    0 2018-07-01 23:00:00</span></code></pre>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">inv</span><span class="op">$</span><span class="va">step</span>, <span class="va">inv</span><span class="op">$</span><span class="va">param</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">##    </span>
-<span class="co">##      r  t</span>
-<span class="co">##   0 24 24</span></code></pre>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/gridded.html">eupp_download_gridded</a></span><span class="op">(</span><span class="va">conf</span>, <span class="st">"_test.grb"</span>, <span class="st">"grib"</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/system.html" class="external-link">system</a></span><span class="op">(</span><span class="st">"grib_ls _test.grb"</span><span class="op">)</span>
-
-<span class="va">k</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gridded.html">eupp_get_gridded</a></span><span class="op">(</span><span class="va">conf</span><span class="op">)</span>
-<span class="va">k</span></code></pre></div>
-<pre><code><span class="co">## stars object with 3 dimensions and 2 attributes</span>
-<span class="co">## attribute(s):</span>
-<span class="co">##             Min.   1st Qu.    Median      Mean   3rd Qu.     Max.</span>
-<span class="co">## t [K] 273.156250 281.43678 284.52546 285.88897 290.52932 306.2083</span>
-<span class="co">## r [%]   2.689826  32.51901  52.33961  49.66074  66.45186 113.2677</span>
-<span class="co">## dimension(s):</span>
-<span class="co">##      from  to         offset   delta  refsys point values x/y</span>
-<span class="co">## x       1  93         -6.125    0.25      NA    NA   NULL [x]</span>
-<span class="co">## y       1 125         67.125   -0.25      NA    NA   NULL [y]</span>
-<span class="co">## time    1  24 2018-07-01 UTC 1 hours POSIXct    NA   NULL</span></code></pre>
+<span class="va">inv</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gridded.html">eupp_get_inventory</a></span><span class="op">(</span><span class="va">conf</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">inv</span><span class="op">$</span><span class="va">valid</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">## </span>
+<span class="co">## 2018-07-01 00:00:00 2018-07-01 01:00:00 2018-07-01 02:00:00 2018-07-01 03:00:00 </span>
+<span class="co">##                   6                   6                   6                   6 </span>
+<span class="co">## 2018-07-01 04:00:00 2018-07-01 05:00:00 2018-07-01 06:00:00 2018-07-01 07:00:00 </span>
+<span class="co">##                   6                   6                   6                   6 </span>
+<span class="co">## 2018-07-01 08:00:00 2018-07-01 09:00:00 2018-07-01 10:00:00 2018-07-01 11:00:00 </span>
+<span class="co">##                   6                   6                   6                   6 </span>
+<span class="co">## 2018-07-01 12:00:00 2018-07-01 13:00:00 2018-07-01 14:00:00 2018-07-01 15:00:00 </span>
+<span class="co">##                   6                   6                   6                   6 </span>
+<span class="co">## 2018-07-01 16:00:00 2018-07-01 17:00:00 2018-07-01 18:00:00 2018-07-01 19:00:00 </span>
+<span class="co">##                   6                   6                   6                   6 </span>
+<span class="co">## 2018-07-01 20:00:00 2018-07-01 21:00:00 2018-07-01 22:00:00 2018-07-01 23:00:00 </span>
+<span class="co">##                   6                   6                   6                   6</span></code></pre>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Location to be interpolated</span>
-<span class="va">ibk</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Innsbruck"</span>, lon  <span class="op">=</span> <span class="fl">11.39</span>, lat <span class="op">=</span> <span class="fl">47.27</span><span class="op">)</span>
-<span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_extract.html" class="external-link">st_extract</a></span><span class="op">(</span><span class="va">ana</span>, at <span class="op">=</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="va">ibk</span>, coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lon"</span>, <span class="st">"lat"</span><span class="op">)</span><span class="op">)</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## [1] "geometry" "time"</span></code></pre>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">##               geometry                time        r        t</span>
-<span class="co">## 1  POINT (11.39 47.27) 2018-07-01 00:00:00 86.31006 287.3040</span>
-<span class="co">## 2  POINT (11.39 47.27) 2018-07-01 01:00:00 87.25571 287.0840</span>
-<span class="co">## 3  POINT (11.39 47.27) 2018-07-01 02:00:00 88.10566 286.8603</span>
-<span class="co">## 4  POINT (11.39 47.27) 2018-07-01 03:00:00 88.48853 286.7070</span>
-<span class="co">## 5  POINT (11.39 47.27) 2018-07-01 04:00:00 89.72609 286.5583</span>
-<span class="co">## 6  POINT (11.39 47.27) 2018-07-01 05:00:00 88.46733 286.4344</span>
-<span class="co">## 7  POINT (11.39 47.27) 2018-07-01 06:00:00 86.23529 286.2088</span>
-<span class="co">## 8  POINT (11.39 47.27) 2018-07-01 07:00:00 75.82018 287.0343</span>
-<span class="co">## 9  POINT (11.39 47.27) 2018-07-01 08:00:00 68.46182 288.2440</span>
-<span class="co">## 10 POINT (11.39 47.27) 2018-07-01 09:00:00 63.62587 289.0604</span>
-<span class="co">## 11 POINT (11.39 47.27) 2018-07-01 10:00:00 60.35576 289.9210</span>
-<span class="co">## 12 POINT (11.39 47.27) 2018-07-01 11:00:00 57.11023 290.2079</span>
-<span class="co">## 13 POINT (11.39 47.27) 2018-07-01 12:00:00 54.54428 290.3447</span>
-<span class="co">## 14 POINT (11.39 47.27) 2018-07-01 13:00:00 52.91102 290.5516</span>
-<span class="co">## 15 POINT (11.39 47.27) 2018-07-01 14:00:00 53.09143 290.4881</span>
-<span class="co">## 16 POINT (11.39 47.27) 2018-07-01 15:00:00 53.20926 290.4437</span>
-<span class="co">## 17 POINT (11.39 47.27) 2018-07-01 16:00:00 55.29175 290.1103</span>
-<span class="co">## 18 POINT (11.39 47.27) 2018-07-01 17:00:00 59.83583 289.3578</span>
-<span class="co">## 19 POINT (11.39 47.27) 2018-07-01 18:00:00 66.34773 288.1810</span>
-<span class="co">## 20 POINT (11.39 47.27) 2018-07-01 19:00:00 70.94309 287.2117</span>
-<span class="co">## 21 POINT (11.39 47.27) 2018-07-01 20:00:00 74.34683 286.6337</span>
-<span class="co">## 22 POINT (11.39 47.27) 2018-07-01 21:00:00 77.14049 286.5415</span>
-<span class="co">## 23 POINT (11.39 47.27) 2018-07-01 22:00:00 84.99293 286.7990</span>
-<span class="co">## 24 POINT (11.39 47.27) 2018-07-01 23:00:00 85.39623 287.0069</span></code></pre>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">inv</span><span class="op">$</span><span class="va">levelist</span>, <span class="va">inv</span><span class="op">$</span><span class="va">param</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">##      </span>
+<span class="co">##        q  r  t  u  v  z</span>
+<span class="co">##   500  0  0  0  0  0 24</span>
+<span class="co">##   700 24  0  0 24 24  0</span>
+<span class="co">##   850  0 24 24  0  0  0</span></code></pre>
 </div>
-<div class="section level4">
-<h4 id="downloading-and-processing-1">Downloading and processing<a class="anchor" aria-label="anchor" href="#downloading-and-processing-1"></a>
-</h4>
-<p>For details how to download the data defined by the configuration above please visit the <a href="gridded.html">Getting started</a> article.</p>
+<div class="section level3">
+<h3 id="downloading-grib-data-1">Downloading GRIB data<a class="anchor" aria-label="anchor" href="#downloading-grib-data-1"></a>
+</h3>
+<p>Same as for the ‘surface analysis’ variable shown in the previous sections. For demonstration the configuration is adjusted to download pressure analysis for two consecutive days (all parameters).</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">conf2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eupp_config.html">eupp_config</a></span><span class="op">(</span><span class="st">"analysis"</span>, <span class="st">"pressure"</span>,
+                     date  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2018-07-01"</span><span class="op">)</span> <span class="op">+</span> <span class="fl">0</span><span class="op">:</span><span class="fl">1</span>,
+                     steps <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">23</span>,          <span class="co"># 00 to 23 UTC</span>
+                     cache <span class="op">=</span> <span class="st">"_cache"</span><span class="op">)</span>
+
+<span class="co"># Downloading grib file</span>
+<span class="fu"><a href="../reference/gridded.html">eupp_download_gridded</a></span><span class="op">(</span><span class="va">conf2</span>, <span class="st">"_pressure.grb"</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="interpolating-data-1">Interpolating data<a class="anchor" aria-label="anchor" href="#interpolating-data-1"></a>
+</h3>
+<p>Interpolating the data for the the same two locations (see object <code>locations</code> above). Basic use:</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ip4</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eupp_interpolate_grib.html">eupp_interpolate_grib</a></span><span class="op">(</span><span class="st">"_pressure.grb"</span>, at <span class="op">=</span> <span class="va">locations</span>,
+                             atname <span class="op">=</span> <span class="st">"name"</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ip4</span>, n <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">##                  init               valid step            geometry      name</span>
+<span class="co">## 1 2018-07-01 00:00:00 2018-07-01 00:00:00    0 POINT (11.39 47.27) Innsbruck</span>
+<span class="co">## 2 2018-07-01 01:00:00 2018-07-01 01:00:00    0 POINT (11.39 47.27) Innsbruck</span>
+<span class="co">## 3 2018-07-01 02:00:00 2018-07-01 02:00:00    0 POINT (11.39 47.27) Innsbruck</span>
+<span class="co">## 4 2018-07-01 03:00:00 2018-07-01 03:00:00    0 POINT (11.39 47.27) Innsbruck</span>
+<span class="co">##             q        r        t        u         v        z</span>
+<span class="co">## 1 0.003724231 86.30977 14.15409 7.677462 -5.771023 56700.26</span>
+<span class="co">## 2 0.003619715 87.25610 13.93414 7.891758 -5.945953 56670.10</span>
+<span class="co">## 3 0.003590700 88.10528 13.71038 8.318286 -5.798636 56629.55</span>
+<span class="co">## 4 0.003589477 88.48817 13.55705 8.844135 -5.383819 56597.49</span></code></pre>
+<p>As the current pressure level data set does not contain any short-term forecasts the wide format is not sparse. In case needed, the same functionality is available. E.g., getting the long format for easy plotting …</p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ip5</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/eupp_interpolate_grib.html">eupp_interpolate_grib</a></span><span class="op">(</span><span class="st">"_pressure.grb"</span>, at <span class="op">=</span> <span class="va">locations</span>,
+                             atname <span class="op">=</span> <span class="st">"name"</span>, bilinear <span class="op">=</span> <span class="cn">TRUE</span>,
+                             wide <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ip5</span>, n <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">##                                                        path domain levtype</span>
+<span class="co">## 1 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
+<span class="co">## 2 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
+<span class="co">## 3 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
+<span class="co">## 4 data/ana/pressure/EU_analysis_pressure_params_2018-07.grb      g      pl</span>
+<span class="co">##   levelist step_char param class type stream expver offset length param_id</span>
+<span class="co">## 1      500         0     z    ea   an   oper   0001      0  23358      129</span>
+<span class="co">## 2      500         0     z    ea   an   oper   0001  23358  23358      129</span>
+<span class="co">## 3      500         0     z    ea   an   oper   0001  46716  23358      129</span>
+<span class="co">## 4      500         0     z    ea   an   oper   0001  70074  23358      129</span>
+<span class="co">##                  init number step               valid            geometry</span>
+<span class="co">## 1 2018-07-01 00:00:00     NA    0 2018-07-01 00:00:00 POINT (11.39 47.27)</span>
+<span class="co">## 2 2018-07-01 01:00:00     NA    0 2018-07-01 01:00:00 POINT (11.39 47.27)</span>
+<span class="co">## 3 2018-07-01 02:00:00     NA    0 2018-07-01 02:00:00 POINT (11.39 47.27)</span>
+<span class="co">## 4 2018-07-01 03:00:00     NA    0 2018-07-01 03:00:00 POINT (11.39 47.27)</span>
+<span class="co">##      value      name</span>
+<span class="co">## 1 56700.26 Innsbruck</span>
+<span class="co">## 2 56670.10 Innsbruck</span>
+<span class="co">## 3 56629.55 Innsbruck</span>
+<span class="co">## 4 56597.49 Innsbruck</span></code></pre>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">ip5</span><span class="op">)</span> <span class="op">+</span>
+       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">valid</span>, y <span class="op">=</span> <span class="va">value</span>, color <span class="op">=</span> <span class="va">name</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="st">"param"</span>, scales <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span></code></pre></div>
+<p><img src="gridded_analysis_files/figure-html/gridded_pressure_lineplot-1.png" width="100%"></p>
 </div>
 </div>
   </div>

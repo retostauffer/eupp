@@ -21,7 +21,7 @@ High-resolution forecasts are available on multiple levels:
 * `"pressure"`: pressure level data (see [here](#hr-pressure))
 * `"efi"`": extreme forecast index data (see [here](#hr-efi))
 
-### Specify data to be downloaded {#hr-download}
+### High-resolution surface data: Specify data
 
 ```{r, include = FALSE}
 suppressPackageStartupMessages(library("sf"))
@@ -64,86 +64,56 @@ The function returns an object of class `eupp_config` containing the
 data of interest used for downloading the data in a second step.
 
 
-```{r}
-print(conf)
-```
-
-### Downloading high-resolution forecast data
+### High-resolution surface data: Download GRIB
 
 For all gridded EUPP data sets three options for downloading the data
 exist. `eupp_download_gridded()` allows to download and store
-the data set on disc (GRIB version 1 or NetCDF).
-Alternatively the data can directly be retrieved as `stars` objects.
+the data set on disc.
 
-Note that getting the data in the NetCDF format as well as retrieving
-the data as `stars` objects require the [ecCodes tools](htltps://confluence.ecmwf.int/display/ECC)
-to be installed (namely the console tools `grib_set` and `grib_to_netcdf`).
 
 ```{r gridded_forecast_hr_download, eval = FALSE}
-eupp_download_gridded(conf, "_test.grb", "grib", overwrite = TRUE) # GRIB
-eupp_download_gridded(conf, "_test.nc",  "nc",   overwrite = TRUE) # NetCDF
-```
-
-```{r gridded_forecast_hr_get_gridded, include = FALSE}
-# Same eupp_get_gridded call as above but this one is executed
-# as we need the object in the next section.
-# Note: Allows for one single date only!
-conf$date <- conf$date[1]
-data <- eupp_get_gridded(conf)
+eupp_download_gridded(conf, "_hr_surface.grb", "grib", overwrite = TRUE)
 ```
 
 
-### Processing high-resolution forecast gridded data {#hr-processing}
-
-For more details on point-wise interpolation and additional `stars` features please
-have a look at the vignette for [Gridded Analysis](gridded_analysis.html) data.
-Just a series of commands for testing:
+### High-resolution surface data: Interpolation
 
 ```{r gridded_forecast_hr_processing, out.width = "100%", fig.width = 10, fig.height = 6}
 library("sf")
-
-# Create simple features data.frame; define locations
 locations <- data.frame(name = c("Innsbruck", "Brussels"),
                         lon  = c(11.39, 4.35),
                         lat  = c(47.27, 50.85))
-locations <- st_as_sf(locations, coords = c("lon", "lat"))
+(locations <- st_as_sf(locations, coords = c("lon", "lat"), crs = 4326))
 
-# Perform bilinear interpolation; coerce to data.frame
-interpolated <- st_extract(data, locations, bilinear = TRUE, atname = "name")
-head(interpolated, n = 4)
-
-plot(data["t2m", , , 1:4])
-plot(data["tcc", , , 1:4])
+# Perform bilinear interpolation
+ip <- eupp_interpolate_grib("_hr_surface.grb", at = locations,
+                            atname = "name", bilinear = TRUE)
+head(ip, n = 4)
 ```
 
-```{r}
-library("ggplot2")
-class(data) <- class(data)[-1] # Dropping eupp_stars class attribute
-ggplot() + geom_stars(data = data["t2m"])
-```
-
-@TODO: `ggplot() + geom_stars(data = data["q"])` fails when `data` is an object
-of class `c("eupp_stars", "stars")`. Unfortunately `geom_stars` is not an S3 method;
-currently there is no other way than dropping the `eupp_stars` class attribute.
 
 
-### High-resolution pressure level forecasts {#hr-pressure}
+### High-resolution pressure level data
 
 Only minor differences to surface data. All needed to be done is to 
 set `level = "pressure"` and specify what parameter(s) to be downloaded.
 Note: There is no dedicated option to specify which levels An example:
 
 ```{r gridded_forecast_hr_pressure, fig = TRUE, fig.width = 8, fig.height = 5, out.width = "80%"}
-data <- eupp_get_gridded(eupp_config("forecast", "pressure", "hr", date = "2017-01-01", steps = 12))
-(interpolated <- st_extract(data, locations, bilinear = FALSE, atname = "name"))
+conf <- eupp_config("forecast", "pressure", "hr",
+                    date = "2017-01-01",
+                    steps = 12,
+                    cache = "_cache")
 
-library("ggplot2")
-class(data) <- class(data)[-1]
-ggplot() + geom_stars(data = data["q"])
+eupp_download_gridded(conf, "_hr_pressure.grb", overwrite = TRUE)
+
+ip <- eupp_interpolate_grib("_hr_pressure.grb", at = locations,
+                            atname = "name", bilinear = TRUE)
+head(ip, n = 4)
 ```
 
 
-### High-resolution efi forecasts {#hr-efi}
+### High-resolution extreme forecast index
 
 The extreme forecast index is a second-level product derived from the entire
 atmosphere of all ensemble forecasts projected to a 2D plane. Thus, there are
@@ -153,15 +123,19 @@ periods available at 00 UTC (e.g., +0-24 hours ahead, +24-48 hours ahead, ...).
 To get the data simply ask for `level = "efi"` (here not declaring `steps` to get all available forecast steps).
 
 ```{r gridded_forecast_efi, fig = TRUE, fig.width = 8, fig.height = 5, out.width = "80%"}
-data <- eupp_get_gridded(eupp_config("forecast", "efi", date = "2017-01-01"))
-(interpolated <- st_extract(data, locations, bilinear = TRUE, atname = "name"))
+conf <- eupp_config("forecast", "efi",
+                    date = "2017-01-01",
+                    cache = "_cache")
 
-library("ggplot2")
-class(data) <- class(data)[-1]
-ggplot() + geom_stars(data = data["t2i"])
+eupp_download_gridded(conf, "_hr_efi.grb", overwrite = TRUE)
+
+ip <- eupp_interpolate_grib("_hr_efi.grb", at = locations,
+                            atname = "name", bilinear = TRUE)
+head(ip, n = 4)
 ```
 
-
+Note that not all parameters are available for all forecast steps (mainly
+for the very long range horizonts).
 
 
 
@@ -177,7 +151,8 @@ which ensemble forecast members/perturbations shall be processed.
 * If nothing is specified (`members = NULL`), the control run plus all
   available ensemble members will be downloaded/processed.
 
-### Specify data to be downloaded
+
+### Ensemble surface data
 
 As always, `eupp_config()` has to be called to specify what should be processed
 in the next step.
@@ -199,59 +174,65 @@ conf <- eupp_config(product   = "forecast",
                     type      = "ens",          # high-resolution forecast run
                     date      = "2017-01-02",   # dates
                     parameter = "cp",           # one parameter
-                    steps     = 120,            # only +10 days forecast
+                    steps     = 72:120,         # All available in this range
                     members   = 0:3,            # control run + members 1, 2, 3
                     cache     = "_cache")       # optional
-
-print(conf)
 ```
 
-
-### Downloading ensemble forecast data {#ens-download}
 
 Once the configuration object has been created we can download the data.
-For more details see section ["Downloading high-resolution forecast data"](#hr-download)
-and/or the corresponding section in "[Analysis Data](gridded_analysis.html#download)".
-
-Note that this, again, requires [ecCodes tools](htltps://confluence.ecmwf.int/display/ECC)
-to be installed (namely `grib_set` and `grib_to_netcdf`).
 
 ```{r gridded_forecast_ens_download, eval = FALSE}
-eupp_download_gridded(conf, "_test.grb", "grib", overwrite = TRUE) # GRIB
-eupp_download_gridded(conf, "_test.nc",  "nc",   overwrite = TRUE) # NetCDF
-data <- eupp_get_gridded(conf)                                     # stars
-
-(test <- st_extract(data, locations, bilinear = TRUE))
+eupp_download_gridded(conf, "_ens_surface.grb", "grib", overwrite = TRUE)
 ```
 
-```{r, include = FALSE}
-# Same eupp_get_gridded call as above but this one is executed
-# as we need the object in the next section.
-data <- eupp_get_gridded(conf)
+Last but not least interpolate the data using `eupp_interpolate_grib()`.
+Note that, as we have ensemble forecasts, there are multiple forecast members
+for the same date/time and parameter. This will be reflected by the adjusted
+parameter names. `_[0-9]+$` at the end indicates the different members.
+
+```{r}
+ip <- eupp_interpolate_grib("_ens_surface.grb", at = locations,
+                            atname = "name", bilinear = TRUE)
+head(ip, n = 2)
 ```
 
-### Processing ensemble-forecast gridded data {#ens-processing}
+The same is true when using the long format except .. its the long format.
 
-For more details on point-wise interpolation and additional `stars` features please
-have a look at the vignette for "[Interpolating analysis data](gridded_analysis.html#interpolate)".
-One of the main differnces: The member number (or perturbation number) will be added
-to the variable name.
+```{r}
+ip2 <- eupp_interpolate_grib("_ens_surface.grb", at = locations,
+                             atname = "name", bilinear = TRUE,
+                             wide = FALSE)
+head(ip2, n = 3)
+```
 
-```{r gridded_forecast_ens_processing, out.width = "100%", fig.width = 10, fig.height = 6}
-library("sf")
-
-# Create simple features data.frame; define locations
-locations <- data.frame(name = c("Innsbruck", "Brussels"),
-                        lon  = c(11.39, 4.35),
-                        lat  = c(47.27, 50.85))
-locations <- st_as_sf(locations, coords = c("lon", "lat"))
-
-# Perform bilinear interpolation; coerce to data.frame
-(interpolated <- st_extract(data, locations, bilinear = TRUE, atname = "name"))
-
+```{r ens_surface_lineplot, fig = TRUE, fig.width = 10, fig.height = 5, out.width = "100%"}
 library("ggplot2")
-class(data) <- class(data)[-1]
-ggplot() + geom_stars(data = data["cp", , , 1:4])
+ggplot(ip2) + geom_line(aes(x = valid, y = value, color = param)) +
+    facet_wrap("name")
 ```
+
+@TODO: Still cumulated!
+
+
+### Ensemble pressure level data
+
+
+```{r gridded_forecast_ens_pressure_config}
+# Create custom configuration
+conf <- eupp_config(product   = "forecast",
+                    level     = "pressure",
+                    type      = "ens",          # high-resolution forecast run
+                    date      = "2017-01-02",   # dates
+                    steps     = 72,             # Only forecast step 72
+                    members   = 10:11,          # control run + members 10 and 11
+                    cache     = "_cache")       # optional
+
+k <- eupp_download_gridded(conf, "_ens_pressure.grb", overwrite = TRUE)
+
+(ip <- eupp_interpolate_grib("_ens_pressure.grb", at = locations,
+                             atname = "name", bilinear = TRUE))
+```
+
 
 
